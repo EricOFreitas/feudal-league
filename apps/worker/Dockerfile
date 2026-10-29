@@ -12,6 +12,5 @@ RUN pnpm install --frozen-lockfile --filter @aoe2/worker... --filter @aoe2/db...
 COPY packages ./packages
 COPY apps/worker ./apps/worker
 ENV NODE_ENV=production
-# aplica migrations e entra no loop
 # o compose decide: migrate (uma vez) ou worker (loop)
 CMD ["pnpm", "--filter", "@aoe2/worker", "start"]
