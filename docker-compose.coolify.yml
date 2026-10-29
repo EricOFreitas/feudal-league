@@ -1,0 +1,54 @@
+# Compose usado pelo Coolify (build pack "Docker Compose"). Contexto = raiz do repo.
+# Variáveis vêm do painel do Coolify: DATABASE_URL, SESSION_SECRET, APP_URL, WEB_PORT.
+# A rede "coolify" dá acesso ao Postgres gerenciado pelo próprio Coolify.
+services:
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    command: ['pnpm', '--filter', '@aoe2/db', 'migrate']
+    environment:
+      DATABASE_URL: '${DATABASE_URL}'
+    restart: 'no'
+    networks:
+      - default
+      - coolify
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-3010}:3000'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: '${DATABASE_URL}'
+      SESSION_SECRET: '${SESSION_SECRET}'
+      APP_URL: '${APP_URL}'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - coolify
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    command: ['pnpm', '--filter', '@aoe2/worker', 'start']
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: '${DATABASE_URL}'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - coolify
+
+networks:
+  coolify:
+    external: true

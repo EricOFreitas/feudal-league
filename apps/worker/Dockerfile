@@ -13,4 +13,5 @@ COPY packages ./packages
 COPY apps/worker ./apps/worker
 ENV NODE_ENV=production
 # aplica migrations e entra no loop
-CMD ["sh", "-c", "pnpm --filter @aoe2/db migrate && pnpm --filter @aoe2/worker start"]
+# o compose decide: migrate (uma vez) ou worker (loop)
+CMD ["pnpm", "--filter", "@aoe2/worker", "start"]
