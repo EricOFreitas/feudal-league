@@ -15,10 +15,10 @@ Plano e decisões: `docs/PLANO.md`. Ler antes de mexer em escopo.
 
 ```
 apps/web            Next.js (páginas em src/app/[locale]/, rotas de auth em src/app/auth/)
-apps/worker         sync periódico por prioridade (reivindicado 1h, visto 6h)
+apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) + detecção de partidas de liga
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras de gravação: upsert de jogador/rating/snapshot/partidas
+packages/sync       regras: upsert de jogador/rating/snapshot/partidas; ligas (inscrição, detecção, tabela) em leagues.ts
 docs/PLANO.md       plano, fases, decisões
 ```
 
@@ -40,5 +40,7 @@ pnpm typecheck
 - Nada que seja asset do jogo (logo, ícone, arte). Identidade visual própria em `globals.css` e `crest.tsx`.
 - Sem monetização (Game Content Usage Rules). Aviso no rodapé fica.
 - Jogador é independente de usuário: qualquer visitante adiciona; dono reivindica via Steam.
+- Liga global é semeada em `packages/db/src/migrate.ts`; divisões padrão em `DEFAULT_DIVISIONS` (sync). Nomes de divisão neutros.
+- Ações de servidor das ligas em `apps/web/src/app/[locale]/leagues/actions.ts`; página checa dono por `ownerUserId === session.uid`.
 - Commits em português, sem Co-Authored-By. Formato: "verbo no presente + o que".
 - Sem console.log no web em produção; no worker o log é proposital.

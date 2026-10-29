@@ -173,10 +173,20 @@ no histórico, comportamento em rajada (quando vem 429).
 Entrega: qualquer visitante adiciona você pelo nick e vê seu rating e últimas
 partidas em PT e EN; você loga e o perfil passa a ser seu.
 
-**Fase 1 — ligas (3–4 semanas).**
-Criar liga, divisões por faixa, inscrição com checagem anti-smurf, reporte de
-partida com confirmação automática pelo histórico, ranking da divisão, página
-pública da liga.
+**Fase 1 — ligas (3–4 semanas). ✅ Funcional em dev em 29/10/2026.**
+Liga global (do sistema, criada pelo migrate) + ligas próprias (dono define
+nome, descrição, faixas, se ranqueada conta, mínimo de partidas). Divisões
+padrão medidas na ladder: Escudo 0–899, Lança 900–1099, Estandarte 1100–1299,
+Torre 1300–1499, Castelo 1500–1799, Coroa 1800+ (nomes neutros, sem título de
+pessoa). Inscrição pelo rating MÁXIMO RM 1v1 (anti-smurf) com mínimo de 10
+partidas; faixa congelada até o dono fechar a temporada (recoloca todos).
+Partida de liga: detecção automática no histórico, 1v1 (exatamente 2
+participantes) entre membros da mesma divisão depois da inscrição dos dois;
+ranqueada (matchtype 6) ou lobby (0). Pontos: vitória 3, derrota 1; desempate
+vitórias, depois rating. Dono anula/restaura partida, fecha inscrições, abre
+temporada. Worker: membro ativo sincroniza a cada 15 min e roda a detecção.
+Falta: reporte manual (se a detecção não cobrir algum caso), remover membro,
+editar liga depois de criada.
 
 **Fase 2 — torneios (3–4 semanas).**
 Chave de eliminação simples primeiro. Agenda, confirmação automática, disputa,
@@ -202,3 +212,9 @@ castelo etc.
 - 29/10/2026 — Stack: Next.js 16 + Postgres + worker Node, no Coolify.
 - 29/10/2026 — Acesso em camadas: adicionar e ver jogador sem login; login só
   pra reivindicar perfil, entrar em liga e administrar.
+- 29/10/2026 — Ranking por pontos (3/1), partida detectada pelo histórico (sem
+  reporte), faixa congelada na inscrição e revista no fim da temporada.
+- 29/10/2026 — Liga global + ligas próprias. Divisões com nomes neutros
+  (Escudo…Coroa) em vez de títulos no masculino; sem toggle de gênero.
+- 29/10/2026 — `.env` fica na raiz e é carregado por `process.loadEnvFile`
+  (web) e `node --env-file-if-exists` (worker, migrate).

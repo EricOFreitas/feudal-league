@@ -29,6 +29,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <p className="mt-3 text-sm text-parchment-300">{t('add.hint')}</p>
           <p className="mt-1 text-sm italic text-parchment-400">{t('add.free')}</p>
         </form>
+        <p className="mt-5"><Link href="/leagues" className="btn btn-ghost">{t('leaguesCta')}</Link></p>
       </section>
 
       <section>

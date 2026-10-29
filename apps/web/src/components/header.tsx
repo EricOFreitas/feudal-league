@@ -17,6 +17,7 @@ export async function Header() {
           <span className="font-display text-lg font-semibold tracking-wide text-gold-300">{site('name')}</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm">
+          <Link href="/leagues" className="font-display tracking-wide text-parchment-200 hover:text-gold-300">{t('leagues')}</Link>
           <LocaleSwitcher label={t('language')} />
           {session ? (
             <>

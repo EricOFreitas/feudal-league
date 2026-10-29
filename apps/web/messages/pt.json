@@ -32,7 +32,7 @@
       },
       "two": {
         "title": "Entre na sua faixa",
-        "text": "Ligas têm divisões por rating. Quem está em 900 compete com gente de 900."
+        "text": "Ligas têm divisões por rating, de Escudo a Coroa. Quem está em 900 compete com gente de 900."
       },
       "three": {
         "title": "Dispute",
@@ -40,7 +40,8 @@
       }
     },
     "recent": "Adicionados recentemente",
-    "empty": "Ninguém ainda. Seja o primeiro."
+    "empty": "Ninguém ainda. Seja o primeiro.",
+    "leaguesCta": "Ver ligas"
   },
   "search": {
     "title": "Quem é você?",
@@ -91,7 +92,11 @@
       "event": "Evento",
       "lobby": "Lobby",
       "other": "Outro"
-    }
+    },
+    "leagues": "Ligas",
+    "noLeagues": "Não participa de nenhuma liga.",
+    "position": "{pos}º de {total}",
+    "points": "{n} pts"
   },
   "leaderboard": {
     "rm_1v1": "Random Map 1v1",
@@ -135,6 +140,105 @@
       "minutes": "há {n} min",
       "hours": "há {n} h",
       "days": "há {n} d"
+    }
+  },
+  "division": {
+    "shield": "Escudo",
+    "lance": "Lança",
+    "banner": "Estandarte",
+    "tower": "Torre",
+    "castle": "Castelo",
+    "crown": "Coroa"
+  },
+  "leagues": {
+    "title": "Ligas",
+    "intro": "Uma liga agrupa jogadores em divisões por faixa de rating. A faixa é definida pelo seu rating máximo na RM 1v1 e fica congelada até a temporada fechar. Dentro da divisão, vitória vale 3 pontos e derrota vale 1.",
+    "global": "Liga Global",
+    "globalHint": "Aberta a todo mundo. Entre e apareça na tabela da sua faixa.",
+    "members": "{count, plural, =0 {sem membros} =1 {1 membro} other {# membros}}",
+    "season": "Temporada {n}",
+    "seasonSince": "desde {date}",
+    "create": "Criar liga",
+    "createHint": "Sua turma, seu Discord, sua cidade. Você define as faixas.",
+    "loginToCreate": "Entre com a Steam pra criar uma liga.",
+    "empty": "Nenhuma liga além da global ainda.",
+    "closed": "Inscrições fechadas",
+    "ownerYou": "Você administra esta liga",
+    "by": "por {name}",
+    "divisions": "Divisões",
+    "range": "{min}–{max}",
+    "rangeOpen": "{min}+",
+    "standings": "Classificação",
+    "noMembers": "Ninguém nesta divisão ainda.",
+    "col": {
+      "pos": "#",
+      "player": "Jogador",
+      "rating": "Rating",
+      "w": "V",
+      "l": "D",
+      "pts": "Pts"
+    },
+    "matches": "Partidas da liga",
+    "noMatches": "Nenhuma partida entre membros ainda. Joguem um 1v1 e ela aparece aqui na próxima sincronização.",
+    "beat": "venceu",
+    "voided": "anulada",
+    "voidedReason": "anulada: {reason}",
+    "join": {
+      "button": "Entrar na liga",
+      "preview": "Você entra na divisão {division} com rating {rating}.",
+      "login": "Entre com a Steam pra participar.",
+      "claim": "Reivindique seu perfil pra participar.",
+      "already": "Você está na divisão {division}.",
+      "leave": "Sair da liga",
+      "closed": "Esta liga não aceita inscrições.",
+      "no_rating": "Você ainda não tem rating na RM 1v1. Jogue partidas ranqueadas 1v1 e volte.",
+      "few_games": "Faltam partidas ranqueadas 1v1: você tem {games} e a liga pede {min}. Isso evita faixa errada em conta nova.",
+      "no_division": "Nenhuma divisão cobre o rating {rating} nesta liga.",
+      "no_season": "A liga está sem temporada aberta.",
+      "done": "Pronto. Você está na divisão {division}.",
+      "left": "Você saiu da liga."
+    },
+    "rules": {
+      "title": "Como funciona",
+      "placement": "A divisão é escolhida pelo seu rating máximo histórico na RM 1v1, não pelo atual. Quem já esteve alto não entra em faixa baixa.",
+      "minGames": "Precisa de pelo menos {n} partidas ranqueadas 1v1.",
+      "detect": "Qualquer 1v1 entre dois membros da mesma divisão conta sozinho: ranqueado ou lobby, sem reporte.",
+      "detectLobby": "Só partida de lobby entre dois membros da mesma divisão conta. Ranqueada fica de fora.",
+      "points": "Vitória 3 pontos, derrota 1. Desempate por vitórias, depois rating.",
+      "season": "Sua divisão fica congelada até o fim da temporada. Aí todo mundo é recolocado pelo rating do momento."
+    },
+    "new": {
+      "title": "Nova liga",
+      "name": "Nome",
+      "namePlaceholder": "Liga do Clã X",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Quem pode entrar, regras extras, link do Discord…",
+      "countRanked": "Partida ranqueada entre membros conta",
+      "countRankedHint": "Desmarque pra contar só jogo combinado (lobby).",
+      "minGames": "Mínimo de partidas ranqueadas 1v1",
+      "divisions": "Divisões",
+      "divisionsHint": "Edite nome e faixa. Deixe o nome em branco pra apagar a linha. Teto vazio = sem limite.",
+      "divName": "Nome",
+      "divMin": "De",
+      "divMax": "Até",
+      "submit": "Criar liga",
+      "errors": {
+        "name": "Dê um nome entre 3 e 60 caracteres.",
+        "divisions": "Precisa de ao menos uma divisão com faixa válida.",
+        "overlap": "As faixas não podem se sobrepor nem ter o mínimo acima do teto.",
+        "slug": "Já existe uma liga com esse nome. Escolha outro."
+      }
+    },
+    "admin": {
+      "title": "Administração",
+      "void": "Anular",
+      "restore": "Restaurar",
+      "voidReason": "Motivo (opcional)",
+      "newSeason": "Fechar temporada e abrir a próxima",
+      "newSeasonHint": "Recoloca todos pelo rating máximo atual. A tabela atual zera.",
+      "close": "Fechar inscrições",
+      "open": "Reabrir inscrições",
+      "remove": "Remover"
     }
   }
 }

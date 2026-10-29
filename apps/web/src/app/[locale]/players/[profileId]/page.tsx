@@ -4,11 +4,14 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { findPlayerByProfileId, importPlayerByProfileId, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
+import { findPlayerByProfileId, importPlayerByProfileId, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Flag } from '@/components/flag';
 import { RatingCard } from '@/components/rating-card';
 import { MatchRow } from '@/components/match-row';
+import { DivisionMark } from '@/components/division-mark';
+import { Link } from '@/i18n/navigation';
+import { divisionName } from '@/lib/leagues';
 import { getSession } from '@/lib/session';
 import { checkAdditionLimit, recordAddition } from '@/lib/additions';
 import { agoParts, isKnownLb, lbKey } from '@/lib/format';
@@ -63,6 +66,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const tl = await getTranslations('leaderboard');
   const ta = await getTranslations('auth');
   const ts = await getTranslations('search');
+  const td = await getTranslations('division');
+  const tlg = await getTranslations('leagues');
 
   const { player, apiError } = await loadPlayer(profileId);
   if (!player) {
@@ -77,6 +82,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
 
   const ratings = [...player.ratings].sort((a, b) => LEADERBOARD_ORDER.indexOf(a.leaderboardId as never) - LEADERBOARD_ORDER.indexOf(b.leaderboardId as never));
   const matches = await recentMatchesOf(profileId, 20);
+  const memberships = await membershipsOf(player.id);
   const ago = agoParts(player.lastSyncedAt);
   const countryName = player.country ? new Intl.DisplayNames([locale], { type: 'region' }).of(player.country.toUpperCase()) : null;
 
@@ -131,6 +137,25 @@ export default async function PlayerPage({ params, searchParams }: Props) {
               />
             ))}
           </div>
+        )}
+      </section>
+
+      <section>
+        <div className="rule mb-5"><span className="kicker">{t('leagues')}</span></div>
+        {memberships.length === 0 ? (
+          <p className="italic text-parchment-400">{t('noLeagues')} {isMine && <Link href="/leagues">{tlg('title')} →</Link>}</p>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {memberships.map((m) => (
+              <li key={m.id} className="panel p-4">
+                <Link href={`/leagues/${m.league.slug}`} className="block no-underline hover:no-underline">
+                  <p className="font-display text-lg text-gold-300">{m.league.isGlobal ? tlg('global') : m.league.name}</p>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-parchment-200"><DivisionMark nameKey={m.division.nameKey} className="h-4 w-4 text-gold-400" />{divisionName(m.division, td)} · {tlg('season', { n: m.season.number })}</p>
+                  <p className="mt-2 flex items-baseline justify-between"><span className="stat-num text-2xl">{t('position', { pos: m.position, total: m.total })}</span><span className="text-parchment-300">{t('points', { n: m.row?.points ?? 0 })}</span></p>
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 

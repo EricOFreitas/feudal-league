@@ -32,7 +32,7 @@
       },
       "two": {
         "title": "Join your bracket",
-        "text": "Leagues have rating divisions. A 900 player competes against 900 players."
+        "text": "Leagues have rating divisions, from Shield to Crown. If you're at 900, you compete with people at 900."
       },
       "three": {
         "title": "Compete",
@@ -40,7 +40,8 @@
       }
     },
     "recent": "Recently added",
-    "empty": "Nobody yet. Be the first."
+    "empty": "Nobody yet. Be the first.",
+    "leaguesCta": "See leagues"
   },
   "search": {
     "title": "Which one is you?",
@@ -91,7 +92,11 @@
       "event": "Event",
       "lobby": "Lobby",
       "other": "Other"
-    }
+    },
+    "leagues": "Leagues",
+    "noLeagues": "Not in any league.",
+    "position": "#{pos} of {total}",
+    "points": "{n} pts"
   },
   "leaderboard": {
     "rm_1v1": "Random Map 1v1",
@@ -135,6 +140,105 @@
       "minutes": "{n} min ago",
       "hours": "{n} h ago",
       "days": "{n} d ago"
+    }
+  },
+  "division": {
+    "shield": "Shield",
+    "lance": "Lance",
+    "banner": "Banner",
+    "tower": "Tower",
+    "castle": "Castle",
+    "crown": "Crown"
+  },
+  "leagues": {
+    "title": "Leagues",
+    "intro": "A league groups players into divisions by rating band. Your band is set by your peak RM 1v1 rating and stays frozen until the season ends. Within a division, a win is worth 3 points and a loss 1.",
+    "global": "Global League",
+    "globalHint": "Open to everyone. Join and show up in your band's table.",
+    "members": "{count, plural, =0 {no members} =1 {1 member} other {# members}}",
+    "season": "Season {n}",
+    "seasonSince": "since {date}",
+    "create": "Create a league",
+    "createHint": "Your crew, your Discord, your city. You set the bands.",
+    "loginToCreate": "Sign in with Steam to create a league.",
+    "empty": "No leagues besides the global one yet.",
+    "closed": "Closed for signups",
+    "ownerYou": "You run this league",
+    "by": "by {name}",
+    "divisions": "Divisions",
+    "range": "{min}–{max}",
+    "rangeOpen": "{min}+",
+    "standings": "Standings",
+    "noMembers": "Nobody in this division yet.",
+    "col": {
+      "pos": "#",
+      "player": "Player",
+      "rating": "Rating",
+      "w": "W",
+      "l": "L",
+      "pts": "Pts"
+    },
+    "matches": "League matches",
+    "noMatches": "No matches between members yet. Play a 1v1 and it shows up here on the next sync.",
+    "beat": "beat",
+    "voided": "voided",
+    "voidedReason": "voided: {reason}",
+    "join": {
+      "button": "Join the league",
+      "preview": "You'll enter the {division} division with rating {rating}.",
+      "login": "Sign in with Steam to join.",
+      "claim": "Claim your profile to join.",
+      "already": "You're in the {division} division.",
+      "leave": "Leave the league",
+      "closed": "This league isn't accepting signups.",
+      "no_rating": "You don't have an RM 1v1 rating yet. Play ranked 1v1 games and come back.",
+      "few_games": "Not enough ranked 1v1 games: you have {games} and the league requires {min}. This keeps new accounts out of the wrong band.",
+      "no_division": "No division covers rating {rating} in this league.",
+      "no_season": "This league has no open season.",
+      "done": "Done. You're in the {division} division.",
+      "left": "You left the league."
+    },
+    "rules": {
+      "title": "How it works",
+      "placement": "Your division is set by your all-time peak RM 1v1 rating, not your current one. If you've been high, you can't enter a low band.",
+      "minGames": "Requires at least {n} ranked 1v1 games.",
+      "detect": "Any 1v1 between two members of the same division counts automatically: ranked or lobby, no reporting.",
+      "detectLobby": "Only lobby games between two members of the same division count. Ranked games are excluded.",
+      "points": "Win 3 points, loss 1. Ties broken by wins, then rating.",
+      "season": "Your division stays frozen until the season ends. Then everyone is re-placed by their current rating."
+    },
+    "new": {
+      "title": "New league",
+      "name": "Name",
+      "namePlaceholder": "Clan X League",
+      "description": "Description",
+      "descriptionPlaceholder": "Who can join, extra rules, Discord link…",
+      "countRanked": "Ranked games between members count",
+      "countRankedHint": "Uncheck to count only arranged (lobby) games.",
+      "minGames": "Minimum ranked 1v1 games",
+      "divisions": "Divisions",
+      "divisionsHint": "Edit name and band. Leave the name blank to drop the row. Empty cap = no limit.",
+      "divName": "Name",
+      "divMin": "From",
+      "divMax": "To",
+      "submit": "Create league",
+      "errors": {
+        "name": "Give it a name between 3 and 60 characters.",
+        "divisions": "You need at least one division with a valid band.",
+        "overlap": "Bands can't overlap, and the minimum can't exceed the cap.",
+        "slug": "A league with that name already exists. Pick another."
+      }
+    },
+    "admin": {
+      "title": "Admin",
+      "void": "Void",
+      "restore": "Restore",
+      "voidReason": "Reason (optional)",
+      "newSeason": "Close season and start the next",
+      "newSeasonHint": "Re-places everyone by current peak rating. The current table resets.",
+      "close": "Close signups",
+      "open": "Reopen signups",
+      "remove": "Remove"
     }
   }
 }
