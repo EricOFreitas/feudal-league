@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+minimumReleaseAgeExclude:
+  - jose@6.2.14
+  - lucide-react@1.64.0
+allowBuilds:
+  esbuild: true
+  '@swc/core': true
+  '@parcel/watcher': true
+  unrs-resolver: true
+  sharp: true

@@ -1,0 +1,140 @@
+{
+  "site": {
+    "name": "Ligas AoE2",
+    "tagline": "Ligas e torneios por faixa de rating para Age of Empires II: Definitive Edition",
+    "notice": "Age of Empires II: Definitive Edition © Microsoft Corporation. Este site foi criado sob as <rules>Game Content Usage Rules</rules> da Microsoft e não é endossado nem afiliado à Microsoft.",
+    "source": "Dados de rating e partidas vêm do servidor do próprio jogo e podem atrasar alguns minutos."
+  },
+  "nav": {
+    "home": "Início",
+    "players": "Jogadores",
+    "leagues": "Ligas",
+    "login": "Entrar com Steam",
+    "logout": "Sair",
+    "me": "Meu perfil",
+    "language": "Idioma"
+  },
+  "home": {
+    "title": "Compita com quem está no seu nível",
+    "subtitle": "Acompanhe seu rating, entre numa liga da sua faixa e dispute torneios com chance real de pódio.",
+    "add": {
+      "title": "Adicionar jogador",
+      "hint": "Cole o link do perfil Steam, o SteamID64, o profile_id do AoE2 ou o nick exato como aparece no jogo.",
+      "placeholder": "https://steamcommunity.com/id/... ou nick",
+      "button": "Buscar",
+      "free": "Não precisa de conta. Qualquer pessoa pode adicionar qualquer jogador."
+    },
+    "steps": {
+      "title": "Como funciona",
+      "one": {
+        "title": "Adicione",
+        "text": "Cole o link da Steam ou o nick. O portal passa a acompanhar o rating em todas as ladders."
+      },
+      "two": {
+        "title": "Entre na sua faixa",
+        "text": "Ligas têm divisões por rating. Quem está em 900 compete com gente de 900."
+      },
+      "three": {
+        "title": "Dispute",
+        "text": "Torneios por divisão. O resultado é confirmado pelo histórico do jogo, sem print."
+      }
+    },
+    "recent": "Adicionados recentemente",
+    "empty": "Ninguém ainda. Seja o primeiro."
+  },
+  "search": {
+    "title": "Quem é você?",
+    "homonyms": "Encontramos {count} perfis com o nick \"{alias}\". Escolha o certo pela bandeira, rating e última partida.",
+    "none": "Nenhum perfil com o nick exato \"{alias}\". A busca diferencia maiúsculas e precisa do nick completo, igual ao do jogo.",
+    "noneSteam": "Essa conta Steam não tem perfil no AoE2 DE, ou nunca jogou online.",
+    "noneId": "Nenhum perfil com esse id.",
+    "invalid": "Não entendi essa entrada. Cole um link da Steam, um id numérico ou o nick.",
+    "vanityFail": "Não consegui resolver esse link da Steam. Tente colar o link com /profiles/ ou o SteamID64.",
+    "rateLimited": "Muitas adições vindas da sua rede na última hora. Tente de novo mais tarde.",
+    "apiDown": "O servidor do jogo não respondeu. Tente de novo em alguns minutos.",
+    "pick": "É este",
+    "lastMatch": "Última partida",
+    "noRanked": "sem partida ranqueada"
+  },
+  "player": {
+    "profileId": "profile_id",
+    "steam": "Perfil Steam",
+    "claim": "Esse sou eu",
+    "claimed": "Perfil reivindicado",
+    "yours": "Este perfil é seu",
+    "synced": "Sincronizado {ago}",
+    "neverSynced": "ainda não sincronizado",
+    "syncError": "Última sincronização falhou: {error}",
+    "ratings": "Ratings",
+    "noRatings": "Sem partidas ranqueadas em nenhuma ladder.",
+    "wins": "V",
+    "losses": "D",
+    "rank": "Posição",
+    "of": "de {total}",
+    "winrate": "Aproveitamento",
+    "peak": "Pico",
+    "streak": "Sequência",
+    "matches": "Últimas partidas",
+    "noMatches": "Nenhuma partida registrada ainda. O histórico chega na primeira sincronização completa.",
+    "win": "Vitória",
+    "loss": "Derrota",
+    "vs": "contra",
+    "team": "Time",
+    "unknownMap": "Mapa desconhecido",
+    "matchType": {
+      "ranked1v1": "RM 1v1 ranqueado",
+      "rankedTeam": "RM time ranqueado",
+      "dm": "Deathmatch",
+      "ew": "Empire Wars",
+      "br": "Battle Royale",
+      "console": "Console",
+      "event": "Evento",
+      "lobby": "Lobby",
+      "other": "Outro"
+    }
+  },
+  "leaderboard": {
+    "rm_1v1": "Random Map 1v1",
+    "rm_team": "Random Map em time",
+    "dm_1v1": "Deathmatch 1v1",
+    "dm_team": "Deathmatch em time",
+    "ew_1v1": "Empire Wars 1v1",
+    "ew_team": "Empire Wars em time",
+    "br_1v1": "Battle Royale",
+    "co_rm_1v1": "RM 1v1 (console)",
+    "co_rm_team": "RM time (console)",
+    "co_ew_1v1": "EW 1v1 (console)",
+    "co_ew_team": "EW time (console)",
+    "pom_1v1": "Mapa do mês 1v1",
+    "pom_team": "Mapa do mês em time",
+    "rbw_reinado_1v1": "Evento El Reinado 1v1",
+    "rbw_reinado_team": "Evento El Reinado em time",
+    "rbw_londinium_1v1": "Evento Londinium 1v1",
+    "rbw_londinium_team": "Evento Londinium em time"
+  },
+  "auth": {
+    "title": "Entrar",
+    "steamOnly": "O login é só pela Steam. Não guardamos senha nem e-mail.",
+    "why": "Com login você reivindica seu perfil, entra em ligas e cria as suas.",
+    "claimDone": "Perfil reivindicado. Ele agora aparece como seu.",
+    "claimNoProfile": "Sua conta Steam não tem perfil no AoE2 DE. Jogue uma partida online e tente de novo.",
+    "failed": "O login com a Steam falhou. Tente de novo."
+  },
+  "me": {
+    "title": "Meu perfil",
+    "notLogged": "Entre com a Steam para ver seu perfil.",
+    "noPlayer": "Nenhum perfil de AoE2 ligado a esta conta Steam.",
+    "link": "Procurar meu perfil pela Steam"
+  },
+  "common": {
+    "loading": "Carregando…",
+    "back": "Voltar",
+    "country": "País",
+    "ago": {
+      "now": "agora",
+      "minutes": "há {n} min",
+      "hours": "há {n} h",
+      "days": "há {n} d"
+    }
+  }
+}

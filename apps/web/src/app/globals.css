@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+
+/*
+  Identidade visual: painel de pedra escura, filetes de ouro envelhecido, texto em pergaminho.
+  Nada aqui é asset do jogo: só cor, tipografia e ornamento em CSS/SVG próprio.
+*/
+@theme {
+  --font-display: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  --font-body: var(--font-crimson), 'Crimson Pro', Georgia, serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', monospace;
+
+  --color-stone-950: #0f0c09;
+  --color-stone-900: #17120d;
+  --color-stone-800: #221a13;
+  --color-stone-700: #2f2419;
+  --color-stone-600: #43352a;
+  --color-stone-500: #5e4b3a;
+
+  --color-gold-300: #e9cf8a;
+  --color-gold-400: #d4af5a;
+  --color-gold-500: #b8893a;
+  --color-gold-600: #8a6424;
+  --color-gold-700: #5d4217;
+
+  --color-parchment-50: #f7efdc;
+  --color-parchment-100: #efe2c4;
+  --color-parchment-200: #dccba3;
+  --color-parchment-300: #bfa97e;
+  --color-parchment-400: #9a8560;
+
+  --color-crimson-500: #a6342e;
+  --color-crimson-600: #7a2320;
+  --color-azure-500: #3b6ea8;
+  --color-azure-600: #2b507a;
+  --color-moss-500: #4f7a3a;
+  --color-moss-600: #38592a;
+
+  --shadow-panel: 0 1px 0 rgba(233, 207, 138, 0.08) inset, 0 10px 30px -12px rgba(0, 0, 0, 0.8);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-stone-950);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-parchment-100);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(184, 137, 58, 0.14), transparent 60%),
+    linear-gradient(180deg, #14100c 0%, #0f0c09 100%);
+  min-height: 100dvh;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* Painel: pedra escura com filete duplo de ouro */
+.panel {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 40%),
+    var(--color-stone-800);
+  border: 1px solid var(--color-gold-600);
+  box-shadow: var(--shadow-panel);
+  border-radius: 4px;
+}
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(184, 137, 58, 0.35);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Cantoneiras douradas */
+.corners::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) top left / 14px 2px no-repeat,
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) top left / 2px 14px no-repeat,
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) top right / 14px 2px no-repeat,
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) top right / 2px 14px no-repeat,
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) bottom left / 14px 2px no-repeat,
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) bottom left / 2px 14px no-repeat,
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) bottom right / 14px 2px no-repeat,
+    linear-gradient(var(--color-gold-400), var(--color-gold-400)) bottom right / 2px 14px no-repeat;
+}
+
+/* Divisor com losango central */
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-gold-500);
+}
+.rule::before, .rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold-600), transparent);
+}
+
+.btn {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.25rem;
+  border-radius: 3px;
+  border: 1px solid var(--color-gold-500);
+  color: var(--color-stone-950);
+  background: linear-gradient(180deg, var(--color-gold-300), var(--color-gold-500));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 6px 16px -8px rgba(212, 175, 90, 0.6);
+  transition: filter 120ms ease, transform 120ms ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.6; cursor: wait; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-gold-300);
+  border-color: var(--color-gold-600);
+  box-shadow: none;
+}
+.btn-ghost:hover { background: rgba(184, 137, 58, 0.1); }
+
+.input {
+  width: 100%;
+  background: var(--color-stone-950);
+  border: 1px solid var(--color-gold-700);
+  color: var(--color-parchment-50);
+  padding: 0.75rem 1rem;
+  border-radius: 3px;
+  font-size: 1.05rem;
+  outline: none;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5) inset;
+}
+.input:focus { border-color: var(--color-gold-400); box-shadow: 0 0 0 3px rgba(212, 175, 90, 0.18); }
+.input::placeholder { color: var(--color-parchment-400); }
+
+.kicker {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-500);
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-gold-300);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 2px;
+  border: 1px solid var(--color-gold-700);
+  color: var(--color-parchment-200);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.row-win { border-left: 3px solid var(--color-moss-500); }
+.row-loss { border-left: 3px solid var(--color-crimson-500); }
+
+a { color: var(--color-gold-300); text-decoration: none; }
+a:hover { color: var(--color-gold-400); text-decoration: underline; text-decoration-color: var(--color-gold-600); }

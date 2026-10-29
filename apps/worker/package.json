@@ -1,0 +1,20 @@
+{
+  "name": "@aoe2/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "once": "tsx src/index.ts --once",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aoe2/aoe-api": "workspace:*",
+    "@aoe2/db": "workspace:*",
+    "@aoe2/sync": "workspace:*",
+    "drizzle-orm": "^0.45.4",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": { "typescript": "^5.9.3", "@types/node": "^24.0.0" }
+}
