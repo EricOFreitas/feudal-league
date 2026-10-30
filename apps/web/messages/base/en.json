@@ -211,8 +211,11 @@
       "minGames": "Requires at least {n} ranked 1v1 games.",
       "detect": "Any 1v1 between two members of the same division counts automatically: ranked or lobby, no reporting.",
       "detectLobby": "Only lobby games between two members of the same division count. Ranked games are excluded.",
-      "points": "Win 3 points, loss 1. Ties broken by wins, then rating.",
-      "season": "Your division stays frozen until the season ends. Then everyone is re-placed by their current rating."
+      "points": "Win {win} points, loss {loss}. Tiebreaks: wins, then fewer losses, then rating.",
+      "season": "Your division stays frozen until the season ends. Then everyone is re-placed by their current rating.",
+      "detectNonMembers": "Your ranked 1v1 against any player rated within your bracket counts, in the league or not. Between members of the same division, lobby counts too.",
+      "autoJoin": "Whoever plays against a member is brought into the league and placed in their bracket by peak rating.",
+      "claimJoin": "Claiming your profile joins this league automatically. You can leave any time."
     },
     "new": {
       "title": "New league",
@@ -234,7 +237,13 @@
         "divisions": "You need at least one division with a valid band.",
         "overlap": "Bands can't overlap, and the minimum can't exceed the cap.",
         "slug": "A league with that name already exists. Pick another."
-      }
+      },
+      "pointsLoss": "Points per loss",
+      "pointsLossHint": "1 rewards activity; 0 measures wins only (like the Global League).",
+      "countNonMembers": "Ranked vs non-member in bracket counts",
+      "countNonMembersHint": "Only ranked 1v1 against an opponent rated within the member's division range.",
+      "autoJoin": "Bring the opponent into the league",
+      "autoJoinHint": "Whoever played a member joins on their own, in the bracket of their peak rating."
     },
     "admin": {
       "title": "Admin",

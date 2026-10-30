@@ -12,7 +12,15 @@ import { DivisionMark } from './division-mark';
  * "Por que contou?" feito com <details>/<summary> (sem JavaScript).
  * `admin` é o formulário de anular/restaurar, só pro dono (vem pronto da página).
  */
-export async function LeagueMatchRow({ lm, locale, admin }: { lm: LeagueMatchItem; locale: string; admin?: ReactNode }) {
+type Props = {
+  lm: LeagueMatchItem; locale: string; admin?: ReactNode;
+  /** Pontos da liga (vitória/derrota). */
+  points?: { win: number; loss: number };
+  /** profile_ids dos membros ativos: quem não está aqui é adversário de fora (regra da Liga Global). */
+  memberProfileIds?: Set<number>;
+};
+
+export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileIds }: Props) {
   const t = await getTranslations('leagues');
   const tw = await getTranslations('leagues.detail.why');
   const tf = await getTranslations('leagues.detail.facts');
@@ -27,14 +35,21 @@ export async function LeagueMatchRow({ lm, locale, admin }: { lm: LeagueMatchIte
   const division = divisionName(lm.division, td);
   const map = lm.match.mapName ? mapLabel(lm.match.mapName) : tp('unknownMap');
 
+  const pw = points?.win ?? POINTS_WIN, pl = points?.loss ?? POINTS_LOSS;
+  const outsider = memberProfileIds
+    ? [lm.winner, lm.loser].find((p) => !memberProfileIds.has(p.profileId))
+    : undefined;
+  const outsiderRating = outsider ? lm.match.members.find((m) => m.profileId === outsider.profileId)?.oldRating : undefined;
   const checks: { text: string; bad?: boolean }[] = [
     { text: tw('twoPlayers') },
-    { text: tw('sameDivision', { division }) },
+    outsider
+      ? { text: tw('nonMember', { division, rating: outsiderRating ?? '–' }) }
+      : { text: tw('sameDivision', { division }) },
     { text: tw('afterJoin') },
     { text: lobby ? tw('lobbyCounts') : tw('rankedCounts') },
     voided
       ? { text: lm.voidReason ? tw('voidedReason', { reason: lm.voidReason }) : tw('voided'), bad: true }
-      : { text: tw('points', { winner: lm.winner.alias, loser: lm.loser.alias, w: POINTS_WIN, l: POINTS_LOSS }) },
+      : { text: tw('points', { winner: lm.winner.alias, loser: lm.loser.alias, w: pw, l: pl }) },
   ];
   const facts: { k: string; v: string; mono?: boolean }[] = [
     { k: tf('match'), v: `#${lm.matchId}`, mono: true },

@@ -1,6 +1,7 @@
 /**
  * Worker de sincronização. Roda em loop; cada ciclo escolhe quem sincronizar por prioridade:
  *   - inscrito em liga com temporada aberta ou em torneio em andamento: a cada 15 min
+ *   - trazido automaticamente pra liga (adversário) e não reivindicado: a cada 6 h
  *   - reivindicado (tem dono): a cada 60 min
  *   - só adicionado, visto nos últimos 30 dias: a cada 6 h
  * Jogador sem dono e sem visita recente não entra no ciclo; a página dele sincroniza sob demanda.
@@ -10,7 +11,7 @@
  */
 import { db, players } from '@aoe2/db';
 import {
-  activeLeagueProfileIds, activeTournamentProfileIds, closeIncident, detectLeagueMatches, detectTournamentGames, openIncident,
+  activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, closeIncident, detectLeagueMatches, detectTournamentGames, openIncident,
   processNotifications, processQueuedAnalyses, recordSyncRun, syncMatchHistory, syncRatingsByProfileIds, takeWeeklySnapshots,
 } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
@@ -27,6 +28,7 @@ async function pickDue(): Promise<number[]> {
   const h6 = new Date(now.getTime() - 6 * 60 * 60 * 1000);
   const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const inLeague = [...new Set([...(await activeLeagueProfileIds()), ...(await activeTournamentProfileIds())])];
+  const autoIds = await autoLeagueProfileIds();
   const rows = await db
     .select({ profileId: players.profileId })
     .from(players)
@@ -35,6 +37,7 @@ async function pickDue(): Promise<number[]> {
         inLeague.length ? and(inArray(players.profileId, inLeague), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, m15))) : undefined,
         and(isNotNull(players.claimedByUserId), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, h1))),
         and(isNull(players.claimedByUserId), gt(players.lastViewedAt, d30), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, h6))),
+        autoIds.length ? and(inArray(players.profileId, autoIds), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, h6))) : undefined,
       ),
     )
     .limit(500);
@@ -68,6 +71,10 @@ async function cycle() {
   const games = await detectTournamentGames();
   if (games) log(`${games} jogos de torneio detectados`);
   await recordSyncRun('detect', t1, { matches: league + games });
+  try {
+    const auto = await autoJoinOpponents();
+    if (auto) log(`${auto} adversários trazidos pra liga`);
+  } catch (e) { log('erro no auto-join:', (e as Error).message); }
   const t2 = new Date();
   const snaps = await takeWeeklySnapshots();
   if (snaps) { log(`${snaps} posições fotografadas (semana)`); await recordSyncRun('snapshot', t2, { players: snaps }); }

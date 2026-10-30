@@ -61,6 +61,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
   const counts = season ? await divisionCounts(season.id) : new Map<number, number>();
   const memberTotal = [...counts.values()].reduce((a, b) => a + b, 0);
+  const memberProfileIds = new Set(season
+    ? (await db.select({ profileId: players.profileId }).from(leagueMembers).innerJoin(players, eq(players.id, leagueMembers.playerId))
+        .where(and(eq(leagueMembers.seasonId, season.id), isNull(leagueMembers.leftAt)))).map((r) => r.profileId)
+    : []);
   const totalMembers = [...counts.values()].reduce((n, c) => n + c, 0);
   const nf = new Intl.NumberFormat(locale);
   const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
@@ -308,8 +312,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               <ul className="mt-3 list-disc space-y-2 pl-4 text-sm text-parchment-200">
                 <li>{t('rules.placement')}</li>
                 <li>{t('rules.minGames', { n: league.minGames })}</li>
-                <li>{league.countRanked ? t('rules.detect') : t('rules.detectLobby')}</li>
-                <li>{t('rules.points')}</li>
+                <li>{league.countNonMembers ? t('rules.detectNonMembers') : league.countRanked ? t('rules.detect') : t('rules.detectLobby')}</li>
+                {league.autoJoinOpponents && <li>{t('rules.autoJoin')}</li>}
+                {league.isGlobal && <li>{t('rules.claimJoin')}</li>}
+                <li>{t('rules.points', { win: league.pointsWin, loss: league.pointsLoss })}</li>
                 <li>{t('rules.season')}</li>
               </ul>
             <p className="mt-3 text-sm"><Link href="/rules#leagues">{tn('rules')} →</Link></p>
@@ -400,6 +406,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                   key={lm.id}
                   lm={lm}
                   locale={locale}
+                  points={{ win: league.pointsWin, loss: league.pointsLoss }}
+                  memberProfileIds={memberProfileIds}
                   admin={isOwner ? (
                     <form action={voidMatchAction} className="flex flex-none items-center gap-2">
                       {hidden}

@@ -50,6 +50,13 @@
       "when": 1793372873012,
       "tag": "0006_nasty_the_twelve",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793384611614,
+      "tag": "0007_wandering_raider",
+      "breakpoints": true
     }
   ]
 }

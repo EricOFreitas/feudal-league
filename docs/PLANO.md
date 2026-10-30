@@ -294,3 +294,8 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   custo dos tokens. Teste de modelo local (GPU do Eric) previsto.
 - 30/10/2026 — Fase 4 (layout v4 + comunidade) entregue por agentes orquestrados. CSS do tema
   passou pra `@layer base/components` pra utilitários do Tailwind vencerem sem `!`.
+- 30/10/2026 (noite) — Regras da Liga Global mudam pra ela andar sozinha: vitória 3, derrota 0;
+  ranqueada 1v1 de membro contra NÃO-membro com rating na faixa conta; adversário é trazido pra
+  liga aos poucos (40 por ciclo, colocado pelo pico, sync a cada 6 h); quem reivindica o perfil
+  entra na Global automaticamente. Ligas próprias: 3/1 e regras desligadas por padrão, dono escolhe.
+  Pré-preencher com a ladder inteira foi descartado (API não aguenta sincronizar 47 mil).

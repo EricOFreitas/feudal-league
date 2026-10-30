@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { db, players } from '@aoe2/db';
-import { findPlayerBySteamId, importPlayerBySteamId, syncMatchHistory } from '@aoe2/sync';
+import { findPlayerBySteamId, importPlayerBySteamId, joinGlobalLeague, syncMatchHistory } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -29,7 +29,10 @@ export default async function MePage({ params }: { params: Promise<{ locale: str
 
   const player = await findPlayerBySteamId(session.sid);
   if (player) {
-    if (player.claimedByUserId == null) await db.update(players).set({ claimedByUserId: session.uid }).where(eq(players.id, player.id));
+    if (player.claimedByUserId == null) {
+      await db.update(players).set({ claimedByUserId: session.uid }).where(eq(players.id, player.id));
+      await joinGlobalLeague(player.id).catch(() => undefined);
+    }
     redirect({ href: `/players/${player.profileId}`, locale });
   }
 
@@ -40,6 +43,7 @@ export default async function MePage({ params }: { params: Promise<{ locale: str
     if (r) {
       await syncMatchHistory([r.profileId]).catch(() => undefined);
       await db.update(players).set({ claimedByUserId: session.uid }).where(eq(players.id, r.id));
+      await joinGlobalLeague(r.id).catch(() => undefined);
       redirect({ href: `/players/${r.profileId}`, locale });
     }
   } catch { failed = true; }

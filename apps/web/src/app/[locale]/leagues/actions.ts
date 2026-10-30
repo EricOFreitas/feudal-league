@@ -94,6 +94,9 @@ export async function createLeagueAction(_prev: CreateState, fd: FormData): Prom
   const description = String(fd.get('description') ?? '').trim().slice(0, 2000) || null;
   const countRanked = fd.get('countRanked') === 'on';
   const minGames = Math.min(200, Math.max(0, Number(fd.get('minGames')) || 0));
+  const pointsLoss = fd.get('pointsLoss') === '0' ? 0 : 1;
+  const countNonMembers = fd.get('countNonMembers') === 'on';
+  const autoJoinOpponents = fd.get('autoJoinOpponents') === 'on';
 
   const rows: z.infer<typeof divisionRow>[] = [];
   for (let i = 0; i < 8; i++) {
@@ -126,7 +129,7 @@ export async function createLeagueAction(_prev: CreateState, fd: FormData): Prom
   if (taken) {
     slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
   }
-  const id = await createLeague({ slug, name, description, ownerUserId: session!.uid, countRanked, minGames, divisions: divs });
+  const id = await createLeague({ slug, name, description, ownerUserId: session!.uid, countRanked, minGames, pointsLoss, countNonMembers, autoJoinOpponents, divisions: divs });
   if (!id) return { error: 'slug' };
   revalidatePath(`/${locale}/leagues`);
   redirect({ href: `/leagues/${slug}`, locale });

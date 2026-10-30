@@ -170,12 +170,12 @@ function appUrl(path: string): string | undefined {
   return base?.startsWith('https://') ? `${base}/pt${path}` : undefined;
 }
 
-type MatchText = { winner: string; loser: string; division: string; map: string; lobby: boolean; minutes: number };
+type MatchText = { winner: string; loser: string; division: string; map: string; lobby: boolean; minutes: number; pw?: number; pl?: number };
 
 export function matchEmbed(m: MatchText, league: string, at: Date, url?: string): DiscordEmbed {
   return {
     title: `${m.winner} venceu ${m.loser}`,
-    description: `${m.division} · ${m.map} · ${m.lobby ? 'lobby' : 'ranqueada'} · ${m.minutes} min. ${m.winner} +${pts(POINTS_WIN)} · ${m.loser} +${pts(POINTS_LOSS)}.`,
+    description: `${m.division} · ${m.map} · ${m.lobby ? 'lobby' : 'ranqueada'} · ${m.minutes} min. ${m.winner} +${pts(m.pw ?? POINTS_WIN)} · ${m.loser} +${pts(m.pl ?? POINTS_LOSS)}.`,
     color: EMBED_COLORS.match, footer: { text: `${league} · ${formatDiscordDate(at)}` }, url,
   };
 }
@@ -188,10 +188,10 @@ export function voidedEmbed(m: { winner: string; loser: string; division: string
   };
 }
 
-export function restoredEmbed(m: { winner: string; loser: string; division: string }, league: string, at: Date, url?: string): DiscordEmbed {
+export function restoredEmbed(m: { winner: string; loser: string; division: string; pw?: number; pl?: number }, league: string, at: Date, url?: string): DiscordEmbed {
   return {
     title: 'Partida restaurada',
-    description: `${m.winner} venceu ${m.loser} (${m.division}) e a partida volta a contar: ${m.winner} +${pts(POINTS_WIN)} · ${m.loser} +${pts(POINTS_LOSS)}.`,
+    description: `${m.winner} venceu ${m.loser} (${m.division}) e a partida volta a contar: ${m.winner} +${pts(m.pw ?? POINTS_WIN)} · ${m.loser} +${pts(m.pl ?? POINTS_LOSS)}.`,
     color: EMBED_COLORS.restored, footer: { text: `${league} · ${formatDiscordDate(at)}` }, url,
   };
 }
@@ -303,7 +303,8 @@ async function loadItems(hookLeagueIds: number[]): Promise<Item[]> {
     orderBy: [asc(leagueMatches.updatedAt)], limit: LOAD_LIMIT,
   });
   for (const lm of lms) {
-    const base = { winner: lm.winner.alias, loser: lm.loser.alias, division: discordDivisionName(lm.division) };
+    const lg = byLeague.get(lm.leagueId);
+    const base = { winner: lm.winner.alias, loser: lm.loser.alias, division: discordDivisionName(lm.division), pw: lg?.pointsWin, pl: lg?.pointsLoss };
     const isNew = lm.status === 'counted' && lm.notifiedAt == null;
     const event: WebhookEvent = isNew ? 'match' : 'voided';
     const at = isNew ? lm.playedAt : lm.updatedAt;

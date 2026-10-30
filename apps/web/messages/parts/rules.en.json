@@ -12,7 +12,7 @@
         "items": [
           {
             "q": "How do I join a league?",
-            "a": "Sign in with Steam, claim your profile (the portal finds it through your Steam account) and click Join on the league page. You are placed in the division matching your rating and stay there until the season closes."
+            "a": "You join the Global League automatically when you claim your profile (sign in with Steam and the portal finds your profile through your account), and you can leave any time. For other leagues, click Join on the league page. You are placed in the division matching your rating and stay there until the season closes. Whoever plays ranked against a Global League member is also brought in, in the bracket of their peak rating."
           },
           {
             "q": "Which rating decides my division?",
@@ -24,11 +24,11 @@
           },
           {
             "q": "Which matches count in the table?",
-            "a": "A 1v1 with exactly two players, both active members of the same division of the league, played after both joined and after the season started. Ranked RM 1v1 and lobby both count; league admins can turn ranked off and keep lobby only. No report or screenshot needed: the portal reads the game history."
+            "a": "In every league: a 1v1 with exactly two players, both active members of the same division, played after both joined and after the season started; ranked RM 1v1 and lobby both count (admins can keep lobby only). In the Global League your ranked 1v1 against any player rated within your bracket also counts, even if they are not on the portal: every ranked game of yours moves you in the table. Custom leagues can turn that rule on. No report or screenshot needed."
           },
           {
             "q": "How many points?",
-            "a": "Win 3 points, loss 1 point. Playing always adds; losing never subtracts. Tiebreaks: more wins, then placement rating, then who joined the league first."
+            "a": "It depends on the league. In the Global League a win is worth 3 and a loss 0: the table measures wins in your bracket. Custom leagues default to win 3, loss 1, and the creator chooses. Tiebreaks: more wins, then fewer losses, then placement rating, then who joined first."
           },
           {
             "q": "What if I play someone from another division?",

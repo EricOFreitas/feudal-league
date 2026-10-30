@@ -28,6 +28,8 @@ export const players = pgTable(
     lastViewedAt: timestamp('last_viewed_at', { withTimezone: true }),
     lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
     lastSyncError: text('last_sync_error'),
+    /** Última tentativa de trazer este jogador pra uma liga automaticamente (evita repetir a cada ciclo). */
+    autoJoinCheckedAt: timestamp('auto_join_checked_at', { withTimezone: true }),
   },
   (t) => [index('players_steam_idx').on(t.steamId64), index('players_claimed_idx').on(t.claimedByUserId)],
 );
@@ -134,6 +136,13 @@ export const leagues = pgTable(
     countRanked: boolean('count_ranked').notNull().default(true),
     /** Mínimo de partidas na RM 1v1 pra ter faixa confiável. */
     minGames: smallint('min_games').notNull().default(10),
+    /** Pontos por vitória e por derrota em partida que conta. Global: 3/0. Padrão das ligas próprias: 3/1. */
+    pointsWin: smallint('points_win').notNull().default(3),
+    pointsLoss: smallint('points_loss').notNull().default(1),
+    /** Ranqueada 1v1 de um membro contra NÃO-membro com rating na faixa da divisão também conta (só ranqueada). */
+    countNonMembers: boolean('count_non_members').notNull().default(false),
+    /** Adversário de partida que contou é trazido pra liga automaticamente (colocado pelo pico, se elegível). */
+    autoJoinOpponents: boolean('auto_join_opponents').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('leagues_owner_idx').on(t.ownerUserId)],
@@ -181,6 +190,8 @@ export const leagueMembers = pgTable(
     playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
     /** Rating máximo RM 1v1 usado pra escolher a divisão. */
     placementRating: integer('placement_rating').notNull(),
+    /** join = clicou em Entrar; claim = entrou ao reivindicar o perfil; auto = trazido como adversário. */
+    source: varchar('source', { length: 8 }).notNull().default('join'),
     joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
     /** null = ativo. Preenchido quando sai ou é removido. */
     leftAt: timestamp('left_at', { withTimezone: true }),

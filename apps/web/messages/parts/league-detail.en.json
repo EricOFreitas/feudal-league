@@ -67,7 +67,8 @@
         "lobbyCounts": "Lobby games count in this league.",
         "points": "{winner} +{w} pts · {loser} +{l} pt.",
         "voided": "Voided by the league admin.",
-        "voidedReason": "Voided by the league admin: {reason}"
+        "voidedReason": "Voided by the league admin: {reason}",
+        "nonMember": "The opponent is not a member, but was rated within the {division} range ({rating}) and the match is ranked."
       },
       "facts": {
         "title": "Read from the game server",

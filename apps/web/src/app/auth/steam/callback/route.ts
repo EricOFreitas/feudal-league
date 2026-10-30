@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, players, users } from '@aoe2/db';
-import { findPlayerBySteamId, importPlayerBySteamId, syncMatchHistory } from '@aoe2/sync';
+import { findPlayerBySteamId, importPlayerBySteamId, joinGlobalLeague, syncMatchHistory } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { verifySteamCallback, appUrl } from '@/lib/steam-openid';
 import { createSessionCookie } from '@/lib/session';
@@ -46,6 +46,7 @@ export async function GET(req: Request) {
   if (player) {
     if (player.claimedByUserId == null) {
       await db.update(players).set({ claimedByUserId: user!.id }).where(eq(players.id, player.id));
+      await joinGlobalLeague(player.id).catch(() => undefined);
     }
     if (!next) dest = `/pt/players/${player.profileId}?claimed=1`;
   }

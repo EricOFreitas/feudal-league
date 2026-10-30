@@ -39,6 +39,28 @@ export function NewLeagueForm({ locale, defaults }: { locale: string; defaults: 
             <label htmlFor="minGames" className="kicker block">{t('minGames')}</label>
             <input id="minGames" name="minGames" type="number" min={0} max={200} defaultValue={10} className="input mt-2" />
           </div>
+          <div>
+            <label htmlFor="pointsLoss" className="kicker block">{t('pointsLoss')}</label>
+            <select id="pointsLoss" name="pointsLoss" defaultValue="1" className="input mt-2">
+              <option value="1">1</option>
+              <option value="0">0</option>
+            </select>
+            <span className="mt-1 block text-sm text-parchment-400">{t('pointsLossHint')}</span>
+          </div>
+          <label className="flex items-start gap-3">
+            <input type="checkbox" name="countNonMembers" className="mt-1.5 accent-gold-400" />
+            <span>
+              <span className="text-parchment-50">{t('countNonMembers')}</span>
+              <span className="block text-sm text-parchment-400">{t('countNonMembersHint')}</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3">
+            <input type="checkbox" name="autoJoinOpponents" className="mt-1.5 accent-gold-400" />
+            <span>
+              <span className="text-parchment-50">{t('autoJoin')}</span>
+              <span className="block text-sm text-parchment-400">{t('autoJoinHint')}</span>
+            </span>
+          </label>
         </div>
       </div>
 

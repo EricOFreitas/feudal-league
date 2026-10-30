@@ -67,7 +67,8 @@
         "lobbyCounts": "Lobby conta nesta liga.",
         "points": "{winner} +{w} pts · {loser} +{l} pt.",
         "voided": "Anulada pela administração.",
-        "voidedReason": "Anulada pela administração: {reason}"
+        "voidedReason": "Anulada pela administração: {reason}",
+        "nonMember": "O adversário não é membro, mas tinha rating na faixa {division} ({rating}) e a partida é ranqueada."
       },
       "facts": {
         "title": "Lido do servidor do jogo",

@@ -211,8 +211,11 @@
       "minGames": "Precisa de pelo menos {n} partidas ranqueadas 1v1.",
       "detect": "Qualquer 1v1 entre dois membros da mesma divisão conta sozinho: ranqueado ou lobby, sem reporte.",
       "detectLobby": "Só partida de lobby entre dois membros da mesma divisão conta. Ranqueada fica de fora.",
-      "points": "Vitória 3 pontos, derrota 1. Desempate por vitórias, depois rating.",
-      "season": "Sua divisão fica congelada até o fim da temporada. Aí todo mundo é recolocado pelo rating do momento."
+      "points": "Vitória {win} pontos, derrota {loss}. Desempate por vitórias, depois menos derrotas, depois rating.",
+      "season": "Sua divisão fica congelada até o fim da temporada. Aí todo mundo é recolocado pelo rating do momento.",
+      "detectNonMembers": "Sua ranqueada 1v1 contra qualquer jogador com rating na sua faixa conta, esteja ele na liga ou não. Entre membros da mesma divisão, lobby também conta.",
+      "autoJoin": "Quem joga contra um membro é trazido pra liga e colocado na faixa dele pelo pico de rating.",
+      "claimJoin": "Quem reivindica o perfil entra nesta liga automaticamente. Dá pra sair quando quiser."
     },
     "new": {
       "title": "Nova liga",
@@ -234,7 +237,13 @@
         "divisions": "Precisa de ao menos uma divisão com faixa válida.",
         "overlap": "As faixas não podem se sobrepor nem ter o mínimo acima do teto.",
         "slug": "Já existe uma liga com esse nome. Escolha outro."
-      }
+      },
+      "pointsLoss": "Pontos por derrota",
+      "pointsLossHint": "1 premia quem joga muito; 0 mede só vitórias (como a Liga Global).",
+      "countNonMembers": "Ranqueada contra não-membro da faixa conta",
+      "countNonMembersHint": "Vale só ranqueada 1v1 contra adversário com rating dentro da faixa da divisão do membro.",
+      "autoJoin": "Trazer o adversário pra liga",
+      "autoJoinHint": "Quem jogou contra um membro entra na liga sozinho, na faixa do pico dele."
     },
     "admin": {
       "title": "Administração",

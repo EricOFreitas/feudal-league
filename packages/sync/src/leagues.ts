@@ -2,7 +2,9 @@
  * Regras de liga: divisões padrão, inscrição com checagem anti-smurf,
  * detecção de partidas entre membros e tabela de classificação.
  *
- * Pontuação: vitória 3, derrota 1. Desempate: vitórias, depois rating de colocação.
+ * Pontuação por liga (points_win/points_loss; padrão 3/1, Global 3/0). Desempate: vitórias, menos derrotas,
+ * rating de colocação, quem entrou antes. Ligas com count_non_members contam ranqueada 1v1 de um membro
+ * contra não-membro com rating na faixa; com auto_join_opponents o adversário é trazido pra liga.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
 import {
@@ -10,9 +12,12 @@ import {
   type Division, type League, type PlayerRating, type Season,
 } from '@aoe2/db';
 import { and, asc, desc, eq, gt, ilike, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
+import { syncRatingsByProfileIds } from './players';
 
+/** Padrão das ligas próprias; a Global usa 3/0. Use `leaguePoints(league)` em vez destas constantes. */
 export const POINTS_WIN = 3;
 export const POINTS_LOSS = 1;
+export const leaguePoints = (l: Pick<League, 'pointsWin' | 'pointsLoss'> | null | undefined) => ({ win: l?.pointsWin ?? POINTS_WIN, loss: l?.pointsLoss ?? POINTS_LOSS });
 
 /** Faixas padrão, medidas na ladder RM 1v1 em 29/10/2026 (46.882 ativos). */
 export const DEFAULT_DIVISIONS: { nameKey: string; ratingMin: number; ratingMax: number | null }[] = [
@@ -29,6 +34,7 @@ export const GLOBAL_SLUG = 'global';
 
 export type NewLeagueInput = {
   slug: string; name: string; description?: string | null; ownerUserId: number; countRanked: boolean; minGames: number;
+  pointsWin?: number; pointsLoss?: number; countNonMembers?: boolean; autoJoinOpponents?: boolean;
   divisions: { nameKey?: string | null; name?: string | null; ratingMin: number; ratingMax: number | null }[];
 };
 
@@ -37,6 +43,8 @@ export async function createLeague(input: NewLeagueInput) {
     const [l] = await tx.insert(leagues).values({
       slug: input.slug, name: input.name, description: input.description ?? null, ownerUserId: input.ownerUserId,
       countRanked: input.countRanked, minGames: input.minGames,
+      pointsWin: input.pointsWin ?? POINTS_WIN, pointsLoss: input.pointsLoss ?? POINTS_LOSS,
+      countNonMembers: input.countNonMembers ?? false, autoJoinOpponents: input.autoJoinOpponents ?? false,
     }).returning({ id: leagues.id });
     await tx.insert(seasons).values({ leagueId: l!.id, number: 1 });
     await tx.insert(divisions).values(input.divisions.map((d, i) => ({
@@ -106,7 +114,9 @@ export type JoinResult =
   | { ok: true; memberId: number; division: Division }
   | { ok: false; reason: 'closed' | 'already' | 'no_rating' | 'few_games' | 'no_division' | 'no_season' };
 
-export async function joinLeague(leagueId: number, playerId: number): Promise<JoinResult> {
+export type MemberSource = 'join' | 'claim' | 'auto';
+
+export async function joinLeague(leagueId: number, playerId: number, opts: { source?: MemberSource } = {}): Promise<JoinResult> {
   const league = await db.query.leagues.findFirst({ where: eq(leagues.id, leagueId) });
   if (!league || league.status !== 'open') return { ok: false, reason: 'closed' };
   const season = await activeSeason(leagueId);
@@ -121,13 +131,20 @@ export async function joinLeague(leagueId: number, playerId: number): Promise<Jo
 
   if (existing) {
     // voltou: reativa na divisão atual
-    await db.update(leagueMembers).set({ leftAt: null, divisionId: p.division.id, placementRating: p.rating, joinedAt: new Date() }).where(eq(leagueMembers.id, existing.id));
+    await db.update(leagueMembers).set({ leftAt: null, divisionId: p.division.id, placementRating: p.rating, joinedAt: new Date(), source: opts.source ?? 'join' }).where(eq(leagueMembers.id, existing.id));
     return { ok: true, memberId: existing.id, division: p.division };
   }
   const [m] = await db.insert(leagueMembers).values({
-    leagueId, seasonId: season.id, divisionId: p.division.id, playerId, placementRating: p.rating,
+    leagueId, seasonId: season.id, divisionId: p.division.id, playerId, placementRating: p.rating, source: opts.source ?? 'join',
   }).returning({ id: leagueMembers.id });
   return { ok: true, memberId: m!.id, division: p.division };
+}
+
+/** Entra na Liga Global ao reivindicar o perfil (ignora se não elegível ou já membro). */
+export async function joinGlobalLeague(playerId: number): Promise<JoinResult | null> {
+  const g = await db.query.leagues.findFirst({ where: eq(leagues.slug, GLOBAL_SLUG) });
+  if (!g) return null;
+  return joinLeague(g.id, playerId, { source: 'claim' });
 }
 
 export async function leaveLeague(leagueId: number, playerId: number) {
@@ -137,23 +154,48 @@ export async function leaveLeague(leagueId: number, playerId: number) {
     .where(and(eq(leagueMembers.seasonId, season.id), eq(leagueMembers.playerId, playerId), isNull(leagueMembers.leftAt)));
 }
 
-/** profile_ids de todos os membros ativos em ligas abertas (pro worker priorizar). */
+/** profile_ids dos membros ativos em ligas abertas que entraram por vontade própria ou reivindicaram o perfil (sync a cada 15 min). */
 export async function activeLeagueProfileIds(): Promise<number[]> {
   const rows = await db
     .selectDistinct({ profileId: players.profileId })
     .from(leagueMembers)
     .innerJoin(players, eq(players.id, leagueMembers.playerId))
     .innerJoin(seasons, eq(seasons.id, leagueMembers.seasonId))
-    .where(and(isNull(leagueMembers.leftAt), isNull(seasons.endedAt)));
+    .where(and(isNull(leagueMembers.leftAt), isNull(seasons.endedAt), or(ne(leagueMembers.source, 'auto'), isNotNull(players.claimedByUserId))));
+  return rows.map((r) => r.profileId);
+}
+
+/** Membros trazidos automaticamente e ainda não reivindicados: sync de baixa prioridade (6 h). */
+export async function autoLeagueProfileIds(): Promise<number[]> {
+  const rows = await db
+    .selectDistinct({ profileId: players.profileId })
+    .from(leagueMembers)
+    .innerJoin(players, eq(players.id, leagueMembers.playerId))
+    .innerJoin(seasons, eq(seasons.id, leagueMembers.seasonId))
+    .where(and(isNull(leagueMembers.leftAt), isNull(seasons.endedAt), eq(leagueMembers.source, 'auto'), isNull(players.claimedByUserId)));
   return rows.map((r) => r.profileId);
 }
 
 const RM_1V1_MATCHTYPE = 6;
 const LOBBY_MATCHTYPE = 0;
 
+/** Garante uma linha em players pro adversário vindo do histórico (sem rating ainda; o worker completa depois). */
+async function ensurePlayer(profileId: number, alias: string | null): Promise<number> {
+  const found = await db.query.players.findFirst({ where: eq(players.profileId, profileId), columns: { id: true } });
+  if (found) return found.id;
+  const [row] = await db.insert(players).values({ profileId, alias: alias ?? `#${profileId}` }).onConflictDoNothing().returning({ id: players.id });
+  if (row) return row.id;
+  return (await db.query.players.findFirst({ where: eq(players.profileId, profileId), columns: { id: true } }))!.id;
+}
+
+type Candidate = { match_id: number; completed_at: Date; matchtype_id: number; profiles: number[]; outcomes: number[]; old_ratings: number[]; aliases: (string | null)[] };
+
 /**
- * Varre o histórico já gravado e registra partidas de liga: 1v1 (exatamente 2 participantes)
- * entre dois membros ativos da mesma divisão, jogada depois da inscrição dos dois.
+ * Varre o histórico já gravado e registra partidas de liga. Para cada temporada aberta:
+ *  - 1v1 (exatamente 2 participantes) entre dois membros ativos da mesma divisão, depois da inscrição dos dois;
+ *  - se a liga tem count_non_members: ranqueada 1v1 de um membro contra não-membro cujo rating na partida
+ *    estava dentro da faixa da divisão do membro. O adversário ganha uma linha em players; se a liga tem
+ *    auto_join_opponents, autoJoinOpponents() o traz pra liga no ciclo seguinte.
  * Idempotente: (season, match) é único.
  */
 export async function detectLeagueMatches(): Promise<number> {
@@ -167,48 +209,65 @@ export async function detectLeagueMatches(): Promise<number> {
       .select({ id: leagueMembers.id, playerId: leagueMembers.playerId, divisionId: leagueMembers.divisionId, joinedAt: leagueMembers.joinedAt, profileId: players.profileId })
       .from(leagueMembers).innerJoin(players, eq(players.id, leagueMembers.playerId))
       .where(and(eq(leagueMembers.seasonId, season.id), isNull(leagueMembers.leftAt)));
-    if (members.length < 2) continue;
+    if (members.length === 0) continue;
+    if (members.length < 2 && !league.countNonMembers) continue;
     const byProfile = new Map(members.map((m) => [m.profileId, m]));
-    const profileIds = members.map((m) => m.profileId);
+    const divs = await db.query.divisions.findMany({ where: eq(divisions.leagueId, league.id) });
+    const divById = new Map(divs.map((d) => [d.id, d]));
     const types = league.countRanked ? [LOBBY_MATCHTYPE, RM_1V1_MATCHTYPE] : [LOBBY_MATCHTYPE];
 
-    // partidas com exatamente 2 participantes, ambos membros, depois do início da temporada
-    const candidates = await db
-      .select({
-        matchId: matchMembers.matchId,
-        completedAt: matches.completedAt,
-        profiles: sql<number[]>`array_agg(${matchMembers.profileId})`,
-        outcomes: sql<number[]>`array_agg(${matchMembers.outcome})`,
-      })
-      .from(matchMembers)
-      .innerJoin(matches, eq(matches.id, matchMembers.matchId))
-      .where(and(
-        inArray(matchMembers.profileId, profileIds),
-        inArray(matches.matchtypeId, types),
-        gt(matches.completedAt, season.startedAt),
-        sql`(select count(*) from match_members x where x.match_id = "match_members"."match_id") = 2`,
-      ))
-      .groupBy(matchMembers.matchId, matches.completedAt)
-      .having(sql`count(*) = 2`);
-    if (candidates.length === 0) continue;
-
-    const already = new Set(
-      (await db.select({ matchId: leagueMatches.matchId }).from(leagueMatches)
-        .where(and(eq(leagueMatches.seasonId, season.id), inArray(leagueMatches.matchId, candidates.map((c) => c.matchId))))).map((r) => r.matchId),
-    );
+    // partidas 1v1 terminadas depois do início da temporada em que pelo menos um membro jogou, ainda não registradas
+    const candidates = await db.execute<Candidate>(sql`
+      select mm.match_id, m.completed_at, m.matchtype_id,
+             array_agg(mm.profile_id order by mm.profile_id) as profiles,
+             array_agg(mm.outcome order by mm.profile_id) as outcomes,
+             array_agg(mm.old_rating order by mm.profile_id) as old_ratings,
+             array_agg(mm.alias order by mm.profile_id) as aliases
+      from match_members mm
+      join matches m on m.id = mm.match_id
+      where m.matchtype_id in ${types}
+        and m.completed_at > ${season.startedAt.toISOString()}::timestamptz
+        and (select count(*) from match_members x where x.match_id = mm.match_id) = 2
+        and exists (select 1 from match_members y join players p on p.profile_id = y.profile_id
+                    join league_members lm on lm.player_id = p.id
+                    where y.match_id = mm.match_id and lm.season_id = ${season.id} and lm.left_at is null)
+        and not exists (select 1 from league_matches x where x.season_id = ${season.id} and x.match_id = mm.match_id)
+      group by mm.match_id, m.completed_at, m.matchtype_id
+      order by m.completed_at asc
+    `);
 
     for (const c of candidates) {
-      if (already.has(c.matchId)) continue;
-      const [a, b] = [byProfile.get(c.profiles[0]!), byProfile.get(c.profiles[1]!)];
-      if (!a || !b || a.divisionId !== b.divisionId) continue;
-      if (c.completedAt < a.joinedAt || c.completedAt < b.joinedAt) continue;
-      const [oa, ob] = [c.outcomes[0], c.outcomes[1]];
+      const matchId = Number(c.match_id);
+      const completedAt = new Date(c.completed_at);
+      const [pa, pb] = [Number(c.profiles[0]), Number(c.profiles[1])];
+      const [oa, ob] = [Number(c.outcomes[0]), Number(c.outcomes[1])];
       if (!((oa === 1 && ob === 0) || (oa === 0 && ob === 1))) continue; // sem vencedor claro (drop, empate)
-      const winner = oa === 1 ? a : b;
-      const loser = oa === 1 ? b : a;
+      const [a, b] = [byProfile.get(pa), byProfile.get(pb)];
+
+      let divisionId: number; let winnerPlayerId: number; let loserPlayerId: number;
+      if (a && b) {
+        if (a.divisionId !== b.divisionId) continue;
+        if (completedAt < a.joinedAt || completedAt < b.joinedAt) continue;
+        divisionId = a.divisionId;
+        winnerPlayerId = oa === 1 ? a.playerId : b.playerId;
+        loserPlayerId = oa === 1 ? b.playerId : a.playerId;
+      } else if ((a || b) && league.countNonMembers && Number(c.matchtype_id) === RM_1V1_MATCHTYPE) {
+        const me = (a ?? b)!;
+        const meIdx = a ? 0 : 1;
+        const oppIdx = 1 - meIdx;
+        if (completedAt < me.joinedAt) continue;
+        const div = divById.get(me.divisionId);
+        const oppRating = Number(c.old_ratings[oppIdx]);
+        if (!div || oppRating < div.ratingMin || (div.ratingMax != null && oppRating > div.ratingMax)) continue;
+        const oppPlayerId = await ensurePlayer(Number(c.profiles[oppIdx]), c.aliases[oppIdx] ?? null);
+        const meWon = Number(c.outcomes[meIdx]) === 1;
+        divisionId = me.divisionId;
+        winnerPlayerId = meWon ? me.playerId : oppPlayerId;
+        loserPlayerId = meWon ? oppPlayerId : me.playerId;
+      } else continue;
+
       await db.insert(leagueMatches).values({
-        leagueId: league.id, seasonId: season.id, divisionId: a.divisionId, matchId: c.matchId,
-        winnerPlayerId: winner.playerId, loserPlayerId: loser.playerId, playedAt: c.completedAt,
+        leagueId: league.id, seasonId: season.id, divisionId, matchId, winnerPlayerId, loserPlayerId, playedAt: completedAt,
       }).onConflictDoNothing();
       created++;
     }
@@ -216,13 +275,49 @@ export async function detectLeagueMatches(): Promise<number> {
   return created;
 }
 
+/**
+ * Traz pra liga, aos poucos, os adversários de partidas que contaram (ligas com auto_join_opponents).
+ * Por ciclo: até `limit` jogadores. Busca o rating deles na API (lotes de 20) e coloca pelo pico;
+ * quem não é elegível (poucas partidas, sem rating) fica marcado e não é tentado de novo por 30 dias.
+ */
+export async function autoJoinOpponents(limit = 40): Promise<number> {
+  const targets = await db.select({ league: leagues, season: seasons }).from(leagues)
+    .innerJoin(seasons, and(eq(seasons.leagueId, leagues.id), isNull(seasons.endedAt)))
+    .where(and(eq(leagues.autoJoinOpponents, true), eq(leagues.status, 'open')));
+  let joined = 0;
+  for (const { league, season } of targets) {
+    if (limit <= 0) break;
+    const rows = await db.execute<{ id: number; profile_id: number }>(sql`
+      select distinct p.id, p.profile_id
+      from league_matches x
+      join players p on p.id in (x.winner_player_id, x.loser_player_id)
+      where x.season_id = ${season.id}
+        and (p.auto_join_checked_at is null or p.auto_join_checked_at < now() - interval '30 days')
+        and not exists (select 1 from league_members lm where lm.season_id = ${season.id} and lm.player_id = p.id and lm.left_at is null)
+      limit ${limit}
+    `);
+    const list = [...rows].map((r) => ({ id: Number(r.id), profileId: Number(r.profile_id) }));
+    if (list.length === 0) continue;
+    limit -= list.length;
+    try { await syncRatingsByProfileIds(list.map((r) => r.profileId)); } catch { /* API fora: tenta no próximo ciclo */ continue; }
+    for (const r of list) {
+      const res = await joinLeague(league.id, r.id, { source: 'auto' });
+      if (res.ok) joined++;
+      await db.update(players).set({ autoJoinCheckedAt: new Date() }).where(eq(players.id, r.id));
+    }
+  }
+  return joined;
+}
+
 export type StandingRow = {
   playerId: number; profileId: number; alias: string; country: string | null;
   placementRating: number; wins: number; losses: number; points: number; joinedAt: Date;
 };
 
-/** Classificação de uma divisão numa temporada. */
+/** Classificação de uma divisão numa temporada, com os pontos da liga. */
 export async function standings(seasonId: number, divisionId: number): Promise<StandingRow[]> {
+  const season = await db.query.seasons.findFirst({ where: eq(seasons.id, seasonId), with: { league: { columns: { pointsWin: true, pointsLoss: true } } } });
+  const pts = leaguePoints(season?.league);
   const wins = sql<number>`coalesce((select count(*) from ${leagueMatches} w where w.season_id = ${seasonId} and w.status = 'counted' and w.winner_player_id = "league_members"."player_id"), 0)::int`;
   const losses = sql<number>`coalesce((select count(*) from ${leagueMatches} l where l.season_id = ${seasonId} and l.status = 'counted' and l.loser_player_id = "league_members"."player_id"), 0)::int`;
   const rows = await db
@@ -234,8 +329,8 @@ export async function standings(seasonId: number, divisionId: number): Promise<S
     .innerJoin(players, eq(players.id, leagueMembers.playerId))
     .where(and(eq(leagueMembers.seasonId, seasonId), eq(leagueMembers.divisionId, divisionId), isNull(leagueMembers.leftAt)));
   return rows
-    .map((r) => ({ ...r, points: r.wins * POINTS_WIN + r.losses * POINTS_LOSS }))
-    .sort((a, b) => b.points - a.points || b.wins - a.wins || b.placementRating - a.placementRating || a.joinedAt.getTime() - b.joinedAt.getTime());
+    .map((r) => ({ ...r, points: r.wins * pts.win + r.losses * pts.loss }))
+    .sort((a, b) => b.points - a.points || b.wins - a.wins || a.losses - b.losses || b.placementRating - a.placementRating || a.joinedAt.getTime() - b.joinedAt.getTime());
 }
 
 /** Últimas partidas da liga (ou de uma divisão), com os dois jogadores e a partida do jogo. */

@@ -12,7 +12,7 @@
         "items": [
           {
             "q": "Como entro numa liga?",
-            "a": "Entre com a Steam, reivindique seu perfil (o portal acha pela sua conta Steam) e clique em Entrar na página da liga. Você cai na divisão correspondente ao seu rating e fica nela até a temporada fechar."
+            "a": "Na Liga Global você entra sozinho ao reivindicar seu perfil (entre com a Steam e o portal acha seu perfil pela conta), e pode sair quando quiser. Nas outras ligas, clique em Entrar na página da liga. Você cai na divisão correspondente ao seu rating e fica nela até a temporada fechar. Quem joga ranqueada contra um membro da Liga Global também é trazido pra ela, na faixa do pico de rating dele."
           },
           {
             "q": "Qual rating define minha divisão?",
@@ -24,11 +24,11 @@
           },
           {
             "q": "Que partida conta na tabela?",
-            "a": "Um 1v1 com exatamente dois jogadores, os dois membros ativos da mesma divisão da liga, jogado depois que ambos entraram e depois do início da temporada. Vale ranqueada RM 1v1 e lobby; quem administra a liga pode desligar a ranqueada e deixar só lobby. Nenhum reporte ou print é necessário: o portal lê o histórico do jogo."
+            "a": "Em toda liga: um 1v1 com exatamente dois jogadores, os dois membros ativos da mesma divisão, jogado depois que ambos entraram e depois do início da temporada; vale ranqueada RM 1v1 e lobby (o administrador pode deixar só lobby). Na Liga Global vale também a sua ranqueada 1v1 contra qualquer jogador com rating dentro da sua faixa, mesmo que ele não esteja no portal: cada ranqueada sua te move na tabela. Ligas próprias podem ligar essa regra. Nenhum reporte ou print é necessário."
           },
           {
             "q": "Quantos pontos vale?",
-            "a": "Vitória 3 pontos, derrota 1 ponto. Jogar sempre soma; perder não tira. Desempate: mais vitórias, depois o rating de colocação, depois quem entrou antes na liga."
+            "a": "Depende da liga. Na Liga Global, vitória vale 3 e derrota 0: a tabela mede vitórias na sua faixa. Nas ligas próprias o padrão é vitória 3 e derrota 1, e quem cria a liga escolhe. Desempate: mais vitórias, depois menos derrotas, depois o rating de colocação, depois quem entrou antes."
           },
           {
             "q": "E se eu jogar contra alguém de outra divisão?",

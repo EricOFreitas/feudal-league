@@ -19,5 +19,7 @@ if (g) {
   }
   console.log('liga global criada');
 }
+// Regras da Liga Global (30/10/2026): derrota 0, conta ranqueada contra não-membro da faixa e traz o adversário.
+await sql`update leagues set points_loss = 0, count_non_members = true, auto_join_opponents = true where slug = 'global'`;
 await sql.end();
 console.log('migrations aplicadas');
