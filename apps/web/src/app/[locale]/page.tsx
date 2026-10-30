@@ -10,6 +10,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('home');
+  const tn = await getTranslations('nav');
 
   const recent = await db.query.players.findMany({ orderBy: [desc(players.createdAt)], limit: 8, with: { ratings: true } });
 
@@ -43,6 +44,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </li>
           ))}
         </ol>
+        <p className="mt-4 text-center text-sm"><Link href="/rules">{tn('rules')} →</Link></p>
       </section>
 
       <section>

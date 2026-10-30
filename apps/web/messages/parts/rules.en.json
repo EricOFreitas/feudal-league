@@ -1,0 +1,141 @@
+{
+  "nav": {
+    "rules": "Rules"
+  },
+  "rules": {
+    "kicker": "Rules and FAQ",
+    "title": "How Feudal League works",
+    "intro": "Everything that scores, what does not, and why. The rules here are the ones the code enforces; if something behaves differently in practice, that is a bug worth reporting.",
+    "sections": {
+      "leagues": {
+        "title": "Leagues",
+        "items": [
+          {
+            "q": "How do I join a league?",
+            "a": "Sign in with Steam, claim your profile (the portal finds it through your Steam account) and click Join on the league page. You are placed in the division matching your rating and stay there until the season closes."
+          },
+          {
+            "q": "Which rating decides my division?",
+            "a": "The highest rating you ever had on the Random Map 1v1 ladder (the higher of current and all-time peak), not today's rating. Someone who has been high does not enter a low bracket. You also need a minimum of ranked 1v1 games (10 by default; league creators can change it)."
+          },
+          {
+            "q": "What are the divisions?",
+            "a": "The defaults are Shield (0–899), Lance (900–1099), Banner (1100–1299), Tower (1300–1499), Castle (1500–1799) and Crown (1800+). League creators can set their own ranges and names."
+          },
+          {
+            "q": "Which matches count in the table?",
+            "a": "A 1v1 with exactly two players, both active members of the same division of the league, played after both joined and after the season started. Ranked RM 1v1 and lobby both count; league admins can turn ranked off and keep lobby only. No report or screenshot needed: the portal reads the game history."
+          },
+          {
+            "q": "How many points?",
+            "a": "Win 3 points, loss 1 point. Playing always adds; losing never subtracts. Tiebreaks: more wins, then placement rating, then who joined the league first."
+          },
+          {
+            "q": "What if I play someone from another division?",
+            "a": "It does not count in the league. The table compares people at the same level. The match still shows in your history."
+          },
+          {
+            "q": "Do team games (2v2, 3v3, 4v4) count?",
+            "a": "Not in leagues, which are 1v1 only. Team games count in tournaments, which accept teams of 1 to 4 players."
+          },
+          {
+            "q": "I share two leagues with the same opponent. Does the match count in both?",
+            "a": "Yes. Each league looks at the match on its own: it counts in every league where you two are in the same division, and not where you are in different divisions."
+          },
+          {
+            "q": "How long until it shows up?",
+            "a": "The portal syncs league members every 15 minutes. The match must be finished and present on the game server. On the league page, \"Why did it count?\" shows the data read from the server."
+          },
+          {
+            "q": "Can a match be voided?",
+            "a": "League admins can void and restore any match, with a reason. A voided match stays visible, struck through, and scores nothing. If you think something counted wrongly, talk to the admin."
+          },
+          {
+            "q": "How do seasons work?",
+            "a": "The admin closes the season and opens the next. Everyone is re-placed by their current peak rating and the table resets. The final table is kept under Seasons, with each division's podium."
+          },
+          {
+            "q": "Can I leave and come back?",
+            "a": "Yes. If you return within the same season, your membership is reactivated in the division you were in."
+          },
+          {
+            "q": "Who can create a league?",
+            "a": "Anyone signed in. You set name, description, ranges, minimum games and whether ranked counts. The league appears in the public list and any player can join."
+          }
+        ]
+      },
+      "tournaments": {
+        "title": "Tournaments",
+        "items": [
+          {
+            "q": "Which formats exist?",
+            "a": "Teams of 1 to 4 players, single-elimination knockout, with an optional group stage (round robin; the top N of each group advance with 1st × 2nd crossing). Each match is best of 1, 3 or 5, and the final can have its own setting."
+          },
+          {
+            "q": "How do I register?",
+            "a": "Signed in with a claimed profile, you join as captain and enter your partners' profile ids (shown on each player page). The registration stays pending until the organizer confirms. The organizer can also add teams directly."
+          },
+          {
+            "q": "What are the registration requirements?",
+            "a": "The organizer can require an RM 1v1 peak rating under a cap, a minimum number of games and a minimum of games in the last 30 days. They exist to keep smurfs out of beginner tournaments. The page shows whether you qualify. The organizer may skip the requirements when adding a team."
+          },
+          {
+            "q": "How do results enter the bracket?",
+            "a": "Once the bracket is generated, the portal looks in the history for a match with exactly the players of both teams, each team on its side, and records the game on its own. In best of 3 or 5, the match closes when a team reaches the majority. The winner appears in the next match right away."
+          },
+          {
+            "q": "What if the portal does not find the match?",
+            "a": "The organizer records the game by hand, picking the winner, and can undo the last game if needed. A bye becomes an automatic walkover."
+          },
+          {
+            "q": "Who decides the bracket order?",
+            "a": "The organizer can seed teams; the rest are drawn. With groups, first-placed teams get the top seeds."
+          }
+        ]
+      },
+      "analysis": {
+        "title": "Match analysis",
+        "items": [
+          {
+            "q": "What is the analysis?",
+            "a": "The portal downloads the official recording from the game server, summarizes what each player did (age-up times, buildings, production, research, first military) and asks a language model for feedback aimed at you, compared with the other players of the same match."
+          },
+          {
+            "q": "Who can request it, and how many?",
+            "a": "Only the profile owner, for matches they played. 3 analyses every 24 hours per account. One analysis per match: asking again shows the same one. The result is public on the match page."
+          },
+          {
+            "q": "Why only recent matches?",
+            "a": "The recording leaves the game server after a few days. Without a recording the analysis fails with that notice."
+          },
+          {
+            "q": "What can the analysis not see?",
+            "a": "The recording stores commands, not game state. Timings and decisions are exact; resources in stock, idle villagers and lost units are inferences. Times use the in-game clock, the same one you see on screen."
+          }
+        ]
+      },
+      "account": {
+        "title": "Account and data",
+        "items": [
+          {
+            "q": "Do I need an account?",
+            "a": "Not to browse. Anyone can add any player by Steam link, SteamID64, profile id or nick, and see rating, history and leagues. Sign-in is needed only to claim your profile, join a league, create a league or tournament and request an analysis."
+          },
+          {
+            "q": "What does sign-in store?",
+            "a": "Steam only. We store your SteamID and a session cookie. No password, no e-mail."
+          },
+          {
+            "q": "Where does the data come from?",
+            "a": "From the Age of Empires II: DE servers, through an undocumented interface that may change without notice. That is why there can be a delay of a few minutes, and the Status page shows whether something is down."
+          },
+          {
+            "q": "Is the project open?",
+            "a": "Yes, under the GNU AGPL v3. The code is on GitHub and contributions are welcome. The portal uses no game art and follows Microsoft's Game Content Usage Rules."
+          }
+        ]
+      }
+    },
+    "more": "Still have a question? Open an issue on GitHub or talk to your league admin."
+  }
+}

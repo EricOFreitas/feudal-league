@@ -312,6 +312,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                 <li>{t('rules.points')}</li>
                 <li>{t('rules.season')}</li>
               </ul>
+            <p className="mt-3 text-sm"><Link href="/rules#leagues">{tn('rules')} →</Link></p>
             </div>
 
             {ended && ended.season.endedAt && (

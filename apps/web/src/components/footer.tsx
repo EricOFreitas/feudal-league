@@ -12,6 +12,7 @@ export async function Footer() {
     <footer className="mt-12 border-t border-gold-700/60 bg-stone-950/60">
       <div className="mx-auto max-w-6xl space-y-2 px-4 py-6 text-sm text-parchment-300 sm:px-6">
         <nav className="mb-2 flex flex-wrap gap-x-5 gap-y-2 font-display tracking-wide">
+          <Link href="/rules" className="text-parchment-200 no-underline hover:text-gold-300">{tn('rules')}</Link>
           <Link href="/about" className="text-parchment-200 no-underline hover:text-gold-300">{tn('about')}</Link>
           <Link href="/status" className="inline-flex items-center gap-1.5 text-parchment-200 no-underline hover:text-gold-300"><span className="h-1.5 w-1.5 rounded-full bg-moss-500" />{tn('status')}</Link>
           <a href={SOURCE_URL} target="_blank" rel="noreferrer" className="text-parchment-200 no-underline hover:text-gold-300">{tn('source')}</a>
