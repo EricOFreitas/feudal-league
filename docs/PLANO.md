@@ -216,5 +216,12 @@ castelo etc.
   reporte), faixa congelada na inscrição e revista no fim da temporada.
 - 29/10/2026 — Liga global + ligas próprias. Divisões com nomes neutros
   (Escudo…Coroa) em vez de títulos no masculino; sem toggle de gênero.
+- 30/10/2026 — Deploy no Coolify (VM .50): app `aoe2-ligas` (uuid dcpkzikxeys2yjxsu63a9au7),
+  build pack Docker Compose com `docker-compose.coolify.yml`, repo privado
+  `EricOFreitas/aoe2-ligas` via deploy key. Banco = database `aoe2` no Postgres
+  gerenciado já existente (`postgresql-pgvector`, pg18), sem instalação nova.
+  Domínio provisório `aoe2.ericofreitas.eng.br`: DNS direto no IP do gateway,
+  NPM → 192.168.100.50:3010 com Let's Encrypt. Deploy manual pela API/painel
+  (webhook de push pendente de autorização).
 - 29/10/2026 — `.env` fica na raiz e é carregado por `process.loadEnvFile`
   (web) e `node --env-file-if-exists` (worker, migrate).
