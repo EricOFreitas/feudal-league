@@ -7,3 +7,8 @@ dist/
 *.log
 .DS_Store
 *.tsbuildinfo
+
+# python (analyzer)
+apps/analyzer/venv/
+__pycache__/
+*.pyc

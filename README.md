@@ -4,6 +4,8 @@ Community portal for **Age of Empires II: Definitive Edition**: rating-bracket l
 
 Live (provisional domain): https://aoe2.ericofreitas.eng.br
 
+**Status:** early and in active use by a small community. Leagues, tournaments and match analysis work end to end; expect rough edges and schema changes. Product decisions and the roadmap are in `docs/PLANO.md` (Portuguese).
+
 ## What it does
 
 - **Players**: anyone can add a player by Steam profile or profile id, no login needed. Ratings, ranks and recent matches are synced from the game's own servers. Owners claim their profile with Steam login.
@@ -55,7 +57,7 @@ Environment variables are documented in `.env.example`. Steam login needs `APP_U
 
 ## Contributing
 
-Issues and small pull requests are welcome: translations, bug fixes, data corrections. For anything larger, open an issue first so we can talk about scope. Interface strings live in `apps/web/messages/{pt,en}.json` and both files must have the same keys.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md). This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
 ## License and trademarks
 
