@@ -72,11 +72,15 @@ function assertOk(result: { code: number; message: string }, path: string) {
   if (result.code !== 0) throw new AoeApiError(`${path}: code ${result.code} ${result.message}`);
 }
 
+/** Nick/id inexistente: a API responde 200 com code 9 (UNKNOWN_ALIASES / UNKNOWN_PROFILE_IDS). Não é falha: é "não achei". */
+const isUnknown = (result: { code: number }) => result.code === 9;
+
 export type PersonalStats = { members: Member[]; stats: LeaderboardStat[] };
 
 export async function getPersonalStatByProfileIds(profileIds: number[]): Promise<PersonalStats> {
   if (profileIds.length === 0) return { members: [], stats: [] };
   const d = await call('getPersonalStat', { profile_ids: JSON.stringify(profileIds) }, personalStatResponse);
+  if (isUnknown(d.result)) return { members: [], stats: [] };
   assertOk(d.result, 'getPersonalStat');
   return { members: d.statGroups.flatMap((g) => g.members), stats: d.leaderboardStats };
 }
@@ -85,6 +89,7 @@ export async function getPersonalStatByProfileIds(profileIds: number[]): Promise
 export async function getPersonalStatByNames(names: string[]): Promise<PersonalStats> {
   if (names.length === 0) return { members: [], stats: [] };
   const d = await call('getPersonalStat', { profile_names: JSON.stringify(names) }, personalStatResponse);
+  if (isUnknown(d.result)) return { members: [], stats: [] };
   assertOk(d.result, 'getPersonalStat');
   return { members: d.statGroups.flatMap((g) => g.members), stats: d.leaderboardStats };
 }
@@ -93,6 +98,7 @@ export async function getPersonalStatByNames(names: string[]): Promise<PersonalS
 export async function getPersonalStatByAliases(aliases: string[]): Promise<PersonalStats> {
   if (aliases.length === 0) return { members: [], stats: [] };
   const d = await call('getPersonalStat', { aliases: JSON.stringify(aliases) }, personalStatResponse);
+  if (isUnknown(d.result)) return { members: [], stats: [] };
   assertOk(d.result, 'getPersonalStat');
   return { members: d.statGroups.flatMap((g) => g.members), stats: d.leaderboardStats };
 }
