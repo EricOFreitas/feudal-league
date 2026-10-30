@@ -12,3 +12,7 @@ dist/
 apps/analyzer/venv/
 __pycache__/
 *.pyc
+
+# gerados por apps/web/scripts/merge-messages.mjs (fonte: messages/base + messages/parts)
+apps/web/messages/pt.json
+apps/web/messages/en.json

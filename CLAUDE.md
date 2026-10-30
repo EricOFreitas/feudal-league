@@ -40,7 +40,7 @@ pnpm typecheck
 
 ## Convenções
 
-- Strings de interface SEMPRE em `apps/web/messages/{pt,en}.json`, as duas com as mesmas chaves.
+- Strings de interface em `apps/web/messages/base/{pt,en}.json` + um arquivo por área em `messages/parts/<area>.{pt,en}.json`; `scripts/merge-messages.mjs` gera `messages/{pt,en}.json` (gitignored) e falha se as chaves divergirem. Roda sozinho em dev/build/lint/typecheck.
 - Nada que seja asset do jogo (logo, ícone, arte). Identidade visual própria em `globals.css` e `crest.tsx`.
 - Sem monetização (Game Content Usage Rules). Aviso no rodapé fica. Análise com IA é grátis com limite diário (`ANALYSIS_DAILY_LIMIT`) e doação opcional (`DONATION_URL`); cobrar só com autorização da World's Edge.
 - Relógio do replay = relógio do jogo (o que o jogador vê), não tempo real. O prompt diz ao modelo que replay guarda comandos, não estado.

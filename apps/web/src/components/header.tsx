@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { LocaleSwitcher } from './locale-switcher';
+import { NavLinks } from './nav-links';
 import { Crest } from './crest';
 import { getSession } from '@/lib/session';
 
@@ -11,14 +12,13 @@ export async function Header() {
 
   return (
     <header className="border-b border-gold-700/60 bg-stone-900/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-3 no-underline hover:no-underline">
           <Crest className="h-9 w-9" />
           <span className="font-display text-lg font-semibold tracking-wide text-gold-300">{site('name')}</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm">
-          <Link href="/leagues" className="font-display tracking-wide text-parchment-200 hover:text-gold-300">{t('leagues')}</Link>
-          <Link href="/tournaments" className="font-display tracking-wide text-parchment-200 hover:text-gold-300">{t('tournaments')}</Link>
+          <NavLinks items={[{ href: '/leagues', label: t('leagues') }, { href: '/tournaments', label: t('tournaments') }]} />
           <LocaleSwitcher label={t('language')} />
           {session ? (
             <>

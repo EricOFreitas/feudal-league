@@ -1,0 +1,6 @@
+{
+  "nav": {
+    "about": "About", "source": "Source code", "translate": "Help translate", "supporters": "Supporters", "status": "Status",
+    "search": "Search", "analysis": "Match analysis", "newLeague": "New league", "newTournament": "New tournament", "seasons": "Seasons", "discord": "Discord notices"
+  }
+}

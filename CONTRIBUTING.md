@@ -25,7 +25,7 @@ pnpm --filter @aoe2/web lint
 
 ## Conventions
 
-- Interface strings live in `apps/web/messages/pt.json` and `en.json`. Both files must have exactly the same keys; the build does not check this, so please do.
+- Interface strings live in `apps/web/messages/base/{pt,en}.json` plus one file per area in `apps/web/messages/parts/<area>.{pt,en}.json`. `pnpm --filter @aoe2/web messages` merges them into the generated `messages/{pt,en}.json` (gitignored) and fails if pt and en keys differ; `dev`, `build`, `lint` and `typecheck` run it automatically.
 - No game assets (logos, icons, art, music) in the repository. The visual identity is our own.
 - Nothing that monetizes the game or looks official. The footer notice stays.
 - Database changes go through Drizzle: edit `packages/db/src/schema.ts`, run `pnpm db:generate`, commit the migration.
@@ -34,4 +34,4 @@ pnpm --filter @aoe2/web lint
 
 ## Translations
 
-A new language needs a `apps/web/messages/<locale>.json` with the same keys as `en.json` and an entry in `apps/web/src/i18n/routing.ts`. Keep unit, building and technology names as the game shows them in that language.
+A new language needs `apps/web/messages/base/<locale>.json` (and a `<area>.<locale>.json` for every file in `parts/`) with the same keys as English, plus an entry in `apps/web/src/i18n/routing.ts` and in `scripts/merge-messages.mjs`. Keep unit, building and technology names as the game shows them in that language.

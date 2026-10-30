@@ -148,6 +148,8 @@ export const seasons = pgTable(
     number: smallint('number').notNull(),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
+    /** Aviso de fim de temporada já enviado (Discord). */
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
   },
   (t) => [uniqueIndex('seasons_league_number_idx').on(t.leagueId, t.number)],
 );
@@ -182,6 +184,8 @@ export const leagueMembers = pgTable(
     joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
     /** null = ativo. Preenchido quando sai ou é removido. */
     leftAt: timestamp('left_at', { withTimezone: true }),
+    /** Aviso de "novo membro" já enviado (Discord). */
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('league_members_season_player_idx').on(t.seasonId, t.playerId),
@@ -206,6 +210,9 @@ export const leagueMatches = pgTable(
     status: varchar('status', { length: 12 }).notNull().default('counted'),
     voidReason: text('void_reason'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /** Aviso da partida já enviado (Discord). Anulação/restauração compara com updated_at. */
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex('league_matches_season_match_idx').on(t.seasonId, t.matchId),
@@ -255,6 +262,7 @@ export const matchAnalyses = pgTable(
 export const playersRelations = relations(players, ({ many, one }) => ({
   ratings: many(playerRatings),
   memberships: many(leagueMembers),
+  badges: many(playerBadges),
   claimedBy: one(users, { fields: [players.claimedByUserId], references: [users.id] }),
 }));
 export const playerRatingsRelations = relations(playerRatings, ({ one }) => ({
@@ -270,6 +278,7 @@ export const matchMembersRelations = relations(matchMembers, ({ one }) => ({
 
 export const leaguesRelations = relations(leagues, ({ many, one }) => ({
   owner: one(users, { fields: [leagues.ownerUserId], references: [users.id] }),
+  webhooks: many(leagueWebhooks),
   seasons: many(seasons),
   divisions: many(divisions),
   members: many(leagueMembers),
@@ -415,6 +424,8 @@ export const tournamentGames = pgTable(
     source: varchar('source', { length: 8 }).notNull().default('auto'),
     reportedByUserId: integer('reported_by_user_id').references(() => users.id, { onDelete: 'set null' }),
     playedAt: timestamp('played_at', { withTimezone: true }).notNull().defaultNow(),
+    /** Aviso do jogo já enviado (Discord). */
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
   },
   (t) => [index('tournament_games_match_idx').on(t.tournamentMatchId), uniqueIndex('tournament_games_source_match_idx').on(t.tournamentMatchId, t.matchId)],
 );
@@ -446,6 +457,105 @@ export const tournamentGamesRelations = relations(tournamentGames, ({ one }) => 
   winner: one(tournamentTeams, { fields: [tournamentGames.winnerTeamId], references: [tournamentTeams.id] }),
 }));
 
+/* ─────────────────── Comunidade, avisos, histórico e status (fase 4) ─────────────────── */
+
+/**
+ * Badge de um jogador: supporter (doou), code (PR aceito), translator, organizer.
+ * Concedido à mão (script no worker) ou computado; visible = o jogador quer mostrar.
+ */
+export const playerBadges = pgTable(
+  'player_badges',
+  {
+    id: serial('id').primaryKey(),
+    playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+    badge: varchar('badge', { length: 16 }).notNull(),
+    visible: boolean('visible').notNull().default(true),
+    note: text('note'),
+    grantedAt: timestamp('granted_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('player_badges_player_badge_idx').on(t.playerId, t.badge)],
+);
+
+/**
+ * Webhook do Discord de uma liga. events = lista de chaves ('match','voided','tournament','member','season');
+ * divisionIds = null (todas) ou lista de ids. A URL nunca sai do servidor.
+ */
+export const leagueWebhooks = pgTable(
+  'league_webhooks',
+  {
+    id: serial('id').primaryKey(),
+    leagueId: integer('league_id').notNull().references(() => leagues.id, { onDelete: 'cascade' }),
+    url: text('url').notNull(),
+    events: jsonb('events').$type<string[]>().notNull().default(['match', 'voided', 'tournament', 'season']),
+    divisionIds: jsonb('division_ids').$type<number[] | null>(),
+    enabled: boolean('enabled').notNull().default(true),
+    lastSentAt: timestamp('last_sent_at', { withTimezone: true }),
+    lastError: text('last_error'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('league_webhooks_league_idx').on(t.leagueId)],
+);
+
+/** Posição de cada membro na divisão, tirada toda semana pelo worker (gráfico de evolução). */
+export const standingSnapshots = pgTable(
+  'standing_snapshots',
+  {
+    id: serial('id').primaryKey(),
+    seasonId: integer('season_id').notNull().references(() => seasons.id, { onDelete: 'cascade' }),
+    divisionId: integer('division_id').notNull().references(() => divisions.id, { onDelete: 'cascade' }),
+    playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull(),
+    total: integer('total').notNull(),
+    points: integer('points').notNull(),
+    wins: integer('wins').notNull(),
+    losses: integer('losses').notNull(),
+    capturedAt: timestamp('captured_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('standing_snapshots_player_idx').on(t.playerId, t.seasonId, t.capturedAt), index('standing_snapshots_season_idx').on(t.seasonId, t.capturedAt)],
+);
+
+/** Execução do worker (página de status). kind: league | claimed | viewed | tournament | analysis | detect. */
+export const syncRuns = pgTable(
+  'sync_runs',
+  {
+    id: serial('id').primaryKey(),
+    kind: varchar('kind', { length: 24 }).notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }).notNull(),
+    players: integer('players').notNull().default(0),
+    matches: integer('matches').notNull().default(0),
+    ok: boolean('ok').notNull().default(true),
+    error: text('error'),
+  },
+  (t) => [index('sync_runs_kind_time_idx').on(t.kind, t.finishedAt)],
+);
+
+/** Incidente registrado à mão ou pelo worker (API do jogo fora, atraso). */
+export const incidents = pgTable(
+  'incidents',
+  {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    body: text('body'),
+    severity: varchar('severity', { length: 8 }).notNull().default('minor'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+  },
+  (t) => [index('incidents_time_idx').on(t.startedAt)],
+);
+
+export const playerBadgesRelations = relations(playerBadges, ({ one }) => ({
+  player: one(players, { fields: [playerBadges.playerId], references: [players.id] }),
+}));
+export const leagueWebhooksRelations = relations(leagueWebhooks, ({ one }) => ({
+  league: one(leagues, { fields: [leagueWebhooks.leagueId], references: [leagues.id] }),
+}));
+export const standingSnapshotsRelations = relations(standingSnapshots, ({ one }) => ({
+  player: one(players, { fields: [standingSnapshots.playerId], references: [players.id] }),
+  season: one(seasons, { fields: [standingSnapshots.seasonId], references: [seasons.id] }),
+  division: one(divisions, { fields: [standingSnapshots.divisionId], references: [divisions.id] }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type Player = typeof players.$inferSelect;
 export type PlayerRating = typeof playerRatings.$inferSelect;
@@ -462,3 +572,8 @@ export type TournamentTeam = typeof tournamentTeams.$inferSelect;
 export type TournamentTeamMember = typeof tournamentTeamMembers.$inferSelect;
 export type TournamentMatch = typeof tournamentMatches.$inferSelect;
 export type TournamentGame = typeof tournamentGames.$inferSelect;
+export type PlayerBadge = typeof playerBadges.$inferSelect;
+export type LeagueWebhook = typeof leagueWebhooks.$inferSelect;
+export type StandingSnapshot = typeof standingSnapshots.$inferSelect;
+export type SyncRun = typeof syncRuns.$inferSelect;
+export type Incident = typeof incidents.$inferSelect;
