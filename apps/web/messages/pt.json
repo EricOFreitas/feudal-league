@@ -13,7 +13,8 @@
     "login": "Entrar com Steam",
     "logout": "Sair",
     "me": "Meu perfil",
-    "language": "Idioma"
+    "language": "Idioma",
+    "tournaments": "Torneios"
   },
   "home": {
     "title": "Compita com quem está no seu nível",
@@ -100,7 +101,8 @@
     "points": "{n} pts",
     "analyze": "Analisar com IA",
     "viewAnalysis": "Ver análise",
-    "analysisPending": "Análise em andamento"
+    "analysisPending": "Análise em andamento",
+    "tournaments": "Torneios"
   },
   "leaderboard": {
     "rm_1v1": "Random Map 1v1",
@@ -283,6 +285,156 @@
       "win": "Vitória",
       "loss": "Derrota",
       "duration": "{n} min"
+    }
+  },
+  "tournaments": {
+    "title": "Torneios",
+    "intro": "Mata-mata com ou sem fase de grupos, times de 1 a 4, melhor de 1, 3 ou 5. O resultado é confirmado sozinho quando a partida aparece no histórico dos jogadores.",
+    "create": "Criar torneio",
+    "loginToCreate": "Entre com a Steam pra criar um torneio.",
+    "empty": "Nenhum torneio ainda.",
+    "by": "por {name}",
+    "teams": "{count, plural, =0 {sem times} =1 {1 time} other {# times}}",
+    "teamsOf": "{count} de {max} times",
+    "format": {
+      "size": "{n}v{n}",
+      "bestOf": "melhor de {n}",
+      "finalBestOf": "final melhor de {n}",
+      "groups": "{n, plural, =1 {1 grupo} other {# grupos}}, {adv} avançam por grupo",
+      "groupBestOf": "grupos melhor de {n}",
+      "knockout": "mata-mata"
+    },
+    "status": {
+      "open": "Inscrições abertas",
+      "groups": "Fase de grupos",
+      "running": "Mata-mata",
+      "finished": "Encerrado",
+      "cancelled": "Cancelado"
+    },
+    "startsAt": "Início {date}",
+    "prize": "Premiação",
+    "champion": "Campeão: {name}",
+    "requirements": {
+      "title": "Quem pode participar",
+      "peak": "Rating máximo já atingido (RM 1v1) até {n}",
+      "games": "Pelo menos {n} partidas na RM 1v1",
+      "recent": "Pelo menos {n} partidas nos últimos 30 dias (contadas pelo portal)",
+      "none": "Sem requisitos: qualquer jogador.",
+      "you": "Você: pico {peak}, {games} partidas, {recent} nos últimos 30 dias.",
+      "youOk": "Você cumpre os requisitos.",
+      "youFail": "Você não cumpre: {rules}.",
+      "rule": {
+        "peak": "pico de rating",
+        "games": "partidas",
+        "recent": "partidas recentes",
+        "no_rating": "sem rating na RM 1v1"
+      }
+    },
+    "teamsTitle": "Times",
+    "noTeams": "Nenhum time inscrito ainda.",
+    "teamStatus": {
+      "pending": "aguardando confirmação",
+      "confirmed": "confirmado",
+      "withdrawn": "desistiu"
+    },
+    "seed": "seed",
+    "group": "Grupo {n}",
+    "captain": "capitão",
+    "register": {
+      "title": "Inscrever meu time",
+      "hint": "Você entra como capitão. Informe o id de perfil dos parceiros (aparece na página de cada jogador).",
+      "solo": "Inscreva-se como jogador.",
+      "partner": "Parceiro {n} (id de perfil)",
+      "name": "Nome do time (opcional)",
+      "button": "Inscrever",
+      "login": "Entre com a Steam pra se inscrever.",
+      "claim": "Reivindique seu perfil pra se inscrever.",
+      "done": "Inscrição enviada. O organizador confirma o time.",
+      "already": "Você já está no time {name}."
+    },
+    "err": {
+      "closed": "As inscrições estão fechadas.",
+      "full": "O torneio está lotado.",
+      "size": "O time precisa ter exatamente {n} jogadores.",
+      "player_taken": "O jogador #{id} já está em outro time.",
+      "player_missing": "Não encontrei o jogador #{id}.",
+      "duplicate": "Jogador repetido.",
+      "ineligible": "O jogador #{id} não cumpre os requisitos ({rules}).",
+      "few_teams": "Faltam times confirmados.",
+      "groups_open": "Ainda há confrontos de grupo em aberto.",
+      "status": "Ação não permitida neste estado.",
+      "no_groups": "Este torneio não tem fase de grupos."
+    },
+    "admin": {
+      "title": "Organização",
+      "youOwn": "Você organiza este torneio",
+      "addTeam": "Adicionar time",
+      "player": "Jogador {n} (id de perfil)",
+      "skipEligibility": "Ignorar requisitos",
+      "add": "Adicionar",
+      "confirm": "Confirmar",
+      "unconfirm": "Voltar a pendente",
+      "remove": "Remover",
+      "withdraw": "Desistência",
+      "startGroups": "Sortear grupos",
+      "startBracket": "Gerar chave",
+      "startBracketHint": "Sorteia a chave com os times confirmados. Depois disso não entram mais times.",
+      "startGroupsHint": "Distribui os times confirmados nos grupos e cria todos os confrontos.",
+      "cancel": "Cancelar torneio",
+      "report": "Registrar jogo",
+      "winner": "Vencedor",
+      "undo": "Desfazer último jogo",
+      "manual": "manual",
+      "auto": "detectado"
+    },
+    "groupsTitle": "Fase de grupos",
+    "bracketTitle": "Chave",
+    "noBracket": "A chave aparece aqui quando o organizador gerar.",
+    "round": "Rodada {n}",
+    "final": "Final",
+    "semis": "Semifinais",
+    "quarters": "Quartas",
+    "tbd": "a definir",
+    "bye": "folga",
+    "walkover": "W.O.",
+    "col": {
+      "team": "Time",
+      "p": "J",
+      "w": "V",
+      "l": "D",
+      "gd": "Saldo",
+      "pts": "Pts"
+    },
+    "games": "Jogos",
+    "noGames": "nenhum jogo ainda",
+    "gameAuto": "partida {id}",
+    "new": {
+      "title": "Novo torneio",
+      "name": "Nome",
+      "description": "Descrição (regras, horários, Discord…)",
+      "teamSize": "Tamanho do time",
+      "bestOf": "Melhor de",
+      "finalBestOf": "Final melhor de",
+      "same": "igual aos outros",
+      "groups": "Fase de grupos",
+      "noGroups": "sem grupos (só mata-mata)",
+      "groupCount": "Número de grupos",
+      "advance": "Avançam por grupo",
+      "groupBestOf": "Grupos melhor de",
+      "maxTeams": "Máximo de times (vazio = sem limite)",
+      "startsAt": "Início (data e hora)",
+      "prize": "Premiação (opcional)",
+      "reqTitle": "Requisitos de inscrição (anti-smurf)",
+      "maxPeak": "Pico de rating máximo (RM 1v1)",
+      "minGames": "Mínimo de partidas (RM 1v1)",
+      "minRecent": "Mínimo de partidas nos últimos 30 dias",
+      "optional": "vazio = sem exigência",
+      "submit": "Criar torneio",
+      "errors": {
+        "name": "O nome precisa ter de 3 a 60 caracteres.",
+        "groups": "Com grupos, precisa de pelo menos 1 grupo e 1 time avançando.",
+        "slug": "Não deu pra criar. Tente outro nome."
+      }
     }
   }
 }

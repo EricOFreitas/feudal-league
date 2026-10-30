@@ -18,6 +18,7 @@ export async function Header() {
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           <Link href="/leagues" className="font-display tracking-wide text-parchment-200 hover:text-gold-300">{t('leagues')}</Link>
+          <Link href="/tournaments" className="font-display tracking-wide text-parchment-200 hover:text-gold-300">{t('tournaments')}</Link>
           <LocaleSwitcher label={t('language')} />
           {session ? (
             <>

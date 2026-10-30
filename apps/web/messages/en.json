@@ -13,7 +13,8 @@
     "login": "Sign in with Steam",
     "logout": "Sign out",
     "me": "My profile",
-    "language": "Language"
+    "language": "Language",
+    "tournaments": "Tournaments"
   },
   "home": {
     "title": "Compete with players at your level",
@@ -100,7 +101,8 @@
     "points": "{n} pts",
     "analyze": "Analyze with AI",
     "viewAnalysis": "View analysis",
-    "analysisPending": "Analysis in progress"
+    "analysisPending": "Analysis in progress",
+    "tournaments": "Tournaments"
   },
   "leaderboard": {
     "rm_1v1": "Random Map 1v1",
@@ -283,6 +285,156 @@
       "win": "Win",
       "loss": "Loss",
       "duration": "{n} min"
+    }
+  },
+  "tournaments": {
+    "title": "Tournaments",
+    "intro": "Knockout with or without a group stage, teams of 1 to 4, best of 1, 3 or 5. Results confirm themselves when the match shows up in the players' history.",
+    "create": "Create tournament",
+    "loginToCreate": "Sign in with Steam to create a tournament.",
+    "empty": "No tournaments yet.",
+    "by": "by {name}",
+    "teams": "{count, plural, =0 {no teams} =1 {1 team} other {# teams}}",
+    "teamsOf": "{count} of {max} teams",
+    "format": {
+      "size": "{n}v{n}",
+      "bestOf": "best of {n}",
+      "finalBestOf": "final best of {n}",
+      "groups": "{n, plural, =1 {1 group} other {# groups}}, top {adv} advance",
+      "groupBestOf": "groups best of {n}",
+      "knockout": "knockout"
+    },
+    "status": {
+      "open": "Registration open",
+      "groups": "Group stage",
+      "running": "Knockout",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "startsAt": "Starts {date}",
+    "prize": "Prize",
+    "champion": "Champion: {name}",
+    "requirements": {
+      "title": "Who can play",
+      "peak": "Peak rating ever (RM 1v1) up to {n}",
+      "games": "At least {n} RM 1v1 games",
+      "recent": "At least {n} games in the last 30 days (as counted by the portal)",
+      "none": "No requirements: anyone can join.",
+      "you": "You: peak {peak}, {games} games, {recent} in the last 30 days.",
+      "youOk": "You meet the requirements.",
+      "youFail": "You do not meet: {rules}.",
+      "rule": {
+        "peak": "peak rating",
+        "games": "games",
+        "recent": "recent games",
+        "no_rating": "no RM 1v1 rating"
+      }
+    },
+    "teamsTitle": "Teams",
+    "noTeams": "No teams registered yet.",
+    "teamStatus": {
+      "pending": "awaiting confirmation",
+      "confirmed": "confirmed",
+      "withdrawn": "withdrew"
+    },
+    "seed": "seed",
+    "group": "Group {n}",
+    "captain": "captain",
+    "register": {
+      "title": "Register my team",
+      "hint": "You join as captain. Enter your partners' profile ids (shown on each player page).",
+      "solo": "Register as a player.",
+      "partner": "Partner {n} (profile id)",
+      "name": "Team name (optional)",
+      "button": "Register",
+      "login": "Sign in with Steam to register.",
+      "claim": "Claim your profile to register.",
+      "done": "Registration sent. The organizer confirms the team.",
+      "already": "You are already on team {name}."
+    },
+    "err": {
+      "closed": "Registration is closed.",
+      "full": "The tournament is full.",
+      "size": "The team must have exactly {n} players.",
+      "player_taken": "Player #{id} is already on another team.",
+      "player_missing": "Could not find player #{id}.",
+      "duplicate": "Repeated player.",
+      "ineligible": "Player #{id} does not meet the requirements ({rules}).",
+      "few_teams": "Not enough confirmed teams.",
+      "groups_open": "Some group matches are still open.",
+      "status": "Action not allowed in this state.",
+      "no_groups": "This tournament has no group stage."
+    },
+    "admin": {
+      "title": "Organizer",
+      "youOwn": "You organize this tournament",
+      "addTeam": "Add team",
+      "player": "Player {n} (profile id)",
+      "skipEligibility": "Skip requirements",
+      "add": "Add",
+      "confirm": "Confirm",
+      "unconfirm": "Back to pending",
+      "remove": "Remove",
+      "withdraw": "Withdraw",
+      "startGroups": "Draw groups",
+      "startBracket": "Generate bracket",
+      "startBracketHint": "Draws the bracket with the confirmed teams. No more teams after this.",
+      "startGroupsHint": "Spreads the confirmed teams across the groups and creates every match.",
+      "cancel": "Cancel tournament",
+      "report": "Record game",
+      "winner": "Winner",
+      "undo": "Undo last game",
+      "manual": "manual",
+      "auto": "detected"
+    },
+    "groupsTitle": "Group stage",
+    "bracketTitle": "Bracket",
+    "noBracket": "The bracket shows up here once the organizer generates it.",
+    "round": "Round {n}",
+    "final": "Final",
+    "semis": "Semifinals",
+    "quarters": "Quarterfinals",
+    "tbd": "TBD",
+    "bye": "bye",
+    "walkover": "W.O.",
+    "col": {
+      "team": "Team",
+      "p": "P",
+      "w": "W",
+      "l": "L",
+      "gd": "Diff",
+      "pts": "Pts"
+    },
+    "games": "Games",
+    "noGames": "no games yet",
+    "gameAuto": "match {id}",
+    "new": {
+      "title": "New tournament",
+      "name": "Name",
+      "description": "Description (rules, schedule, Discord…)",
+      "teamSize": "Team size",
+      "bestOf": "Best of",
+      "finalBestOf": "Final best of",
+      "same": "same as the rest",
+      "groups": "Group stage",
+      "noGroups": "no groups (knockout only)",
+      "groupCount": "Number of groups",
+      "advance": "Advance per group",
+      "groupBestOf": "Groups best of",
+      "maxTeams": "Max teams (empty = no limit)",
+      "startsAt": "Start (date and time)",
+      "prize": "Prize (optional)",
+      "reqTitle": "Registration requirements (anti-smurf)",
+      "maxPeak": "Max peak rating (RM 1v1)",
+      "minGames": "Min RM 1v1 games",
+      "minRecent": "Min games in the last 30 days",
+      "optional": "empty = not required",
+      "submit": "Create tournament",
+      "errors": {
+        "name": "Name must have 3 to 60 characters.",
+        "groups": "With groups you need at least 1 group and 1 team advancing.",
+        "slug": "Could not create. Try another name."
+      }
     }
   }
 }

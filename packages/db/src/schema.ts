@@ -296,6 +296,156 @@ export const leagueMatchesRelations = relations(leagueMatches, ({ one }) => ({
   loser: one(players, { fields: [leagueMatches.loserPlayerId], references: [players.id], relationName: 'loser' }),
 }));
 
+/* ───────────────────────────── Torneios (fase 3) ───────────────────────────── */
+
+/**
+ * Torneio entre times de team_size jogadores (1 a 4; 2v2 por padrão).
+ * format: single_elim (só mata-mata) ou groups_elim (grupos em pontos corridos, depois mata-mata
+ * com os advance_per_group melhores de cada grupo).
+ * Resultado confirmado pelo histórico (partida com exatamente os jogadores dos dois times,
+ * nos times certos, depois do início) ou reportado pelo organizador.
+ * status: open (inscrições) → groups (fase de grupos) → running (chave) → finished | cancelled.
+ */
+export const tournaments = pgTable(
+  'tournaments',
+  {
+    id: serial('id').primaryKey(),
+    slug: varchar('slug', { length: 48 }).notNull().unique(),
+    name: text('name').notNull(),
+    description: text('description'),
+    ownerUserId: integer('owner_user_id').references(() => users.id, { onDelete: 'set null' }),
+    leagueId: integer('league_id').references(() => leagues.id, { onDelete: 'set null' }),
+    teamSize: smallint('team_size').notNull().default(2),
+    format: varchar('format', { length: 16 }).notNull().default('single_elim'),
+    /** Melhor de N por confronto da chave; a final pode ter outro valor. */
+    bestOf: smallint('best_of').notNull().default(1),
+    finalBestOf: smallint('final_best_of'),
+    /** Fase de grupos: quantos grupos (0 = sem grupos), quantos avançam por grupo, melhor de N nos grupos. */
+    groupCount: smallint('group_count').notNull().default(0),
+    advancePerGroup: smallint('advance_per_group').notNull().default(2),
+    groupBestOf: smallint('group_best_of').notNull().default(1),
+    maxTeams: smallint('max_teams'),
+    /**
+     * Requisitos de inscrição (anti-smurf), checados por jogador na ladder RM 1v1:
+     * pico de rating ≤ max_peak_rating; partidas totais ≥ min_games; partidas nos últimos 30 dias
+     * registradas no portal ≥ min_recent_games. null = sem exigência. O organizador pode ignorar.
+     */
+    maxPeakRating: integer('max_peak_rating'),
+    minGames: smallint('min_games'),
+    minRecentGames: smallint('min_recent_games'),
+    /** Premiação em texto livre (ex.: "R$ 2.000: 70% campeão, 30% vice"). */
+    prize: text('prize'),
+    status: varchar('status', { length: 12 }).notNull().default('open'),
+    startsAt: timestamp('starts_at', { withTimezone: true }),
+    /** Quando a chave foi gerada. Só partidas depois disso contam. */
+    bracketAt: timestamp('bracket_at', { withTimezone: true }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('tournaments_owner_idx').on(t.ownerUserId), index('tournaments_status_idx').on(t.status)],
+);
+
+/** Time inscrito. pending = inscrito pela dupla, aguardando o organizador; confirmed = entra na chave. */
+export const tournamentTeams = pgTable(
+  'tournament_teams',
+  {
+    id: serial('id').primaryKey(),
+    tournamentId: integer('tournament_id').notNull().references(() => tournaments.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    seed: smallint('seed'),
+    /** Grupo sorteado na fase de grupos (1..group_count). */
+    groupNo: smallint('group_no'),
+    status: varchar('status', { length: 12 }).notNull().default('pending'),
+    createdByUserId: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('tournament_teams_tournament_idx').on(t.tournamentId)],
+);
+
+/** Jogador de um time. Um jogador só pode estar em um time por torneio. */
+export const tournamentTeamMembers = pgTable(
+  'tournament_team_members',
+  {
+    teamId: integer('team_id').notNull().references(() => tournamentTeams.id, { onDelete: 'cascade' }),
+    tournamentId: integer('tournament_id').notNull().references(() => tournaments.id, { onDelete: 'cascade' }),
+    playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+    isCaptain: boolean('is_captain').notNull().default(false),
+  },
+  (t) => [primaryKey({ columns: [t.teamId, t.playerId] }), uniqueIndex('tournament_team_members_player_idx').on(t.tournamentId, t.playerId)],
+);
+
+/**
+ * Confronto. stage = group (pontos corridos dentro de group_no) ou bracket (chave).
+ * round 1 = primeira rodada; position = índice na rodada.
+ * next_match_id/next_slot = pra onde o vencedor vai (só na chave). Time null = ainda indefinido (ou bye).
+ * status: pending (falta time) → ready (dois times) → done. walkover = vencedor sem jogo (bye/W.O.).
+ */
+export const tournamentMatches = pgTable(
+  'tournament_matches',
+  {
+    id: serial('id').primaryKey(),
+    tournamentId: integer('tournament_id').notNull().references(() => tournaments.id, { onDelete: 'cascade' }),
+    stage: varchar('stage', { length: 8 }).notNull().default('bracket'),
+    groupNo: smallint('group_no'),
+    round: smallint('round').notNull(),
+    position: smallint('position').notNull(),
+    teamAId: integer('team_a_id').references(() => tournamentTeams.id, { onDelete: 'set null' }),
+    teamBId: integer('team_b_id').references(() => tournamentTeams.id, { onDelete: 'set null' }),
+    winnerTeamId: integer('winner_team_id').references(() => tournamentTeams.id, { onDelete: 'set null' }),
+    bestOf: smallint('best_of').notNull().default(1),
+    scoreA: smallint('score_a').notNull().default(0),
+    scoreB: smallint('score_b').notNull().default(0),
+    status: varchar('status', { length: 12 }).notNull().default('pending'),
+    nextMatchId: integer('next_match_id'),
+    nextSlot: varchar('next_slot', { length: 1 }),
+    scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
+    note: text('note'),
+  },
+  (t) => [uniqueIndex('tournament_matches_round_pos_idx').on(t.tournamentId, t.stage, t.round, t.position), index('tournament_matches_status_idx').on(t.status)],
+);
+
+/** Jogo de um confronto: detectado no histórico (match_id) ou reportado à mão (match_id null). */
+export const tournamentGames = pgTable(
+  'tournament_games',
+  {
+    id: serial('id').primaryKey(),
+    tournamentMatchId: integer('tournament_match_id').notNull().references(() => tournamentMatches.id, { onDelete: 'cascade' }),
+    matchId: bigint('match_id', { mode: 'number' }).references(() => matches.id, { onDelete: 'set null' }),
+    winnerTeamId: integer('winner_team_id').notNull().references(() => tournamentTeams.id, { onDelete: 'cascade' }),
+    source: varchar('source', { length: 8 }).notNull().default('auto'),
+    reportedByUserId: integer('reported_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    playedAt: timestamp('played_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('tournament_games_match_idx').on(t.tournamentMatchId), uniqueIndex('tournament_games_source_match_idx').on(t.tournamentMatchId, t.matchId)],
+);
+
+export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({
+  owner: one(users, { fields: [tournaments.ownerUserId], references: [users.id] }),
+  league: one(leagues, { fields: [tournaments.leagueId], references: [leagues.id] }),
+  teams: many(tournamentTeams),
+  matches: many(tournamentMatches),
+}));
+export const tournamentTeamsRelations = relations(tournamentTeams, ({ one, many }) => ({
+  tournament: one(tournaments, { fields: [tournamentTeams.tournamentId], references: [tournaments.id] }),
+  members: many(tournamentTeamMembers),
+}));
+export const tournamentTeamMembersRelations = relations(tournamentTeamMembers, ({ one }) => ({
+  team: one(tournamentTeams, { fields: [tournamentTeamMembers.teamId], references: [tournamentTeams.id] }),
+  player: one(players, { fields: [tournamentTeamMembers.playerId], references: [players.id] }),
+}));
+export const tournamentMatchesRelations = relations(tournamentMatches, ({ one, many }) => ({
+  tournament: one(tournaments, { fields: [tournamentMatches.tournamentId], references: [tournaments.id] }),
+  teamA: one(tournamentTeams, { fields: [tournamentMatches.teamAId], references: [tournamentTeams.id], relationName: 'teamA' }),
+  teamB: one(tournamentTeams, { fields: [tournamentMatches.teamBId], references: [tournamentTeams.id], relationName: 'teamB' }),
+  winner: one(tournamentTeams, { fields: [tournamentMatches.winnerTeamId], references: [tournamentTeams.id], relationName: 'winner' }),
+  games: many(tournamentGames),
+}));
+export const tournamentGamesRelations = relations(tournamentGames, ({ one }) => ({
+  match: one(tournamentMatches, { fields: [tournamentGames.tournamentMatchId], references: [tournamentMatches.id] }),
+  game: one(matches, { fields: [tournamentGames.matchId], references: [matches.id] }),
+  winner: one(tournamentTeams, { fields: [tournamentGames.winnerTeamId], references: [tournamentTeams.id] }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type Player = typeof players.$inferSelect;
 export type PlayerRating = typeof playerRatings.$inferSelect;
@@ -307,3 +457,8 @@ export type Division = typeof divisions.$inferSelect;
 export type LeagueMember = typeof leagueMembers.$inferSelect;
 export type LeagueMatch = typeof leagueMatches.$inferSelect;
 export type MatchAnalysis = typeof matchAnalyses.$inferSelect;
+export type Tournament = typeof tournaments.$inferSelect;
+export type TournamentTeam = typeof tournamentTeams.$inferSelect;
+export type TournamentTeamMember = typeof tournamentTeamMembers.$inferSelect;
+export type TournamentMatch = typeof tournamentMatches.$inferSelect;
+export type TournamentGame = typeof tournamentGames.$inferSelect;

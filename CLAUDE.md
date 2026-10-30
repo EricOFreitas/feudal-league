@@ -21,7 +21,7 @@ apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) 
 apps/analyzer       Python: replay → JSON (POST /parse). Dockerfile próprio; local: uvicorn main:app
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras: upsert de jogador/rating/snapshot/partidas; ligas em leagues.ts; análise (fila, prompt, OpenRouter) em analyses.ts
+packages/sync       regras: upsert de jogador/rating/snapshot/partidas; ligas em leagues.ts; análise (fila, prompt, OpenRouter) em analyses.ts; torneios (times, grupos, chave, detecção) em tournaments.ts
 docs/PLANO.md       plano, fases, decisões
 ```
 
@@ -46,6 +46,7 @@ pnpm typecheck
 - Relógio do replay = relógio do jogo (o que o jogador vê), não tempo real. O prompt diz ao modelo que replay guarda comandos, não estado.
 - Jogador é independente de usuário: qualquer visitante adiciona; dono reivindica via Steam.
 - Liga global é semeada em `packages/db/src/migrate.ts`; divisões padrão em `DEFAULT_DIVISIONS` (sync). Nomes de divisão neutros.
-- Ações de servidor das ligas em `apps/web/src/app/[locale]/leagues/actions.ts`; página checa dono por `ownerUserId === session.uid`.
+- Ações de servidor das ligas em `apps/web/src/app/[locale]/leagues/actions.ts` e dos torneios em `tournaments/actions.ts`; página checa dono por `ownerUserId === session.uid`.
+- Torneio: `stage` group|bracket em `tournament_matches`; chave criada da final pra trás (`nextMatchId/nextSlot`); só partidas depois de `bracketAt` contam. Teste local: `apps/worker/src/tools/test-tournament.ts`.
 - Commits em português, sem Co-Authored-By. Formato: "verbo no presente + o que".
 - Sem console.log no web em produção; no worker o log é proposital.

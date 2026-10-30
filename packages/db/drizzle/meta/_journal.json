@@ -22,6 +22,27 @@
       "when": 1793334345329,
       "tag": "0002_mushy_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793367491982,
+      "tag": "0003_massive_lily_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793367532872,
+      "tag": "0004_minor_turbo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793367741766,
+      "tag": "0005_panoramic_stepford_cuckoos",
+      "breakpoints": true
     }
   ]
 }

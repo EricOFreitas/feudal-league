@@ -1,6 +1,6 @@
 /**
  * Worker de sincronização. Roda em loop; cada ciclo escolhe quem sincronizar por prioridade:
- *   - inscrito em liga com temporada aberta: a cada 15 min
+ *   - inscrito em liga com temporada aberta ou em torneio em andamento: a cada 15 min
  *   - reivindicado (tem dono): a cada 60 min
  *   - só adicionado, visto nos últimos 30 dias: a cada 6 h
  * Jogador sem dono e sem visita recente não entra no ciclo; a página dele sincroniza sob demanda.
@@ -8,7 +8,7 @@
  * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA).
  */
 import { db, players } from '@aoe2/db';
-import { activeLeagueProfileIds, detectLeagueMatches, processQueuedAnalyses, syncMatchHistory, syncRatingsByProfileIds } from '@aoe2/sync';
+import { activeLeagueProfileIds, activeTournamentProfileIds, detectLeagueMatches, detectTournamentGames, processQueuedAnalyses, syncMatchHistory, syncRatingsByProfileIds } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
 
 const ONCE = process.argv.includes('--once');
@@ -22,7 +22,7 @@ async function pickDue(): Promise<number[]> {
   const h1 = new Date(now.getTime() - 60 * 60 * 1000);
   const h6 = new Date(now.getTime() - 6 * 60 * 60 * 1000);
   const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const inLeague = await activeLeagueProfileIds();
+  const inLeague = [...new Set([...(await activeLeagueProfileIds()), ...(await activeTournamentProfileIds())])];
   const rows = await db
     .select({ profileId: players.profileId })
     .from(players)
@@ -48,6 +48,8 @@ async function cycle() {
   }
   const league = await detectLeagueMatches();
   if (league) log(`${league} partidas de liga detectadas`);
+  const games = await detectTournamentGames();
+  if (games) log(`${games} jogos de torneio detectados`);
 }
 
 async function analysisLoop() {

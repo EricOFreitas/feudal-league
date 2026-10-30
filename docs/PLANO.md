@@ -215,9 +215,19 @@ Medido em 30/10 com o replay 517326318 (Arabia 2v2, build 4515430):
 Ids úteis do corpo: unidade 83 vila, 38 cavaleiro, 93 lanceiro; tecnologia 22
 loom, 101 Feudal, 102 Castelos, 103 Imperial, 202 double-bit axe.
 
-**Fase 3 — torneios (3–4 semanas).**
-Chave de eliminação simples primeiro. Agenda, confirmação automática, disputa,
-pódio. Depois dupla eliminação e suíço. Login por e-mail pra jogador Xbox.
+**Fase 3 — torneios. ✅ Implementada em 30/10/2026 (v1), pro 2v2 que o Eric vai organizar.**
+Times de 1 a 4, qualquer número de times, mata-mata por eliminação simples com fase de
+grupos opcional (pontos corridos em serpentina, N melhores de cada grupo avançam com
+cruzamento 1º×2º), melhor de 1/3/5 por confronto com final própria. Inscrição pelos dois
+caminhos: a dupla se inscreve (capitão logado + ids de perfil dos parceiros, fica pendente
+até o organizador confirmar) ou o organizador cadastra direto. Requisitos anti-smurf por
+torneio, inspirados na Paganini Cup: pico de rating RM 1v1 ≤ X, mínimo de partidas,
+mínimo de partidas nos últimos 30 dias (contadas pelo portal); organizador pode ignorar.
+Resultado: detecção automática no histórico (partida com exatamente os jogadores dos dois
+times, nos times certos, depois da geração da chave) ou reporte manual; desfazer último jogo.
+Seeds opcionais; o resto é sorteado. Bye vira W.O. automático.
+Falta: agenda por confronto, dupla eliminação e suíço, login por e-mail pra Xbox, torneios
+na página do jogador, busca de parceiro por nome em vez de id.
 
 **Fase 4 — educativo (sem prazo).**
 Estatísticas pessoais: win rate por civ e mapa, evolução do rating, comparação
@@ -261,3 +271,6 @@ com a faixa (dumps do aoestats). Guias em PT/EN escritos por você.
   Padrão: `anthropic/claude-haiku-5.5`. Modelos com raciocínio precisam de
   `max_tokens` folgado + `reasoning.effort=low`, senão voltam vazios.
   Script: `apps/worker/src/tools/compare-models.ts`.
+- 30/10/2026 — Torneios: v1 com grupos opcionais + eliminação simples, times 1–4, Bo1/3/5,
+  requisitos anti-smurf configuráveis (pico, partidas, partidas recentes). Testado localmente
+  com jogadores reais e a partida 2v2 517326318 (`apps/worker/src/tools/test-tournament.ts`).
