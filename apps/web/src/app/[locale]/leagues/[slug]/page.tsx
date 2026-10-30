@@ -60,6 +60,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const placement = player && !membership ? placementFor(league, divs, player.ratings.find((r) => r.leaderboardId === RM_1V1)) : null;
 
   const counts = season ? await divisionCounts(season.id) : new Map<number, number>();
+  const memberTotal = [...counts.values()].reduce((a, b) => a + b, 0);
   const totalMembers = [...counts.values()].reduce((n, c) => n + c, 0);
   const nf = new Intl.NumberFormat(locale);
   const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
@@ -326,7 +327,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             <div className="panel flex flex-col gap-3 p-5">
               <p className="kicker">{tx('invite.title')}</p>
               <p className="relative text-sm text-parchment-200">{tx('invite.hint')}</p>
-              <InviteDialog url={inviteUrl} leagueName={leagueTitle} />
+              <InviteDialog url={inviteUrl} leagueName={leagueTitle} ogUrl={`/${locale}/leagues/${league.slug}/opengraph-image`} members={memberTotal} description={league.description} />
             </div>
 
             <div className="panel p-5">

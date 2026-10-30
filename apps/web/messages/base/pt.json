@@ -17,8 +17,8 @@
     "tournaments": "Torneios"
   },
   "home": {
-    "title": "Compita com quem está no seu nível",
-    "subtitle": "Acompanhe seu rating, entre numa liga da sua faixa e dispute torneios com chance real de pódio.",
+    "title": "Suas partidas de AoE2 viram uma liga.",
+    "subtitle": "As partidas continuam no jogo, ranqueadas ou em lobby. O portal lê o histórico, põe cada um na divisão do seu rating e compara você com quem está no mesmo nível. Crie a liga do seu clã, Discord ou cidade.",
     "add": {
       "title": "Adicionar jogador",
       "hint": "Cole o link do perfil Steam, o SteamID64, o profile_id do AoE2 ou o nick exato como aparece no jogo.",
@@ -37,13 +37,14 @@
         "text": "Ligas têm divisões por rating, de Escudo a Coroa. Quem está em 900 compete com gente de 900."
       },
       "three": {
-        "title": "Dispute",
-        "text": "Torneios por divisão. O resultado é confirmado pelo histórico do jogo, sem print."
+        "title": "Jogue no AoE2",
+        "text": "As partidas são no próprio jogo, ranqueadas ou lobby. O resultado entra na tabela pelo histórico, sem print."
       }
     },
     "recent": "Adicionados recentemente",
     "empty": "Ninguém ainda. Seja o primeiro.",
-    "leaguesCta": "Ver ligas"
+    "leaguesCta": "Ver ligas",
+    "kicker": "Ligas por faixa de rating · Age of Empires II: DE"
   },
   "search": {
     "title": "Quem é você?",

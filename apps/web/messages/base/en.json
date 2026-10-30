@@ -17,8 +17,8 @@
     "tournaments": "Tournaments"
   },
   "home": {
-    "title": "Compete with players at your level",
-    "subtitle": "Track your rating, join a league in your bracket and play tournaments with a real shot at the podium.",
+    "title": "Your AoE2 matches become a league.",
+    "subtitle": "Matches stay in the game, ranked or lobby. The portal reads the history, places everyone in the division of their rating and compares you with people at your level. Create the league of your clan, Discord or city.",
     "add": {
       "title": "Add a player",
       "hint": "Paste a Steam profile link, a SteamID64, an AoE2 profile_id or the exact in-game nickname.",
@@ -37,13 +37,14 @@
         "text": "Leagues have rating divisions, from Shield to Crown. If you're at 900, you compete with people at 900."
       },
       "three": {
-        "title": "Compete",
-        "text": "Tournaments per division. Results are confirmed from the game's match history, no screenshots."
+        "title": "Play in AoE2",
+        "text": "Matches happen in the game itself, ranked or lobby. Results enter the table from the history, no screenshots."
       }
     },
     "recent": "Recently added",
     "empty": "Nobody yet. Be the first.",
-    "leaguesCta": "See leagues"
+    "leaguesCta": "See leagues",
+    "kicker": "Rating-bracket leagues · Age of Empires II: DE"
   },
   "search": {
     "title": "Which one is you?",

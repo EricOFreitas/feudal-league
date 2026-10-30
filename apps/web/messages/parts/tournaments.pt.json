@@ -1,12 +1,21 @@
 {
   "tournaments": {
-    "searchPlaceholder": "Buscar torneio",
+    "searchPlaceholder": "Buscar torneio ou liga",
     "searchButton": "Buscar",
-    "filters": { "active": "Ativos", "running": "Em andamento", "open": "Inscrições abertas", "finished": "Encerrados" },
-    "mine": { "title": "Seus torneios", "registered": "Você está inscrito", "next": "Sua próxima partida: contra {name}" },
+    "filters": {
+      "active": "Ativos",
+      "running": "Em andamento",
+      "open": "Inscrições abertas",
+      "finished": "Encerrados"
+    },
+    "mine": {
+      "title": "Seus torneios",
+      "registered": "Você está inscrito",
+      "next": "Sua próxima partida: contra {name}"
+    },
     "joined": "Inscrito",
     "noMatch": "Nenhum torneio com esses filtros.",
-    "listIntro": "Vocês jogam no AoE2 no horário combinado e o resultado entra na chave sozinho, lido do histórico do jogo.",
+    "listIntro": "Ligas e jogadores organizam torneios. Vocês jogam no AoE2 no horário marcado e o resultado entra na chave sozinho, lido do histórico do jogo.",
     "currentRound": "Rodada atual",
     "bracketNote": "Vocês jogam no AoE2, num lobby {size}. Depois do horário combinado, o portal procura a partida entre os dois times no histórico do jogo e avança o vencedor sozinho.",
     "matchStatus": {
@@ -26,6 +35,22 @@
       "step1": "Combine com o adversário e crie um lobby {size} no jogo.",
       "step2": "Jogue normalmente. Não precisa de print nem de reporte.",
       "step3": "O resultado aparece aqui na próxima sincronização."
+    },
+    "more": "Ver mais torneios",
+    "showing": "Mostrando {n} de {total}",
+    "kickerLeague": "{league} · Torneio",
+    "kickerPlain": "Torneio",
+    "formatLine": "{format} · {teams} · {bestOf}",
+    "formatKnockout": "Eliminação simples",
+    "formatGroups": "Grupos + eliminação simples",
+    "bestOfLine": "melhor de {n}",
+    "finalBestOfLine": "final melhor de {n}",
+    "path": {
+      "title": "Caminho até a final",
+      "won": "Venceu {name}",
+      "lost": "Perdeu pra {name}",
+      "pending": "a definir",
+      "or": "{a} ou {b}"
     }
   }
 }

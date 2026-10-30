@@ -32,7 +32,11 @@
         "copy": "Copiar",
         "copied": "Copiado",
         "copyFailed": "Não deu pra copiar. Selecione o link e copie.",
-        "close": "Fechar"
+        "close": "Fechar",
+        "previewTitle": "Como aparece ao colar",
+        "previewMembers": "{name} · {count, plural, =1 {1 membro} other {# membros}}",
+        "previewDesc": "Divisões por rating, de Escudo a Coroa. Partidas no próprio AoE2, tabela automática.",
+        "previewNote": "A imagem é gerada pelo portal para cada liga e muda conforme os membros entram."
       },
       "tournaments": {
         "title": "Torneios",

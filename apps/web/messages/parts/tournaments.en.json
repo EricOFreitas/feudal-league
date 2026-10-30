@@ -1,12 +1,21 @@
 {
   "tournaments": {
-    "searchPlaceholder": "Search tournaments",
+    "searchPlaceholder": "Search tournament or league",
     "searchButton": "Search",
-    "filters": { "active": "Active", "running": "In progress", "open": "Open for sign-up", "finished": "Finished" },
-    "mine": { "title": "Your tournaments", "registered": "You are signed up", "next": "Your next match: against {name}" },
+    "filters": {
+      "active": "Active",
+      "running": "In progress",
+      "open": "Open for sign-up",
+      "finished": "Finished"
+    },
+    "mine": {
+      "title": "Your tournaments",
+      "registered": "You are signed up",
+      "next": "Your next match: against {name}"
+    },
     "joined": "Signed up",
     "noMatch": "No tournaments match these filters.",
-    "listIntro": "You play in AoE2 at the agreed time and the result lands in the bracket by itself, read from the game history.",
+    "listIntro": "Leagues and players organize tournaments. You play in AoE2 at the scheduled time and the result enters the bracket on its own, read from the game history.",
     "currentRound": "Current round",
     "bracketNote": "You play in AoE2, in a {size} lobby. After the agreed time, the portal looks for the match between the two teams in the game history and advances the winner by itself.",
     "matchStatus": {
@@ -26,6 +35,22 @@
       "step1": "Agree on a time with your opponent and create a {size} lobby in the game.",
       "step2": "Just play. No screenshot or report needed.",
       "step3": "The result shows up here on the next sync."
+    },
+    "more": "Show more tournaments",
+    "showing": "Showing {n} of {total}",
+    "kickerLeague": "{league} · Tournament",
+    "kickerPlain": "Tournament",
+    "formatLine": "{format} · {teams} · {bestOf}",
+    "formatKnockout": "Single elimination",
+    "formatGroups": "Groups + single elimination",
+    "bestOfLine": "best of {n}",
+    "finalBestOfLine": "final best of {n}",
+    "path": {
+      "title": "Road to the final",
+      "won": "Beat {name}",
+      "lost": "Lost to {name}",
+      "pending": "TBD",
+      "or": "{a} or {b}"
     }
   }
 }

@@ -16,7 +16,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   return (
     <div className="space-y-12">
       <section className="relative mx-auto max-w-3xl pt-6 text-center">
-        <p className="kicker mb-3">Age of Empires II: Definitive Edition</p>
+        <p className="kicker mb-3">{t('kicker')}</p>
         <h1 className="text-4xl font-semibold text-gold-300 sm:text-5xl">{t('title')}</h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-parchment-200">{t('subtitle')}</p>
 

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Link } from '@/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Heart } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -70,6 +71,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <div className="relative z-[1] min-w-0 flex-1 basis-72">
             <h2 className="text-2xl text-gold-300">{t('support.heading')}</h2>
             <p className="mt-2 text-parchment-200">{t('support.text')}</p>
+            <p className="mt-2 text-sm text-parchment-400">{t('support.badge')} <Link href="/supporters">{t('support.seeSupporters')}</Link></p>
             {donate ? (
               <a href={donate} target="_blank" rel="noreferrer" className="btn mt-5 whitespace-nowrap no-underline hover:text-stone-950 hover:no-underline"><Heart className="h-4 w-4" />{t('support.cta')}</a>
             ) : (

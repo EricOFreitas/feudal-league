@@ -8,7 +8,7 @@ import { Link2, X } from 'lucide-react';
  * Cartão "Convidar" da página da liga: botão que abre um <dialog> nativo com o link público
  * e o botão Copiar. O <dialog> dá de graça o Esc, o foco preso e o fundo escuro.
  */
-export function InviteDialog({ url, leagueName }: { url: string; leagueName: string }) {
+export function InviteDialog({ url, leagueName, ogUrl, members, description }: { url: string; leagueName: string; ogUrl: string; members: number; description?: string | null }) {
   const t = useTranslations('leagues.detail.invite');
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -61,6 +61,20 @@ export function InviteDialog({ url, leagueName }: { url: string; leagueName: str
               </button>
             </div>
             {state === 'failed' && <p className="text-sm text-crimson-500">{t('copyFailed')}</p>}
+            <div>
+              <p className="kicker mb-2.5 !text-parchment-400">{t('previewTitle')}</p>
+              <div className="rounded border border-[#2a2622] bg-[#121110] p-3 font-sans text-[0.82rem] leading-snug text-[#d6d6d6]">
+                <div className="text-[#7fb0e0]">{url.replace(/^https?:\/\//, '')}</div>
+                <div className="mt-2 max-w-md rounded-[3px] border-l-4 border-gold-500 bg-[#1b1a19] px-3 py-2.5">
+                  <div className="text-[0.72rem] text-[#8a8a8a]">Feudal League</div>
+                  <div className="mt-0.5 font-semibold text-gold-300">{t('previewMembers', { name: leagueName, count: members })}</div>
+                  <div className="mt-0.5">{description || t('previewDesc')}</div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={ogUrl} alt="" width={1200} height={630} className="mt-2.5 block h-auto w-full rounded-[3px] border border-gold-700" />
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-parchment-400">{t('previewNote')}</p>
             <p className="text-sm text-parchment-400">{t('hint')}</p>
           </div>
         </div>

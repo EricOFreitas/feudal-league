@@ -5,16 +5,41 @@
     "intro": "Feudal League was born to give players at low and mid rating a place to compete against people of their own level. The code is open: anyone can read it, suggest changes and help improve it.",
     "how": {
       "title": "How it works under the hood",
-      "c1": { "title": "Data from the game itself", "text": "Rating and history come from the AoE2 server. Nothing is typed by hand." },
-      "c2": { "title": "No screenshots, no reports", "text": "A match between members is found in the history and turns into points by itself." },
-      "c3": { "title": "Division by peak", "text": "You enter by the highest rating you ever had, not the current one. That keeps smurfs out." }
+      "c1": {
+        "title": "Data from the game itself",
+        "text": "Rating and history come from the AoE2 server. Nothing is typed by hand."
+      },
+      "c2": {
+        "title": "No screenshots, no reports",
+        "text": "A match between members is found in the history and turns into points by itself."
+      },
+      "c3": {
+        "title": "Division by peak",
+        "text": "You enter by the highest rating you ever had, not the current one. That keeps smurfs out."
+      }
     },
     "contribute": {
       "title": "Contribute",
-      "code": { "title": "Code", "text": "Next.js, Postgres, a Node worker and a Python analyzer. Before a big change, open an issue to talk it over.", "link": "github.com/EricOFreitas/feudal-league" },
-      "translate": { "title": "Translations", "text": "All text lives in messages/pt.json and en.json, with the same keys. Another language is a new file.", "link": "apps/web/messages/" },
-      "issues": { "title": "Found a problem", "text": "A match that did not count, a nickname that does not show up, a wrong civ or map name. Tell us, with the page link.", "link": "github.com/EricOFreitas/feudal-league/issues" },
-      "guide": { "title": "How to contribute", "text": "Local setup, checks before the pull request and project conventions.", "link": "CONTRIBUTING.md" }
+      "code": {
+        "title": "Code",
+        "text": "Next.js, Postgres, a Node worker and a Python analyzer. Before a big change, open an issue to talk it over.",
+        "link": "github.com/EricOFreitas/feudal-league"
+      },
+      "translate": {
+        "title": "Translations",
+        "text": "All text lives in messages/pt.json and en.json, with the same keys. Another language is a new file.",
+        "link": "apps/web/messages/"
+      },
+      "issues": {
+        "title": "Found a problem",
+        "text": "A match that did not count, a nickname that does not show up, a wrong civ or map name. Tell us, with the page link.",
+        "link": "github.com/EricOFreitas/feudal-league/issues"
+      },
+      "guide": {
+        "title": "How to contribute",
+        "text": "Local setup, checks before the pull request and project conventions.",
+        "link": "CONTRIBUTING.md"
+      }
     },
     "support": {
       "title": "Support the project",
@@ -28,7 +53,9 @@
       "llm": "Language model for the analyses",
       "llmWhen": "per analysis",
       "domain": "Domain",
-      "domainWhen": "every year"
+      "domainWhen": "every year",
+      "badge": "Donors get the Supporter badge on their profile, if they want to show it.",
+      "seeSupporters": "See who has already helped the project →"
     },
     "legal": {
       "title": "License and notices",

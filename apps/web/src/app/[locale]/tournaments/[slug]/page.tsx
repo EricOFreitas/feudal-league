@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ShieldCheck, Trophy, Users } from 'lucide-react';
-import { db, players } from '@aoe2/db';
+import { db, leagues, players } from '@aoe2/db';
 import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -58,6 +58,8 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const myMatch = myTeam && (tour.status === 'groups' || tour.status === 'running') ? tour.matches.find((m) => m.status === 'ready' && (m.teamAId === myTeam.id || m.teamBId === myTeam.id)) ?? null : null;
   const oppTeam = myMatch && myTeam ? teams.get((myMatch.teamAId === myTeam.id ? myMatch.teamBId : myMatch.teamAId) ?? -1) ?? null : null;
   const currentBracketRound = Math.min(Infinity, ...bracketMatches.filter((m) => m.status !== 'done' && m.status !== 'walkover').map((m) => m.round));
+  const leagueOf = tour.leagueId ? await db.query.leagues.findFirst({ where: eq(leagues.id, tour.leagueId), columns: { slug: true, name: true } }) : null;
+  const activeTeamCount = visibleTeams.filter((x) => x.status !== 'withdrawn').length;
   const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
   const dts = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
 
@@ -123,15 +125,17 @@ export default async function TournamentPage({ params, searchParams }: Props) {
       <header className="panel corners p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="kicker">{t('title')}</p>
+            <p className="kicker">{leagueOf ? <><Link href={`/leagues/${leagueOf.slug}`} className="text-gold-500">{leagueOf.name}</Link> · {t('kickerPlain')}</> : t('kickerPlain')}</p>
             <h1 className="text-3xl font-semibold text-gold-300 sm:text-4xl">{tour.name}</h1>
             {tour.description && <p className="mt-2 max-w-2xl whitespace-pre-line text-parchment-200">{tour.description}</p>}
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-parchment-300">
               <span className="tag"><Trophy className="h-3.5 w-3.5" />{t(`status.${tour.status as Status}`)}</span>
-              <span className="tag">{t('format.size', { n: tour.teamSize })}</span>
-              <span className="tag">{tour.groupCount > 0 ? t('format.groups', { n: tour.groupCount, adv: tour.advancePerGroup }) : t('format.knockout')}</span>
-              <span className="tag">{t('format.bestOf', { n: tour.bestOf })}{tour.finalBestOf && tour.finalBestOf !== tour.bestOf ? `, ${t('format.finalBestOf', { n: tour.finalBestOf })}` : ''}{tour.groupCount > 0 && tour.groupBestOf !== tour.bestOf ? `, ${t('format.groupBestOf', { n: tour.groupBestOf })}` : ''}</span>
-              <span className="tag"><Users className="h-3.5 w-3.5" />{tour.maxTeams ? t('teamsOf', { count: visibleTeams.filter((x) => x.status !== 'withdrawn').length, max: tour.maxTeams }) : t('teams', { count: visibleTeams.filter((x) => x.status !== 'withdrawn').length })}</span>
+              <span className="tag"><Users className="h-3.5 w-3.5" />{t('format.size', { n: tour.teamSize })}</span>
+              <span>{t('formatLine', {
+                format: tour.groupCount > 0 ? t('formatGroups') : t('formatKnockout'),
+                teams: tour.maxTeams ? t('teamsOf', { count: activeTeamCount, max: tour.maxTeams }) : t('teams', { count: activeTeamCount }),
+                bestOf: [t('bestOfLine', { n: tour.bestOf }), tour.finalBestOf && tour.finalBestOf !== tour.bestOf ? t('finalBestOfLine', { n: tour.finalBestOf }) : null, tour.groupCount > 0 && tour.groupBestOf !== tour.bestOf ? t('format.groupBestOf', { n: tour.groupBestOf }) : null].filter(Boolean).join(', '),
+              })}</span>
             </p>
             <p className="mt-2 flex flex-wrap gap-x-4 text-sm text-parchment-400">
               {tour.startsAt && <span>{t('startsAt', { date: dt.format(tour.startsAt) })}</span>}
@@ -152,7 +156,8 @@ export default async function TournamentPage({ params, searchParams }: Props) {
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         <div className="space-y-10">
           {myMatch && myTeam && oppTeam && (
-            <section className="panel !border-gold-500 p-5">
+            <section className="flex flex-wrap items-start gap-4">
+            <div className="panel min-w-0 flex-[1_1_320px] !border-gold-500 p-5">
               <p className="kicker">{t('next.title', { round: myMatch.stage === 'group' ? t('group', { n: myMatch.groupNo ?? 0 }) : roundName(myMatch.round, bracketRounds) })}</p>
               <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
                 {[myTeam, oppTeam].map((tm, i) => (
@@ -173,6 +178,31 @@ export default async function TournamentPage({ params, searchParams }: Props) {
                 <li><span className="font-display text-gold-300">II.</span> {t('next.step2')}</li>
                 <li><span className="font-display text-gold-300">III.</span> {t('next.step3')}</li>
               </ol>
+            </div>
+            {bracketMatches.length > 0 && (
+              <div className="panel min-w-0 flex-[1_1_260px] p-5">
+                <p className="kicker">{t('path.title')}</p>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {Array.from({ length: bracketRounds }, (_, i) => i + 1).map((round) => {
+                    const m = bracketMatches.find((x) => x.round === round && (x.teamAId === myTeam.id || x.teamBId === myTeam.id));
+                    let text: string; let tone = 'text-parchment-400';
+                    if (m && (m.status === 'done' || m.status === 'walkover')) {
+                      const opp = m.teamAId === myTeam.id ? m.teamBId : m.teamAId;
+                      const won = m.winnerTeamId === myTeam.id;
+                      text = won ? (opp ? t('path.won', { name: teamName(opp) }) : t('walkover')) : t('path.lost', { name: teamName(opp) });
+                      tone = won ? 'text-moss-500' : 'text-crimson-500';
+                    } else if (m && m.status === 'ready') {
+                      text = m.scheduledAt ? dts.format(m.scheduledAt) : t('matchStatus.searching'); tone = 'text-gold-300';
+                    } else {
+                      // rodada futura: quem pode vir do outro lado da chave
+                      const feeder = m ? bracketMatches.filter((x) => x.nextMatchId === m.id && !(x.teamAId === myTeam.id || x.teamBId === myTeam.id))[0] : undefined;
+                      text = feeder && feeder.teamAId && feeder.teamBId ? t('path.or', { a: teamName(feeder.teamAId), b: teamName(feeder.teamBId) }) : t('path.pending');
+                    }
+                    return <li key={round} className="flex justify-between gap-2"><span className="text-parchment-200">{roundName(round, bracketRounds)}</span><span className={`text-right ${tone}`}>{text}</span></li>;
+                  })}
+                </ul>
+              </div>
+            )}
             </section>
           )}
 

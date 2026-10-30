@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Search, Users } from 'lucide-react';
+import { db, leagues } from '@aoe2/db';
+import { inArray } from 'drizzle-orm';
 import { listTournaments, myTournaments } from '@aoe2/sync';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
 
-type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ q?: string; f?: string }> };
+type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ q?: string; f?: string; more?: string }> };
 type Status = 'open' | 'groups' | 'running' | 'finished' | 'cancelled';
 
 const FILTERS = ['active', 'running', 'open', 'finished'] as const;
@@ -43,8 +45,11 @@ export default async function TournamentsPage({ params, searchParams }: Props) {
   const f: Filter = (FILTERS as readonly string[]).includes(sp.f ?? '') ? (sp.f as Filter) : 'active';
   const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
 
-  const base = all.filter((x) => !q || x.name.toLowerCase().includes(q.toLowerCase()));
+  const leagueIds = [...new Set(all.map((x) => x.leagueId).filter((id): id is number => id != null))];
+  const leagueNames = new Map((leagueIds.length ? await db.select({ id: leagues.id, name: leagues.name }).from(leagues).where(inArray(leagues.id, leagueIds)) : []).map((l) => [l.id, l.name]));
+  const base = all.filter((x) => !q || `${x.name} ${x.leagueId ? leagueNames.get(x.leagueId) ?? '' : ''}`.toLowerCase().includes(q.toLowerCase()));
   const list = base.filter((x) => IN_FILTER[f](x.status));
+  const shown = sp.more ? list : list.slice(0, 6);
   const mine = player && !q ? await myTournaments(player.id) : [];
   const mineMap = new Map(mine.map((m) => [m.tournamentId, m]));
   const mineCards = all.filter((x) => mineMap.has(x.id) && x.status !== 'finished');
@@ -115,7 +120,7 @@ export default async function TournamentsPage({ params, searchParams }: Props) {
         <div className="rule mb-5"><span className="kicker">{t(`filters.${f}`)}</span></div>
         {list.length === 0 ? <p className="italic text-parchment-400">{all.length === 0 ? t('empty') : t('noMatch')}</p> : (
           <ul className="flex flex-col gap-2">
-            {list.map((x) => {
+            {shown.map((x) => {
               const teams = x.teams.filter((tm) => tm.status !== 'withdrawn').length;
               const tone = TONE[x.status] ?? TONE.finished;
               return (
@@ -141,6 +146,12 @@ export default async function TournamentsPage({ params, searchParams }: Props) {
               );
             })}
           </ul>
+        )}
+        {list.length > shown.length && (
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <Link href={{ pathname: '/tournaments' as const, query: { ...(q ? { q } : {}), f, more: '1' } }} className="btn btn-ghost !text-xs">{t('more')}</Link>
+            <span className="text-sm text-parchment-400">{t('showing', { n: shown.length, total: list.length })}</span>
+          </div>
         )}
       </section>
     </div>
