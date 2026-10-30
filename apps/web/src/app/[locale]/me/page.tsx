@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { db, players } from '@aoe2/db';
-import { findPlayerBySteamId, importPlayerBySteamId } from '@aoe2/sync';
+import { findPlayerBySteamId, importPlayerBySteamId, syncMatchHistory } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/session';
@@ -34,6 +34,7 @@ export default async function MePage({ params }: { params: Promise<{ locale: str
   try {
     const r = await importPlayerBySteamId(session.sid);
     if (r) {
+      await syncMatchHistory([r.profileId]).catch(() => undefined);
       await db.update(players).set({ claimedByUserId: session.uid }).where(eq(players.id, r.id));
       redirect({ href: `/players/${r.profileId}`, locale });
     }

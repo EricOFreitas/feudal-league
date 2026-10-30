@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, players, users } from '@aoe2/db';
-import { findPlayerBySteamId, importPlayerBySteamId } from '@aoe2/sync';
+import { findPlayerBySteamId, importPlayerBySteamId, syncMatchHistory } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { verifySteamCallback, appUrl } from '@/lib/steam-openid';
 import { createSessionCookie } from '@/lib/session';
@@ -36,7 +36,10 @@ export async function GET(req: Request) {
   if (!player) {
     try {
       const imported = await importPlayerBySteamId(steamId64);
-      if (imported) player = await findPlayerBySteamId(steamId64);
+      if (imported) {
+        await syncMatchHistory([imported.profileId]).catch(() => undefined);
+        player = await findPlayerBySteamId(steamId64);
+      }
     } catch { /* API fora: entra sem perfil, reivindica depois em /me */ }
   }
   let dest = next && next.startsWith('/') ? next : '/pt/me';
