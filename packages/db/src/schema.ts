@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
-  bigint, boolean, index, integer, pgTable, primaryKey, serial, smallint, text, timestamp, uniqueIndex, varchar,
+  bigint, boolean, index, integer, jsonb, pgTable, primaryKey, serial, smallint, text, timestamp, uniqueIndex, varchar,
 } from 'drizzle-orm/pg-core';
 
 /** Conta no portal. Nasce no login Steam. */
@@ -213,6 +213,45 @@ export const leagueMatches = pgTable(
   ],
 );
 
+/* ───────────────────────── Análise de partida (fase 2) ───────────────────────── */
+
+/**
+ * Pedido de análise de uma partida sob a ótica de um jogador. O worker baixa o replay
+ * oficial (serviço analyzer), resume e pede o feedback ao modelo de linguagem.
+ * Uma por (partida, jogador). Leitura é pública; pedir exige dono do perfil.
+ */
+export const matchAnalyses = pgTable(
+  'match_analyses',
+  {
+    id: serial('id').primaryKey(),
+    matchId: bigint('match_id', { mode: 'number' }).notNull().references(() => matches.id, { onDelete: 'cascade' }),
+    /** Jogador analisado (participante da partida). */
+    profileId: integer('profile_id').notNull(),
+    requestedByUserId: integer('requested_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    /** Idioma do feedback. */
+    locale: varchar('locale', { length: 5 }).notNull().default('pt'),
+    /** queued → parsing → writing → done | failed. */
+    status: varchar('status', { length: 12 }).notNull().default('queued'),
+    error: text('error'),
+    /** Resumo devolvido pelo analyzer (JSON). */
+    parse: jsonb('parse'),
+    model: text('model'),
+    feedback: text('feedback'),
+    promptTokens: integer('prompt_tokens'),
+    completionTokens: integer('completion_tokens'),
+    /** Custo informado pelo OpenRouter, em microdólares (1e-6 USD). */
+    costMicroUsd: integer('cost_micro_usd'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('match_analyses_match_profile_idx').on(t.matchId, t.profileId),
+    index('match_analyses_user_time_idx').on(t.requestedByUserId, t.createdAt),
+    index('match_analyses_status_idx').on(t.status, t.createdAt),
+  ],
+);
+
 export const playersRelations = relations(players, ({ many, one }) => ({
   ratings: many(playerRatings),
   memberships: many(leagueMembers),
@@ -221,7 +260,10 @@ export const playersRelations = relations(players, ({ many, one }) => ({
 export const playerRatingsRelations = relations(playerRatings, ({ one }) => ({
   player: one(players, { fields: [playerRatings.playerId], references: [players.id] }),
 }));
-export const matchesRelations = relations(matches, ({ many }) => ({ members: many(matchMembers) }));
+export const matchesRelations = relations(matches, ({ many }) => ({ members: many(matchMembers), analyses: many(matchAnalyses) }));
+export const matchAnalysesRelations = relations(matchAnalyses, ({ one }) => ({
+  match: one(matches, { fields: [matchAnalyses.matchId], references: [matches.id] }),
+}));
 export const matchMembersRelations = relations(matchMembers, ({ one }) => ({
   match: one(matches, { fields: [matchMembers.matchId], references: [matches.id] }),
 }));
@@ -264,4 +306,4 @@ export type Season = typeof seasons.$inferSelect;
 export type Division = typeof divisions.$inferSelect;
 export type LeagueMember = typeof leagueMembers.$inferSelect;
 export type LeagueMatch = typeof leagueMatches.$inferSelect;
-
+export type MatchAnalysis = typeof matchAnalyses.$inferSelect;

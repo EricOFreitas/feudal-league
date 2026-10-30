@@ -49,7 +49,12 @@ Referência: https://github.com/ustacode/aoe2-apis
 ## 3. Licença (Game Content Usage Rules da Microsoft)
 
 - Uso **não comercial**. Sem anúncio, sem assinatura, sem venda. Doação opcional
-  é permitida.
+  é permitida ("página onde você pede doações opcionais", texto lido em 30/10).
+- As Rules também proíbem colocar o Item "numa página usada pra vender outros
+  itens ou serviços, mesmo sem relação com a Microsoft". Portal grátis com
+  serviço pago ao lado está fora. Argumento possível: replay é dado do jogador,
+  não Game Content; mas quem decide é a World's Edge. Caminho: analisador grátis
+  com doação → pedir autorização com números de uso → só então cobrar.
 - Rodapé obrigatório: "Age of Empires II: Definitive Edition © Microsoft
   Corporation. Este site foi criado sob as Game Content Usage Rules da Microsoft
   e não é endossado nem afiliado à Microsoft." Com link pras regras.
@@ -188,15 +193,35 @@ temporada. Worker: membro ativo sincroniza a cada 15 min e roda a detecção.
 Falta: reporte manual (se a detecção não cobrir algum caso), remover membro,
 editar liga depois de criada.
 
-**Fase 2 — torneios (3–4 semanas).**
+**Fase 2 — análise de partida com IA (decidida em 30/10, antes dos torneios).**
+O portal baixa o replay oficial da partida (`https://aoe.ms/replay/?gameId=&profileId=`,
+zip com o `.aoe2record`, sem upload), parseia com `mgz` e um modelo de linguagem
+escreve o feedback pro jogador, contextualizado pela divisão dele. Grátis, com
+limite diário por conta e botão de doação opcional. Cobrança só depois de
+autorização da World's Edge (ver seção 3).
+
+Medido em 30/10 com o replay 517326318 (Arabia 2v2, build 4515430):
+- O corpo do replay parseia com `mgz.fast` do PyPI (1.8.51) em 0,1 s: 87 mil
+  operações, tempos de avanço de era (RESEARCH 101/102/103), fila de unidades
+  (DE_QUEUE), construções, movimentos, APM por jogador.
+- O **cabeçalho** não parseia desde o patch de 17/02/2026 (issue #138 do
+  aoc-mgz, aberta). Jogadores, civs, mapa e duração vêm da API, então o
+  cabeçalho não é necessário. Fix existe no fork `micahvdk/aoc-mgz`.
+- Replay guarda comandos, não estado: recurso em caixa e vila ociosa exigem
+  simulação (só o Capture Age faz). O feedback fala em tempos e decisões, não
+  em números exatos de economia.
+- Research repetida no mesmo segundo = clique duplo/cancelamento; usar a última.
+
+Ids úteis do corpo: unidade 83 vila, 38 cavaleiro, 93 lanceiro; tecnologia 22
+loom, 101 Feudal, 102 Castelos, 103 Imperial, 202 double-bit axe.
+
+**Fase 3 — torneios (3–4 semanas).**
 Chave de eliminação simples primeiro. Agenda, confirmação automática, disputa,
 pódio. Depois dupla eliminação e suíço. Login por e-mail pra jogador Xbox.
 
-**Fase 3 — educativo (sem prazo).**
+**Fase 4 — educativo (sem prazo).**
 Estatísticas pessoais: win rate por civ e mapa, evolução do rating, comparação
-com a faixa (dumps do aoestats). Guias em PT/EN escritos por você. Upload de
-gravação `.aoe2record` parseada com `aoc-mgz` pra análise de abertura, tempo de
-castelo etc.
+com a faixa (dumps do aoestats). Guias em PT/EN escritos por você.
 
 ## 9. Riscos
 
@@ -225,3 +250,14 @@ castelo etc.
   (webhook de push pendente de autorização).
 - 29/10/2026 — `.env` fica na raiz e é carregado por `process.loadEnvFile`
   (web) e `node --env-file-if-exists` (worker, migrate).
+- 30/10/2026 — Fase 2 passa a ser o analisador de partida com IA (grátis, limite
+  diário, doação). Torneios viram Fase 3. Cobrança só com autorização da World's
+  Edge. Replay vem do servidor oficial, sem upload; parser `mgz.fast` (corpo).
+- 30/10/2026 — Modelo da análise via OpenRouter (`LLM_MODEL`). Comparação na partida
+  517326318 (Arabia 2v2, prompt igual, pt): Haiku 5.5 $0,0014/13 s, mais fiel aos dados
+  e marca inferência como inferência; Gemini 3.1 Flash Lite $0,0016/4 s, bom mas afirma
+  inferências como fato; Gemini 2.5 Flash $0,0042, errou a civ; GPT-5 mini $0,0024,
+  bom com tropeços de português; GPT-5 nano $0,0005, confunde clique e chegada de era.
+  Padrão: `anthropic/claude-haiku-5.5`. Modelos com raciocínio precisam de
+  `max_tokens` folgado + `reasoning.effort=low`, senão voltam vazios.
+  Script: `apps/worker/src/tools/compare-models.ts`.

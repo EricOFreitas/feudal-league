@@ -3,9 +3,20 @@ import { civName } from '@aoe2/aoe-api';
 import { Link } from '@/i18n/navigation';
 import { mapLabel, matchTypeKey } from '@/lib/format';
 
-type Labels = { win: string; loss: string; vs: string; team: string; unknownMap: string; type: (k: ReturnType<typeof matchTypeKey>) => string };
+type Labels = {
+  win: string; loss: string; vs: string; team: string; unknownMap: string; type: (k: ReturnType<typeof matchTypeKey>) => string;
+  analyze?: string; viewAnalysis?: string; analysisPending?: string;
+};
 
-export function MatchRow({ match, me, locale, labels }: { match: Match & { members: MatchMember[] }; me: number; locale: string; labels: Labels }) {
+type Props = {
+  match: Match & { members: MatchMember[] }; me: number; locale: string; labels: Labels;
+  /** Status da análise desta partida pro jogador (null = nenhuma). */
+  analysis?: string | null;
+  /** Visitante é o dono do perfil e pode pedir análise. */
+  canAnalyze?: boolean;
+};
+
+export function MatchRow({ match, me, locale, labels, analysis = null, canAnalyze = false }: Props) {
   const mine = match.members.find((m) => m.profileId === me);
   const won = mine?.outcome === 1;
   const delta = mine ? mine.newRating - mine.oldRating : 0;
@@ -38,6 +49,13 @@ export function MatchRow({ match, me, locale, labels }: { match: Match & { membe
       </div>
       <div className="shrink-0 text-right text-xs text-parchment-400">
         {dt.format(match.completedAt)}<br />{mins} min
+        {mine && (analysis === 'done' ? (
+          <><br /><Link href={`/analyses/${match.id}/${me}`} className="text-gold-400">{labels.viewAnalysis}</Link></>
+        ) : analysis ? (
+          <><br /><Link href={`/analyses/${match.id}/${me}`} className="text-parchment-300">{labels.analysisPending}</Link></>
+        ) : canAnalyze ? (
+          <><br /><Link href={`/analyses/${match.id}/${me}`} className="text-gold-400">{labels.analyze}</Link></>
+        ) : null)}
       </div>
     </li>
   );

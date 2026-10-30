@@ -1,5 +1,6 @@
 # Compose usado pelo Coolify (build pack "Docker Compose"). Contexto = raiz do repo.
-# Variáveis vêm do painel do Coolify: DATABASE_URL, SESSION_SECRET, APP_URL, WEB_PORT.
+# Variáveis vêm do painel do Coolify: DATABASE_URL, SESSION_SECRET, APP_URL, WEB_PORT,
+# OPENROUTER_API_KEY, LLM_MODEL, ANALYSIS_DAILY_LIMIT, DONATION_URL (fase 2).
 # A rede "coolify" dá acesso ao Postgres gerenciado pelo próprio Coolify.
 services:
   migrate:
@@ -26,6 +27,8 @@ services:
       DATABASE_URL: '${DATABASE_URL}'
       SESSION_SECRET: '${SESSION_SECRET}'
       APP_URL: '${APP_URL}'
+      ANALYSIS_DAILY_LIMIT: '${ANALYSIS_DAILY_LIMIT:-3}'
+      DONATION_URL: '${DONATION_URL:-}'
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -42,12 +45,28 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: '${DATABASE_URL}'
+      APP_URL: '${APP_URL}'
+      ANALYZER_URL: http://analyzer:8000
+      OPENROUTER_API_KEY: '${OPENROUTER_API_KEY:-}'
+      LLM_MODEL: '${LLM_MODEL:-anthropic/claude-haiku-5.5}'
+      ANALYSIS_DAILY_LIMIT: '${ANALYSIS_DAILY_LIMIT:-3}'
     depends_on:
       migrate:
         condition: service_completed_successfully
+      analyzer:
+        condition: service_started
     networks:
       - default
       - coolify
+
+  # Fase 2: baixa o replay oficial e resume com mgz. Só o worker fala com ele (rede interna).
+  analyzer:
+    build:
+      context: .
+      dockerfile: apps/analyzer/Dockerfile
+    restart: unless-stopped
+    networks:
+      - default
 
 networks:
   coolify:

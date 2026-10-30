@@ -15,6 +15,13 @@
       "when": 1793316365906,
       "tag": "0001_kind_korg",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793334345329,
+      "tag": "0002_mushy_star_brand",
+      "breakpoints": true
     }
   ]
 }

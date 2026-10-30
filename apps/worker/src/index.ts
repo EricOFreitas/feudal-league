@@ -5,13 +5,15 @@
  *   - só adicionado, visto nos últimos 30 dias: a cada 6 h
  * Jogador sem dono e sem visita recente não entra no ciclo; a página dele sincroniza sob demanda.
  * Depois de gravar partidas, detecta as de liga (1v1 entre membros da mesma divisão).
+ * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA).
  */
 import { db, players } from '@aoe2/db';
-import { activeLeagueProfileIds, detectLeagueMatches, syncMatchHistory, syncRatingsByProfileIds } from '@aoe2/sync';
+import { activeLeagueProfileIds, detectLeagueMatches, processQueuedAnalyses, syncMatchHistory, syncRatingsByProfileIds } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
 
 const ONCE = process.argv.includes('--once');
 const CYCLE_MS = 5 * 60 * 1000;
+const ANALYSIS_MS = 10 * 1000;
 const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
 
 async function pickDue(): Promise<number[]> {
@@ -48,9 +50,22 @@ async function cycle() {
   if (league) log(`${league} partidas de liga detectadas`);
 }
 
+async function analysisLoop() {
+  for (;;) {
+    try {
+      const n = await processQueuedAnalyses();
+      if (n) log(`${n} análises processadas`);
+    } catch (e) { log('erro nas análises:', (e as Error).message); }
+    if (ONCE) return;
+    await new Promise((r) => setTimeout(r, ANALYSIS_MS));
+  }
+}
+
+const analyses = analysisLoop();
 for (;;) {
   try { await cycle(); } catch (e) { log('erro no ciclo:', (e as Error).message); }
   if (ONCE) break;
   await new Promise((r) => setTimeout(r, CYCLE_MS));
 }
+await analyses;
 process.exit(0);

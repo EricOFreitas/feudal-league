@@ -5,7 +5,9 @@ Plano e decisões: `docs/PLANO.md`. Ler antes de mexer em escopo.
 ## Stack
 
 - **Web:** Next.js 16 (App Router) + TypeScript + Tailwind v4 + next-intl (`/pt`, `/en`)
-- **Worker:** Node (tsx) em loop, mesmo repo
+- **Worker:** Node (tsx) em loop, mesmo repo; processa também a fila de análises (a cada 10 s)
+- **Analyzer:** Python (FastAPI + mgz) em `apps/analyzer`. Baixa o replay oficial (`aoe.ms/replay`) e resume o corpo; só o worker fala com ele. Cabeçalho do replay não parseia (mgz #138): slots vêm da varredura dos profile_ids no cabeçalho.
+- **IA:** OpenRouter (`OPENROUTER_API_KEY`, `LLM_MODEL`), chamada direta por fetch em `packages/sync/src/analyses.ts`
 - **Banco:** PostgreSQL + Drizzle (`packages/db`, migrations em `packages/db/drizzle`)
 - **Dados:** API do jogo (World's Edge), só em `packages/aoe-api`. Não documentada, sem auth.
 - **Auth:** Steam OpenID 2.0 à mão (`apps/web/src/lib/steam-openid.ts`) + cookie JWT (jose)
@@ -15,10 +17,11 @@ Plano e decisões: `docs/PLANO.md`. Ler antes de mexer em escopo.
 
 ```
 apps/web            Next.js (páginas em src/app/[locale]/, rotas de auth em src/app/auth/)
-apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) + detecção de partidas de liga
+apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) + detecção de partidas de liga + fila de análises
+apps/analyzer       Python: replay → JSON (POST /parse). Dockerfile próprio; local: uvicorn main:app
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras: upsert de jogador/rating/snapshot/partidas; ligas (inscrição, detecção, tabela) em leagues.ts
+packages/sync       regras: upsert de jogador/rating/snapshot/partidas; ligas em leagues.ts; análise (fila, prompt, OpenRouter) em analyses.ts
 docs/PLANO.md       plano, fases, decisões
 ```
 
@@ -31,6 +34,7 @@ cp .env.example .env                 # e gere SESSION_SECRET
 pnpm db:generate && pnpm db:migrate  # migrations
 pnpm --filter @aoe2/web dev          # http://localhost:3000
 pnpm --filter @aoe2/worker once      # um ciclo de sync
+(cd apps/analyzer && uvicorn main:app --port 8000)   # analyzer local (venv com requirements.txt)
 pnpm typecheck
 ```
 
@@ -38,7 +42,8 @@ pnpm typecheck
 
 - Strings de interface SEMPRE em `apps/web/messages/{pt,en}.json`, as duas com as mesmas chaves.
 - Nada que seja asset do jogo (logo, ícone, arte). Identidade visual própria em `globals.css` e `crest.tsx`.
-- Sem monetização (Game Content Usage Rules). Aviso no rodapé fica.
+- Sem monetização (Game Content Usage Rules). Aviso no rodapé fica. Análise com IA é grátis com limite diário (`ANALYSIS_DAILY_LIMIT`) e doação opcional (`DONATION_URL`); cobrar só com autorização da World's Edge.
+- Relógio do replay = relógio do jogo (o que o jogador vê), não tempo real. O prompt diz ao modelo que replay guarda comandos, não estado.
 - Jogador é independente de usuário: qualquer visitante adiciona; dono reivindica via Steam.
 - Liga global é semeada em `packages/db/src/migrate.ts`; divisões padrão em `DEFAULT_DIVISIONS` (sync). Nomes de divisão neutros.
 - Ações de servidor das ligas em `apps/web/src/app/[locale]/leagues/actions.ts`; página checa dono por `ownerUserId === session.uid`.

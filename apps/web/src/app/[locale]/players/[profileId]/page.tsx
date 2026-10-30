@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { findPlayerByProfileId, importPlayerByProfileId, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
+import { analysesForMatches, findPlayerByProfileId, importPlayerByProfileId, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Flag } from '@/components/flag';
 import { RatingCard } from '@/components/rating-card';
@@ -82,6 +82,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
 
   const ratings = [...player.ratings].sort((a, b) => LEADERBOARD_ORDER.indexOf(a.leaderboardId as never) - LEADERBOARD_ORDER.indexOf(b.leaderboardId as never));
   const matches = await recentMatchesOf(profileId, 20);
+  const analyses = await analysesForMatches(profileId, matches.map((m) => m.id));
   const memberships = await membershipsOf(player.id);
   const ago = agoParts(player.lastSyncedAt);
   const countryName = player.country ? new Intl.DisplayNames([locale], { type: 'region' }).of(player.country.toUpperCase()) : null;
@@ -171,7 +172,12 @@ export default async function PlayerPage({ params, searchParams }: Props) {
                 match={m}
                 me={profileId}
                 locale={locale}
-                labels={{ win: t('win'), loss: t('loss'), vs: t('vs'), team: t('team'), unknownMap: t('unknownMap'), type: (k) => t(`matchType.${k}`) }}
+                analysis={analyses.get(m.id) ?? null}
+                canAnalyze={isMine}
+                labels={{
+                  win: t('win'), loss: t('loss'), vs: t('vs'), team: t('team'), unknownMap: t('unknownMap'), type: (k) => t(`matchType.${k}`),
+                  analyze: t('analyze'), viewAnalysis: t('viewAnalysis'), analysisPending: t('analysisPending'),
+                }}
               />
             ))}
           </ul>

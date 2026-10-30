@@ -3,7 +3,8 @@
     "name": "Ligas AoE2",
     "tagline": "Ligas e torneios por faixa de rating para Age of Empires II: Definitive Edition",
     "notice": "Age of Empires II: Definitive Edition © Microsoft Corporation. Este site foi criado sob as <rules>Game Content Usage Rules</rules> da Microsoft e não é endossado nem afiliado à Microsoft.",
-    "source": "Dados de rating e partidas vêm do servidor do próprio jogo e podem atrasar alguns minutos."
+    "source": "Dados de rating e partidas vêm do servidor do próprio jogo e podem atrasar alguns minutos.",
+    "donate": "Apoiar o projeto"
   },
   "nav": {
     "home": "Início",
@@ -96,7 +97,10 @@
     "leagues": "Ligas",
     "noLeagues": "Não participa de nenhuma liga.",
     "position": "{pos}º de {total}",
-    "points": "{n} pts"
+    "points": "{n} pts",
+    "analyze": "Analisar com IA",
+    "viewAnalysis": "Ver análise",
+    "analysisPending": "Análise em andamento"
   },
   "leaderboard": {
     "rm_1v1": "Random Map 1v1",
@@ -239,6 +243,46 @@
       "close": "Fechar inscrições",
       "open": "Reabrir inscrições",
       "remove": "Remover"
+    }
+  },
+  "analysis": {
+    "kicker": "Análise de partida",
+    "title": "Feedback da partida",
+    "for": "Para {name}",
+    "intro": "O portal baixa a gravação oficial da partida, resume o que cada jogador fez e pede a um modelo de linguagem um feedback direcionado a você.",
+    "request": "Pedir análise",
+    "requestHint": "Grátis. Você ainda pode pedir {n} hoje.",
+    "limitReached": "Você já usou as {n} análises de hoje. Volte amanhã.",
+    "ownerOnly": "Só quem reivindicou o perfil pode pedir a análise desta partida.",
+    "login": "Entrar com Steam pra pedir",
+    "status": {
+      "queued": "Na fila",
+      "parsing": "Lendo a gravação",
+      "writing": "Escrevendo o feedback",
+      "failed": "Falhou"
+    },
+    "processing": "Leva menos de um minuto. A página atualiza sozinha.",
+    "failed": "Não deu pra analisar esta partida.",
+    "failedReplay": "A gravação não está mais disponível no servidor do jogo. Só partidas recentes têm gravação.",
+    "retry": "Tentar de novo",
+    "err": {
+      "no_match": "Partida não encontrada.",
+      "not_member": "Esse jogador não participou desta partida.",
+      "not_owner": "Só o dono do perfil pode pedir a análise.",
+      "limit": "Limite diário atingido."
+    },
+    "disclaimer": "A gravação guarda comandos, não o estado do jogo. Tempos e decisões são exatos; recurso em caixa e vila parada são inferências.",
+    "model": "Gerado por {model}",
+    "back": "Voltar ao jogador",
+    "donate": {
+      "title": "Gostou? Este serviço é grátis e custa pra manter.",
+      "text": "Cada análise usa a API de um modelo de linguagem. Se quiser ajudar a manter o projeto, a doação é opcional.",
+      "cta": "Apoiar o projeto"
+    },
+    "match": {
+      "win": "Vitória",
+      "loss": "Derrota",
+      "duration": "{n} min"
     }
   }
 }

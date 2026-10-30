@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 
 export async function Footer() {
   const t = await getTranslations('site');
+  const donate = process.env.DONATION_URL;
   return (
     <footer className="mt-12 border-t border-gold-700/60 bg-stone-950/60">
       <div className="mx-auto max-w-6xl space-y-2 px-4 py-6 text-sm text-parchment-300 sm:px-6">
@@ -12,7 +13,10 @@ export async function Footer() {
             ),
           })}
         </p>
-        <p className="text-parchment-400">{t('source')}</p>
+        <p className="text-parchment-400">
+          {t('source')}
+          {donate && <> · <a href={donate} target="_blank" rel="noreferrer">{t('donate')}</a></>}
+        </p>
       </div>
     </footer>
   );
