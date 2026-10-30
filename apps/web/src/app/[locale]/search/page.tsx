@@ -53,7 +53,11 @@ async function resolve(q: string): Promise<Outcome> {
     }
     return { kind: 'list', alias, list };
   } catch (e) {
-    if (e instanceof AoeApiError) return { kind: 'msg', key: 'apiDown' };
+    if (e instanceof AoeApiError) {
+      // log de diagnóstico: a página só mostra a mensagem genérica
+      console.error(`[search] API falhou para "${q}": ${e.message}${e.body ? ` · ${e.body.slice(0, 200)}` : ''}`);
+      return { kind: 'msg', key: 'apiDown' };
+    }
     throw e;
   }
 }

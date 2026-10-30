@@ -49,7 +49,7 @@ pnpm typecheck
 - Ações de servidor das ligas em `apps/web/src/app/[locale]/leagues/actions.ts` e dos torneios em `tournaments/actions.ts`; página checa dono por `ownerUserId === session.uid`.
 - Torneio: `stage` group|bracket em `tournament_matches`; chave criada da final pra trás (`nextMatchId/nextSlot`); só partidas depois de `bracketAt` contam. Teste local: `apps/worker/src/tools/test-tournament.ts`.
 - Commits em português, sem Co-Authored-By. Formato: "verbo no presente + o que".
-- Sem console.log no web em produção; no worker o log é proposital.
+- Sem console.log no web em produção; `console.error` só pra falha da API do jogo (diagnóstico). No worker o log é proposital.
 - `globals.css`: regras de elemento em `@layer base`, classes do tema (`panel`, `btn`, `tag`…) em `@layer components`; utilitários do Tailwind vencem, não use `!important` novo.
 - Trilha de navegação: `<Breadcrumbs items=[...]>` no topo de toda página interna.
 - Discord: eventos são detectados por polling das colunas `notified_at` (league_matches, league_members, seasons, tournament_games); anular/restaurar partida grava `updatedAt`.

@@ -36,6 +36,7 @@ async function loadPlayer(profileId: number) {
       await syncMatchHistory([profileId]).catch(() => undefined);
       player = await findPlayerByProfileId(profileId);
     } catch (e) {
+      console.error(`[player ${profileId}] import falhou: ${(e as Error).message}`);
       return { player: null, apiError: e instanceof AoeApiError ? e.message : 'erro' };
     }
   } else if (!player.lastSyncedAt || Date.now() - player.lastSyncedAt.getTime() > STALE_MS) {
@@ -44,6 +45,7 @@ async function loadPlayer(profileId: number) {
       await syncMatchHistory([profileId]);
       player = await findPlayerByProfileId(profileId);
     } catch (e) {
+      console.error(`[player ${profileId}] sync falhou: ${(e as Error).message}`);
       apiError = e instanceof AoeApiError ? e.message : 'erro';
     }
   }
