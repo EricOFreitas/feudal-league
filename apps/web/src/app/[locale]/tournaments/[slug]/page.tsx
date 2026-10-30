@@ -3,8 +3,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ShieldCheck, Trophy, Users } from 'lucide-react';
 import { db, players } from '@aoe2/db';
-import { eligibilityOf, groupStandings, tournamentBySlug, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
+import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Bracket } from '@/components/bracket';
 import { Flag } from '@/components/flag';
 import { Link } from '@/i18n/navigation';
@@ -29,6 +30,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   setRequestLocale(locale);
   const flash = await searchParams;
   const t = await getTranslations('tournaments');
+  const tn = await getTranslations('nav');
 
   const tour = await tournamentBySlug(slug);
   if (!tour || tour.status === 'cancelled') notFound();
@@ -46,6 +48,16 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const champion = tour.status === 'finished' ? bracketMatches.find((m) => m.nextMatchId == null)?.winnerTeamId ?? null : null;
   const openMatches = tour.matches.filter((m) => m.status === 'ready');
   const undoable = tour.matches.filter((m) => m.games.length > 0);
+  const ratingOf = await rm1v1RatingsOf(tour.teams.flatMap((x) => x.members.map((m) => m.playerId)));
+  const teamRatings = new Map<number, number>();
+  for (const x of tour.teams) {
+    const rs = x.members.map((m) => ratingOf.get(m.playerId)).filter((r): r is number => r != null);
+    if (rs.length > 0) teamRatings.set(x.id, Math.round(rs.reduce((a, b) => a + b, 0) / rs.length));
+  }
+  const bracketRounds = Math.max(0, ...bracketMatches.map((m) => m.round));
+  const myMatch = myTeam && (tour.status === 'groups' || tour.status === 'running') ? tour.matches.find((m) => m.status === 'ready' && (m.teamAId === myTeam.id || m.teamBId === myTeam.id)) ?? null : null;
+  const oppTeam = myMatch && myTeam ? teams.get((myMatch.teamAId === myTeam.id ? myMatch.teamBId : myMatch.teamAId) ?? -1) ?? null : null;
+  const currentBracketRound = Math.min(Infinity, ...bracketMatches.filter((m) => m.status !== 'done' && m.status !== 'walkover').map((m) => m.round));
   const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
   const dts = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
 
@@ -55,6 +67,8 @@ export default async function TournamentPage({ params, searchParams }: Props) {
     return t(`err.${k}`, { n: tour.teamSize, id: flash.id ?? '', rules: ruleNames(flash.rules) });
   };
   const roundName = (round: number, rounds: number) => (round === rounds ? t('final') : round === rounds - 1 ? t('semis') : round === rounds - 2 ? t('quarters') : t('round', { n: round }));
+  const currentLabel = tour.status === 'open' ? t('status.open') : tour.status === 'finished' ? t('status.finished')
+    : tour.status === 'groups' || !Number.isFinite(currentBracketRound) ? t('status.groups') : roundName(currentBracketRound, bracketRounds);
   const teamName = (id: number | null) => (id == null ? t('tbd') : teams.get(id)?.name ?? '?');
   const hidden = (
     <>
@@ -102,6 +116,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
 
   return (
     <div className="space-y-10">
+      <Breadcrumbs items={[{ label: tn('tournaments'), href: '/tournaments' }, { label: tour.name }]} />
       {flash.ok === 'registered' && <div className="panel border-moss-500 p-4 text-parchment-50">{t('register.done')}</div>}
       {flash.err && <div className="panel border-crimson-500 p-4 text-parchment-50">{errText(flash.err)}</div>}
 
@@ -125,12 +140,42 @@ export default async function TournamentPage({ params, searchParams }: Props) {
             {tour.prize && <p className="mt-2 text-sm text-parchment-200"><span className="kicker">{t('prize')}</span> {tour.prize}</p>}
             {champion && <p className="mt-3 font-display text-xl text-gold-300">🏆 {t('champion', { name: teamName(champion) })}</p>}
           </div>
-          {isOwner && <span className="tag shrink-0 border-moss-500 text-parchment-50"><ShieldCheck className="h-4 w-4 text-moss-500" />{t('admin.youOwn')}</span>}
+          <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end sm:text-right">
+            {isOwner && <span className="tag border-moss-500 text-parchment-50"><ShieldCheck className="h-4 w-4 text-moss-500" />{t('admin.youOwn')}</span>}
+            {tour.status !== 'cancelled' && (
+              <p className="text-sm text-parchment-300">{t('currentRound')}<br /><span className="stat-num text-2xl">{currentLabel}</span></p>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         <div className="space-y-10">
+          {myMatch && myTeam && oppTeam && (
+            <section className="panel !border-gold-500 p-5">
+              <p className="kicker">{t('next.title', { round: myMatch.stage === 'group' ? t('group', { n: myMatch.groupNo ?? 0 }) : roundName(myMatch.round, bracketRounds) })}</p>
+              <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+                {[myTeam, oppTeam].map((tm, i) => (
+                  <div key={tm.id} className={i === 1 ? 'order-3 text-right' : 'order-1'}>
+                    <Flag code={[...tm.members].sort((a, b) => Number(b.isCaptain) - Number(a.isCaptain))[0]?.player.country} className="text-3xl leading-none" />
+                    <div className="mt-1 truncate font-display text-xl text-parchment-50">{tm.name}</div>
+                    <div className="text-sm text-parchment-400">{[teamRatings.get(tm.id), tm.seed != null ? `${t('seed')} ${tm.seed}` : null].filter((x) => x != null).join(' · ')}</div>
+                  </div>
+                ))}
+                <span className="order-2 font-display text-gold-500">{t('next.vs')}</span>
+              </div>
+              <dl className="mt-4 grid grid-cols-2 gap-2 border-t border-gold-700/50 pt-3 text-sm">
+                <div><dt className="text-parchment-400">{t('next.when')}</dt><dd className="text-parchment-50">{myMatch.scheduledAt ? dt.format(myMatch.scheduledAt) : t('next.tba')}</dd></div>
+                <div><dt className="text-parchment-400">{t('next.format')}</dt><dd className="text-parchment-50">{t('next.bestOf', { n: myMatch.bestOf })}</dd></div>
+              </dl>
+              <ol className="mt-4 space-y-1.5 text-sm text-parchment-200">
+                <li><span className="font-display text-gold-300">I.</span> {t('next.step1', { size: t('format.size', { n: tour.teamSize }) })}</li>
+                <li><span className="font-display text-gold-300">II.</span> {t('next.step2')}</li>
+                <li><span className="font-display text-gold-300">III.</span> {t('next.step3')}</li>
+              </ol>
+            </section>
+          )}
+
           {tour.groupCount > 0 && groupMatches.length > 0 && (
             <section>
               <div className="rule mb-5"><span className="kicker">{t('groupsTitle')}</span></div>
@@ -166,7 +211,17 @@ export default async function TournamentPage({ params, searchParams }: Props) {
           <section>
             <div className="rule mb-5"><span className="kicker">{t('bracketTitle')}</span></div>
             {bracketMatches.length === 0 ? <p className="italic text-parchment-400">{t('noBracket')}</p> : (
-              <Bracket matches={bracketMatches} teams={teams} labels={{ tbd: t('tbd'), bye: t('bye'), walkover: t('walkover'), roundName }} />
+              <>
+                <Bracket
+                  matches={bracketMatches} teams={teams} ratings={teamRatings} running={tour.status === 'running'}
+                  labels={{
+                    tbd: t('tbd'), bye: t('bye'), walkover: t('walkover'), roundName,
+                    statusAuto: t('matchStatus.auto'), statusManual: t('matchStatus.manual'), statusSearching: t('matchStatus.searching'), statusWaiting: t('matchStatus.waiting'),
+                    gamesCount: (n) => t('gamesCount', { count: n }), formatDate: (d) => dts.format(d),
+                  }}
+                />
+                <p className="mt-4 text-sm text-parchment-400">{t('bracketNote', { size: t('format.size', { n: tour.teamSize }) })}</p>
+              </>
             )}
           </section>
 

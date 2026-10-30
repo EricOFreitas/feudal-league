@@ -3,6 +3,7 @@ import { db, players } from '@aoe2/db';
 import { findPlayerBySteamId, importPlayerBySteamId, syncMatchHistory } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { getSession } from '@/lib/session';
 
 export default async function MePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -15,11 +16,14 @@ export default async function MePage({ params }: { params: Promise<{ locale: str
 
   if (!session) {
     return (
-      <div className="panel mx-auto max-w-md p-8 text-center">
-        <h1 className="text-2xl text-gold-300">{t('title')}</h1>
-        <p className="mt-3 text-parchment-200">{t('notLogged')}</p>
-        <a href="/auth/steam" className="btn mt-6">{tn('login')}</a>
-      </div>
+      <>
+        <Breadcrumbs items={[{ label: tn('me') }]} />
+        <div className="panel mx-auto max-w-md p-8 text-center">
+          <h1 className="text-2xl text-gold-300">{t('title')}</h1>
+          <p className="mt-3 text-parchment-200">{t('notLogged')}</p>
+          <a href="/auth/steam" className="btn mt-6">{tn('login')}</a>
+        </div>
+      </>
     );
   }
 
@@ -41,10 +45,13 @@ export default async function MePage({ params }: { params: Promise<{ locale: str
   } catch { failed = true; }
 
   return (
-    <div className="panel mx-auto max-w-md p-8 text-center">
-      <h1 className="text-2xl text-gold-300">{t('title')}</h1>
-      <p className="mt-3 text-parchment-200">{failed ? ts('apiDown') : t('noPlayer')}</p>
-      <a href={`/${locale}/me`} className="btn btn-ghost mt-6">{t('link')}</a>
-    </div>
+    <>
+      <Breadcrumbs items={[{ label: tn('me') }]} />
+      <div className="panel mx-auto max-w-md p-8 text-center">
+        <h1 className="text-2xl text-gold-300">{t('title')}</h1>
+        <p className="mt-3 text-parchment-200">{failed ? ts('apiDown') : t('noPlayer')}</p>
+        <a href={`/${locale}/me`} className="btn btn-ghost mt-6">{t('link')}</a>
+      </div>
+    </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Globe, Plus, Users } from 'lucide-react';
 import { listLeagues } from '@aoe2/sync';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Link } from '@/i18n/navigation';
 import { getSession } from '@/lib/session';
 
@@ -15,6 +16,7 @@ export default async function LeaguesPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('leagues');
+  const tn = await getTranslations('nav');
   const session = await getSession();
   const rows = await listLeagues();
   const global = rows.find((r) => r.league.isGlobal);
@@ -22,6 +24,7 @@ export default async function LeaguesPage({ params }: { params: Promise<{ locale
 
   return (
     <div className="space-y-10">
+      <Breadcrumbs items={[{ label: tn('leagues') }]} />
       <section className="mx-auto max-w-3xl text-center">
         <h1 className="text-4xl font-semibold text-gold-300">{t('title')}</h1>
         <p className="mt-3 text-parchment-200">{t('intro')}</p>

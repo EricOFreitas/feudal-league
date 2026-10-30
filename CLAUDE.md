@@ -21,7 +21,7 @@ apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) 
 apps/analyzer       Python: replay → JSON (POST /parse). Dockerfile próprio; local: uvicorn main:app
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras: upsert de jogador/rating/snapshot/partidas; ligas em leagues.ts; análise (fila, prompt, OpenRouter) em analyses.ts; torneios (times, grupos, chave, detecção) em tournaments.ts
+packages/sync       regras: players/matches; ligas em leagues.ts; análise em analyses.ts; torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal)
 docs/PLANO.md       plano, fases, decisões
 ```
 
@@ -50,3 +50,6 @@ pnpm typecheck
 - Torneio: `stage` group|bracket em `tournament_matches`; chave criada da final pra trás (`nextMatchId/nextSlot`); só partidas depois de `bracketAt` contam. Teste local: `apps/worker/src/tools/test-tournament.ts`.
 - Commits em português, sem Co-Authored-By. Formato: "verbo no presente + o que".
 - Sem console.log no web em produção; no worker o log é proposital.
+- `globals.css`: regras de elemento em `@layer base`, classes do tema (`panel`, `btn`, `tag`…) em `@layer components`; utilitários do Tailwind vencem, não use `!important` novo.
+- Trilha de navegação: `<Breadcrumbs items=[...]>` no topo de toda página interna.
+- Discord: eventos são detectados por polling das colunas `notified_at` (league_matches, league_members, seasons, tournament_games); anular/restaurar partida grava `updatedAt`.

@@ -1,0 +1,49 @@
+{
+  "discord": {
+    "kicker": "{league} · Admin",
+    "title": "Discord announcements",
+    "intro": "The portal posts to a channel on your server every time something happens in the league. No bot to install: just a channel webhook.",
+    "url": "Webhook URL",
+    "urlPlaceholder": "https://discord.com/api/webhooks/…",
+    "status": {
+      "none": "No webhook, nothing gets posted.",
+      "invalid": "That doesn't look like a Discord webhook URL.",
+      "connected": "Connected · last post {ago}",
+      "connectedNever": "Connected · nothing posted yet",
+      "newUrl": "New URL. Save to switch channels.",
+      "clearing": "Empty field: saving stops posts to this channel.",
+      "saved": "Saved. Upcoming posts go to this channel.",
+      "removed": "Webhook removed. Nothing gets posted.",
+      "test": "Test message sent. Check the channel.",
+      "testFailed": "The test didn't arrive: {error}",
+      "lastError": "Last error: {error}"
+    },
+    "events": {
+      "title": "What to post",
+      "match": { "label": "League match confirmed", "hint": "Who beat whom, division, map and points." },
+      "voided": { "label": "Match voided or restored", "hint": "With the reason, if you write one." },
+      "tournament": { "label": "Tournaments", "hint": "Every game result, who advances and the champion." },
+      "member": { "label": "New member", "hint": "Can get noisy in a big league." },
+      "season": { "label": "End of season", "hint": "Champion and podium of each division." }
+    },
+    "divisions": {
+      "title": "Divisions",
+      "hint": "Uncheck the divisions that shouldn't show up in this channel."
+    },
+    "save": "Save",
+    "test": "Send test message",
+    "preview": {
+      "title": "Channel preview",
+      "time": "today at {time}",
+      "empty": "Nothing checked, nothing gets posted.",
+      "lang": "Posts go out in Portuguese for now."
+    },
+    "howto": {
+      "title": "How to get the webhook",
+      "step1": "In Discord, open the channel settings.",
+      "step2": "Integrations → Webhooks → New Webhook.",
+      "step3": "Copy the URL and paste it here.",
+      "privacy": "The URL is stored only on the portal's server and is never shown to other members."
+    }
+  }
+}

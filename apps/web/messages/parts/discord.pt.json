@@ -1,0 +1,49 @@
+{
+  "discord": {
+    "kicker": "{league} · Administração",
+    "title": "Avisos no Discord",
+    "intro": "O portal posta no canal do seu servidor cada vez que algo acontece na liga. Não precisa instalar bot: só um webhook do canal.",
+    "url": "URL do webhook",
+    "urlPlaceholder": "https://discord.com/api/webhooks/…",
+    "status": {
+      "none": "Sem webhook, nada é postado.",
+      "invalid": "Isso não parece uma URL de webhook do Discord.",
+      "connected": "Conectado · último aviso {ago}",
+      "connectedNever": "Conectado · nenhum aviso enviado ainda",
+      "newUrl": "URL nova. Salve pra trocar o canal.",
+      "clearing": "Campo vazio: ao salvar, o portal para de postar neste canal.",
+      "saved": "Salvo. Os próximos avisos vão pra esse canal.",
+      "removed": "Webhook removido. Nada é postado.",
+      "test": "Mensagem de teste enviada. Confira o canal.",
+      "testFailed": "O teste não chegou: {error}",
+      "lastError": "Último erro: {error}"
+    },
+    "events": {
+      "title": "O que postar",
+      "match": { "label": "Partida da liga confirmada", "hint": "Quem venceu quem, divisão, mapa e pontos." },
+      "voided": { "label": "Partida anulada ou restaurada", "hint": "Com o motivo, se você escrever um." },
+      "tournament": { "label": "Torneios", "hint": "Resultado de cada jogo, quem avança e o campeão." },
+      "member": { "label": "Novo membro", "hint": "Pode ficar barulhento em liga grande." },
+      "season": { "label": "Fim de temporada", "hint": "Campeão e pódio de cada divisão." }
+    },
+    "divisions": {
+      "title": "Divisões",
+      "hint": "Desmarque as divisões que não devem aparecer neste canal."
+    },
+    "save": "Salvar",
+    "test": "Enviar mensagem de teste",
+    "preview": {
+      "title": "Prévia no canal",
+      "time": "hoje às {time}",
+      "empty": "Nada marcado, nada é postado.",
+      "lang": "As mensagens saem em português."
+    },
+    "howto": {
+      "title": "Como pegar o webhook",
+      "step1": "No Discord, abra as configurações do canal.",
+      "step2": "Integrações → Webhooks → Novo webhook.",
+      "step3": "Copie a URL e cole aqui.",
+      "privacy": "A URL fica guardada só no servidor do portal e nunca aparece pra outros membros."
+    }
+  }
+}

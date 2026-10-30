@@ -1,0 +1,32 @@
+{
+  "status": {
+    "kicker": "Status do portal",
+    "okTitle": "Tudo funcionando",
+    "badTitle": "Com problemas",
+    "intro": "O portal depende do servidor do próprio jogo. Partidas só aparecem depois de terminadas, e a de liga entra na tabela em até 15 minutos.",
+    "bannerOk": "Servidor do jogo respondendo · última sincronização {when}",
+    "bannerOkNoRun": "Servidor do jogo respondendo",
+    "bannerBad": "Sem sincronização com sucesso nos últimos 30 minutos",
+    "syncTitle": "Sincronização",
+    "never": "sem execução",
+    "runs24h": "{count, plural, =0 {nenhuma execução em 24 h} =1 {1 execução em 24 h} other {# execuções em 24 h}}",
+    "errors24h": "{count, plural, =0 {sem erros} =1 {1 erro} other {# erros}}",
+    "kinds": {
+      "league": { "name": "Membros de liga e perfis", "desc": "Rating e partidas dos membros de liga, perfis reivindicados e perfis adicionados." },
+      "detect": { "name": "Detecção de partidas", "desc": "Procura partidas de liga e de torneio já terminadas." },
+      "analysis": { "name": "Análises de partida", "desc": "Fila de análises de replay feitas por IA." },
+      "snapshot": { "name": "Retrato semanal da classificação", "desc": "Guarda a classificação de cada divisão uma vez por semana." },
+      "notify": { "name": "Avisos no Discord", "desc": "Envia ao Discord os avisos de novos membros e de partidas." }
+    },
+    "uptimeTitle": "Últimos 30 dias",
+    "dayOk": "sem problemas",
+    "dayWarn": "houve erros, mas a sincronização rodou",
+    "dayDown": "só erros",
+    "dayNone": "sem dados",
+    "uptimePct": "{pct}% no ar",
+    "today": "hoje",
+    "incidentsTitle": "Incidentes recentes",
+    "noIncidents": "Nenhum incidente registrado.",
+    "ongoing": "em andamento"
+  }
+}

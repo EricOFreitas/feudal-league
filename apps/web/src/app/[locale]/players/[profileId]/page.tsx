@@ -4,19 +4,22 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { analysesForMatches, findPlayerByProfileId, importPlayerByProfileId, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
+import { analysesForMatches, badgesOf, findPlayerByProfileId, importPlayerByProfileId, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
 import { RatingCard } from '@/components/rating-card';
 import { MatchRow } from '@/components/match-row';
 import { DivisionMark } from '@/components/division-mark';
+import { BadgeList } from '@/components/badge-list';
+import { EvolutionSection } from '@/components/evolution-section';
 import { Link } from '@/i18n/navigation';
 import { divisionName } from '@/lib/leagues';
 import { getSession } from '@/lib/session';
 import { checkAdditionLimit, recordAddition } from '@/lib/additions';
 import { agoParts, isKnownLb, lbKey } from '@/lib/format';
 
-type Props = { params: Promise<{ locale: string; profileId: string }>; searchParams: Promise<{ claimed?: string }> };
+type Props = { params: Promise<{ locale: string; profileId: string }>; searchParams: Promise<{ claimed?: string; evo?: string }> };
 
 const STALE_MS = 60 * 60 * 1000;
 
@@ -59,7 +62,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   setRequestLocale(locale);
   const profileId = Number(raw);
   if (!Number.isInteger(profileId) || profileId <= 0) notFound();
-  const { claimed } = await searchParams;
+  const { claimed, evo } = await searchParams;
+  const evoLeagueId = evo && /^\d+$/.test(evo) ? Number(evo) : null;
 
   const t = await getTranslations('player');
   const tc = await getTranslations('common');
@@ -84,11 +88,13 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const matches = await recentMatchesOf(profileId, 20);
   const analyses = await analysesForMatches(profileId, matches.map((m) => m.id));
   const memberships = await membershipsOf(player.id);
+  const badges = await badgesOf(player.id);
   const ago = agoParts(player.lastSyncedAt);
   const countryName = player.country ? new Intl.DisplayNames([locale], { type: 'region' }).of(player.country.toUpperCase()) : null;
 
   return (
     <div className="space-y-10">
+      <Breadcrumbs items={[{ label: player.alias }]} />
       {claimed && <div className="panel border-moss-500 p-4 text-parchment-50">{ta('claimDone')}</div>}
 
       <header className="panel corners flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between">
@@ -97,6 +103,11 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           <div>
             <p className="kicker">{player.clan ? `[${player.clan}]` : countryName ?? ''}</p>
             <h1 className="text-3xl font-semibold text-gold-300 sm:text-4xl">{player.alias}</h1>
+            {badges.length > 0 && (
+              <Link href="/supporters" className="relative z-[1] mt-1.5 flex w-fit hover:no-underline">
+                <BadgeList badges={badges} />
+              </Link>
+            )}
             <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-parchment-300">
               <span>{t('profileId')} <span className="font-mono text-parchment-200">{player.profileId}</span></span>
               {player.steamId64 && (
@@ -159,6 +170,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           </ul>
         )}
       </section>
+
+      <EvolutionSection profileId={player.profileId} playerId={player.id} memberships={memberships} evo={evoLeagueId} locale={locale} />
 
       <section>
         <div className="rule mb-5"><span className="kicker">{t('matches')}</span></div>

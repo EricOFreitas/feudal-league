@@ -3,7 +3,7 @@
  * melhor de 1/3/5. Resultado confirmado pelo histórico ou reportado pelo organizador.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
-import { db, matches, matchMembers, players, tournamentGames, tournamentMatches, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
+import { db, matches, matchMembers, playerRatings, players, tournamentGames, tournamentMatches, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
 import { and, asc, desc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { findPlayerByProfileId, importPlayerByProfileId } from './players';
 
@@ -405,3 +405,39 @@ export async function tournamentsOfPlayer(playerId: number) {
   });
 }
 
+
+/** Rating RM 1v1 atual por jogador (id interno do jogador → rating). Quem não tem rating fica de fora. */
+export async function rm1v1RatingsOf(playerIds: number[]): Promise<Map<number, number>> {
+  if (playerIds.length === 0) return new Map();
+  const rows = await db.select({ playerId: playerRatings.playerId, rating: playerRatings.rating }).from(playerRatings)
+    .where(and(inArray(playerRatings.playerId, playerIds), eq(playerRatings.leaderboardId, RM_1V1)));
+  return new Map(rows.map((r) => [r.playerId, r.rating]));
+}
+
+export type MyTournament = { tournamentId: number; teamId: number; teamName: string; nextOpponent: string | null };
+
+/**
+ * Torneios (não cancelados) em que o jogador está num time não desistente.
+ * nextOpponent = nome do time adversário no confronto `ready` do time, se houver.
+ */
+export async function myTournaments(playerId: number): Promise<MyTournament[]> {
+  const rows = await db.query.tournamentTeamMembers.findMany({
+    where: eq(tournamentTeamMembers.playerId, playerId),
+    with: { team: { with: { tournament: { columns: { id: true, status: true } } } } },
+  });
+  const mine = rows.filter((r) => r.team.status !== 'withdrawn' && r.team.tournament.status !== 'cancelled');
+  if (mine.length === 0) return [];
+  const teamIds = mine.map((r) => r.teamId);
+  const ready = await db.query.tournamentMatches.findMany({
+    where: and(eq(tournamentMatches.status, 'ready'), inArray(tournamentMatches.tournamentId, mine.map((r) => r.team.tournamentId))),
+  });
+  const nameIds = new Set<number>();
+  for (const m of ready) { if (m.teamAId) nameIds.add(m.teamAId); if (m.teamBId) nameIds.add(m.teamBId); }
+  const names = nameIds.size ? await db.select({ id: tournamentTeams.id, name: tournamentTeams.name }).from(tournamentTeams).where(inArray(tournamentTeams.id, [...nameIds])) : [];
+  const nameOf = new Map(names.map((n) => [n.id, n.name]));
+  return mine.map((r) => {
+    const m = ready.find((x) => x.teamAId === r.teamId || x.teamBId === r.teamId);
+    const opp = m ? (m.teamAId === r.teamId ? m.teamBId : m.teamAId) : null;
+    return { tournamentId: r.team.tournamentId, teamId: r.teamId, teamName: r.team.name, nextOpponent: opp ? nameOf.get(opp) ?? null : null };
+  }).filter((x, i, a) => teamIds.includes(x.teamId) && a.findIndex((y) => y.tournamentId === x.tournamentId) === i);
+}

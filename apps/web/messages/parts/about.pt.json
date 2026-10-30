@@ -1,0 +1,40 @@
+{
+  "about": {
+    "kicker": "Sobre",
+    "title": "Um projeto da comunidade",
+    "intro": "O Feudal League nasceu pra dar a quem está em rating baixo e médio um lugar pra competir com gente do mesmo nível. O código é aberto: qualquer pessoa pode ler, sugerir e ajudar a melhorar.",
+    "how": {
+      "title": "Como funciona por dentro",
+      "c1": { "title": "Dados do próprio jogo", "text": "Rating e histórico vêm do servidor do AoE2. Nada é digitado à mão." },
+      "c2": { "title": "Sem print, sem reporte", "text": "A partida entre membros é encontrada no histórico e vira pontos sozinha." },
+      "c3": { "title": "Divisão pelo pico", "text": "Você entra pela maior nota que já teve, não pela atual. Isso segura smurf." }
+    },
+    "contribute": {
+      "title": "Contribuir",
+      "code": { "title": "Código", "text": "Next.js, Postgres, um worker em Node e um analisador em Python. Antes de uma mudança grande, abra uma issue pra conversar.", "link": "github.com/EricOFreitas/feudal-league" },
+      "translate": { "title": "Traduções", "text": "Todo texto fica em messages/pt.json e en.json, com as mesmas chaves. Outro idioma é um arquivo novo.", "link": "apps/web/messages/" },
+      "issues": { "title": "Achou um problema", "text": "Partida que não contou, nick que não aparece, nome de civ ou mapa errado. Conte com o link da página.", "link": "github.com/EricOFreitas/feudal-league/issues" },
+      "guide": { "title": "Como contribuir", "text": "Ambiente local, checagens antes do pull request e convenções do projeto.", "link": "CONTRIBUTING.md" }
+    },
+    "support": {
+      "title": "Apoiar o projeto",
+      "heading": "Manter o portal no ar custa.",
+      "text": "Ligas, torneios e perfis são abertos a todos. Se quiser ajudar com os custos, a doação é opcional e de qualquer valor.",
+      "soon": "O link de doação entra em breve.",
+      "cta": "Apoiar o projeto",
+      "where": "Para onde vai",
+      "server": "Servidor e banco de dados",
+      "serverWhen": "todo mês",
+      "llm": "Modelo de linguagem das análises",
+      "llmWhen": "por análise",
+      "domain": "Domínio",
+      "domainWhen": "todo ano"
+    },
+    "legal": {
+      "title": "Licença e avisos",
+      "art": "Por isso o portal não usa logo, ícone nem arte do jogo, e o nome não se apresenta como oficial.",
+      "license": "O código é livre, sob a <agpl>GNU AGPL v3</agpl>: você pode usar, estudar e modificar, desde que publique as mudanças também.",
+      "api": "Dados de rating e partidas vêm do servidor do próprio jogo, numa interface não documentada que pode mudar sem aviso."
+    }
+  }
+}

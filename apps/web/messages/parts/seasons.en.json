@@ -1,0 +1,43 @@
+{
+  "seasons": {
+    "title": "Seasons",
+    "lead": "Each season keeps the final table of every division.",
+    "empty": "This league has no seasons yet.",
+    "season": "Season {n}",
+    "ongoing": "ongoing",
+    "period": "{from} – {to}",
+    "players": "{count, plural, =0 {no players} =1 {1 player} other {# players}}",
+    "matches": "{count, plural, =0 {no matches} =1 {1 match} other {# matches}}",
+    "champions": "Champions",
+    "current": "Current",
+    "view": "View season",
+    "detail": {
+      "titleEnded": "Season {n} ended",
+      "titleOpen": "Season {n}",
+      "leadEnded": "Champions and podium of each division. The final table is kept here forever.",
+      "leadOpen": "Season in progress. The podiums below show the current standings and may change until the season ends.",
+      "periodEnded": "{from} to {to}",
+      "periodOpen": "since {from}",
+      "players": "Players",
+      "matches": "Matches",
+      "divisions": "Divisions",
+      "mine": "Your season",
+      "mineLine": "{name} finished {pos, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {total} in {division} · {points} pts · {wins}W {losses}L",
+      "mineLineOpen": "{name} is {pos, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} of {total} in {division} · {points} pts · {wins}W {losses}L",
+      "up": "Moved up to {division} in Season {n}",
+      "down": "Dropped to {division} in Season {n}",
+      "same": "Stays in {division} in Season {n}",
+      "podium": "Podium by division",
+      "nobody": "Nobody in this division.",
+      "fullTable": "Full table",
+      "colPos": "#",
+      "colPlayer": "Player",
+      "colRating": "Rating",
+      "colWins": "W",
+      "colLosses": "L",
+      "colPoints": "Pts",
+      "pts": "{points} pts · {wins}W/{losses}L",
+      "place": "{n} place"
+    }
+  }
+}

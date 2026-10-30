@@ -3,3 +3,7 @@ export * from './matches';
 export * from './leagues';
 export * from './analyses';
 export * from './tournaments';
+export * from './status';
+export * from './snapshots';
+export * from './notify';
+export * from './badges';

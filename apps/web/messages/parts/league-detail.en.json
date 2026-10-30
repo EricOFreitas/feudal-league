@@ -1,0 +1,85 @@
+{
+  "leagues": {
+    "detail": {
+      "divisionTabs": "League divisions",
+      "search": {
+        "placeholder": "Search a player in every division",
+        "submit": "Search",
+        "clear": "Clear search"
+      },
+      "myPosition": "My position",
+      "caption": "{division} · {range} · {count, plural, =0 {no players} =1 {1 player} other {# players}}",
+      "rangeOf": "{from}–{to} of {total}",
+      "results": "{count, plural, =0 {No results} =1 {1 result} other {# results}} for \"{q}\" across all divisions",
+      "noResults": "Nobody named \"{q}\" in this league. Search matches part of the nickname, across all divisions.",
+      "mePos": "{pos, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+      "meYou": "you · {points} pts",
+      "meGo": "See in the table →",
+      "pagination": "Table pages",
+      "pageInfo": "Page {page} of {pages}",
+      "prev": "Previous",
+      "next": "Next",
+      "past": {
+        "title": "Past seasons",
+        "season": "Season {n} · Champions",
+        "period": "{from} to {to} · {count, plural, =0 {no players} =1 {1 player} other {# players}}"
+      },
+      "invite": {
+        "title": "Invite",
+        "hint": "Share the link on Discord or WhatsApp. It shows the league name, divisions and members.",
+        "button": "Invite link",
+        "dialog": "Invite to the league",
+        "copy": "Copy",
+        "copied": "Copied",
+        "copyFailed": "Couldn't copy. Select the link and copy it.",
+        "close": "Close"
+      },
+      "tournaments": {
+        "title": "Tournaments",
+        "empty": "No tournaments linked to this league yet.",
+        "all": "See all tournaments →",
+        "single": "knockout",
+        "groups": "groups + knockout"
+      },
+      "discord": "Discord notifications",
+      "hookOn": "on",
+      "hookOff": "off",
+      "filters": {
+        "label": "Filter matches",
+        "all": "All",
+        "mine": "Only mine"
+      },
+      "moreMatches": "See more matches",
+      "noMatchesFiltered": "No matches with this filter.",
+      "why": {
+        "toggle": "Why did it count?",
+        "toggleVoided": "Why was it voided?",
+        "title": "Why it counted",
+        "titleVoided": "Counted, then voided",
+        "twoPlayers": "Exactly 2 players in the match (1v1).",
+        "sameDivision": "Both are in the {division} division this season.",
+        "afterJoin": "Played after both joined the league.",
+        "rankedCounts": "Ranked 1v1 counts in this league.",
+        "lobbyCounts": "Lobby games count in this league.",
+        "points": "{winner} +{w} pts · {loser} +{l} pt.",
+        "voided": "Voided by the league admin.",
+        "voidedReason": "Voided by the league admin: {reason}"
+      },
+      "facts": {
+        "title": "Read from the game server",
+        "match": "Match",
+        "type": "Type",
+        "typeLobby": "Lobby (matchtype {n})",
+        "typeRanked": "RM 1v1 ranked (matchtype {n})",
+        "map": "Map",
+        "ended": "Ended",
+        "result": "Result",
+        "resultValue": "{name} won (outcome 1)",
+        "ratingBefore": "Rating before",
+        "ratingValue": "{winner} {wr} · {loser} {lr}",
+        "detected": "Detected",
+        "wrong": "Something wrong? Talk to the league admin. They can void the match."
+      }
+    }
+  }
+}

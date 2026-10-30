@@ -8,7 +8,7 @@
  */
 import { civName, leaderboardOfMatchType } from '@aoe2/aoe-api';
 import { db, matchAnalyses, matchMembers, matches, players, type MatchAnalysis } from '@aoe2/db';
-import { and, eq, gt, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { membershipsOf } from './leagues';
 
 export const ANALYSIS_DAILY_LIMIT = Number(process.env.ANALYSIS_DAILY_LIMIT ?? 3);
@@ -27,6 +27,22 @@ export async function remainingToday(userId: number): Promise<number> {
     .from(matchAnalyses)
     .where(and(eq(matchAnalyses.requestedByUserId, userId), gt(matchAnalyses.createdAt, since)));
   return Math.max(0, ANALYSIS_DAILY_LIMIT - (r?.n ?? 0));
+}
+
+/**
+ * Cota do usuário na janela móvel de 24 h: quantos pedidos usou, quantos restam e quando o mais antigo
+ * da janela sai (resetAt = createdAt do pedido mais antigo + 24 h; null se não há pedido na janela).
+ */
+export async function analysisQuota(userId: number): Promise<{ used: number; limit: number; remaining: number; resetAt: Date | null }> {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const rows = await db
+    .select({ createdAt: matchAnalyses.createdAt })
+    .from(matchAnalyses)
+    .where(and(eq(matchAnalyses.requestedByUserId, userId), gt(matchAnalyses.createdAt, since)))
+    .orderBy(asc(matchAnalyses.createdAt));
+  const used = rows.length;
+  const remaining = Math.max(0, ANALYSIS_DAILY_LIMIT - used);
+  return { used, limit: ANALYSIS_DAILY_LIMIT, remaining, resetAt: rows[0] ? new Date(rows[0].createdAt.getTime() + 24 * 60 * 60 * 1000) : null };
 }
 
 export async function requestAnalysis(input: { matchId: number; profileId: number; userId: number; locale: string }): Promise<RequestResult> {

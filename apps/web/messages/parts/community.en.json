@@ -1,0 +1,48 @@
+{
+  "badges": {
+    "aria": "Player badges",
+    "supporter": { "label": "Supporter", "how": "Made a donation, of any amount. Everyone gets the same badge.", "title": "Helped with the project's costs" },
+    "code": { "label": "Contributor", "how": "Had a pull request merged in the repository: code, or fixes to civ, map or ladder data.", "title": "Contributed code" },
+    "translator": { "label": "Translator", "how": "Translated or reviewed the portal's texts in some language.", "title": "Helped translate the portal" },
+    "organizer": { "label": "Organizer", "how": "Runs a league with 10 or more members, or took a tournament all the way to the final.", "title": "Organizes a league or tournament" }
+  },
+  "supporters": {
+    "metaTitle": "Who helps the project",
+    "kicker": "Thanks",
+    "title": "Who helps the project",
+    "intro": "Feudal League exists because people in the community give time, code, translations and money. Each way of helping earns a badge on the profile, and they are all worth the same.",
+    "badgesTitle": "The badges",
+    "count": "{n, plural, =0 {Nobody yet} one {# person} other {# people}}",
+    "people": "People",
+    "searchPlaceholder": "Search by nick",
+    "clearSearch": "Clear search",
+    "filters": "Filter by badge",
+    "all": "All",
+    "empty": "Nobody with that nick on the list.",
+    "none": "Nobody with that badge on the list yet.",
+    "more": "Show more",
+    "anon": "{n, plural, one {Plus # supporter who preferred not to appear.} other {Plus # supporters who preferred not to appear.}} Thank you too.",
+    "ctaKicker": "Want to show up here?",
+    "ctaText": "Badges are optional: donors choose whether to show theirs. They only appear on the profile and on this page, never in the league table or the tournament bracket.",
+    "contribute": "How to contribute",
+    "donate": "Support the project"
+  },
+  "player": {
+    "evolution": {
+      "title": "Season progress",
+      "tabs": "Player's leagues",
+      "tab": "{league} · {division}",
+      "caption": "Season {n} · since {date} · {count} in the division",
+      "now": "Now",
+      "best": "Best",
+      "season": "This season",
+      "lastWeek": "Last week",
+      "pos": "#{pos}",
+      "seasonDelta": "{n, plural, =0 {0 places} one {{delta} place} other {{delta} places}}",
+      "empty": "Progress shows up from your second week in the league.",
+      "note": "Position in the division table at the end of each week. Top of the chart is better.",
+      "week": "W{n}",
+      "aria": "Position in the division week by week"
+    }
+  }
+}

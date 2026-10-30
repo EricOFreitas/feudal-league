@@ -6,10 +6,10 @@
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
 import {
-  db, divisions, leagueMatches, leagueMembers, leagues, matchMembers, matches, playerRatings, players, seasons,
+  db, divisions, leagueMatches, leagueMembers, leagues, leagueWebhooks, matchMembers, matches, playerRatings, players, seasons, tournaments,
   type Division, type League, type PlayerRating, type Season,
 } from '@aoe2/db';
-import { and, asc, desc, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, ilike, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 
 export const POINTS_WIN = 3;
 export const POINTS_LOSS = 1;
@@ -249,10 +249,10 @@ export async function recentLeagueMatches(seasonId: number, divisionId?: number,
 }
 
 export async function voidLeagueMatch(leagueMatchId: number, reason: string | null) {
-  await db.update(leagueMatches).set({ status: 'voided', voidReason: reason }).where(eq(leagueMatches.id, leagueMatchId));
+  await db.update(leagueMatches).set({ status: 'voided', voidReason: reason, updatedAt: new Date() }).where(eq(leagueMatches.id, leagueMatchId));
 }
 export async function restoreLeagueMatch(leagueMatchId: number) {
-  await db.update(leagueMatches).set({ status: 'counted', voidReason: null }).where(eq(leagueMatches.id, leagueMatchId));
+  await db.update(leagueMatches).set({ status: 'counted', voidReason: null, updatedAt: new Date() }).where(eq(leagueMatches.id, leagueMatchId));
 }
 
 /** Ligas visíveis na lista: global primeiro, depois abertas por data. Com contagem de membros ativos. */
@@ -278,5 +278,158 @@ export async function membershipsOf(playerId: number) {
     const idx = table.findIndex((r) => r.playerId === playerId);
     out.push({ ...m, position: idx + 1, total: table.length, row: table[idx] });
   }
+  return out;
+}
+
+/* ───────────── Página da liga: contagens, tabela paginada, busca, cartões ───────────── */
+
+/** Membros ativos por divisão numa temporada (divisionId → total). */
+export async function divisionCounts(seasonId: number): Promise<Map<number, number>> {
+  const rows = await db
+    .select({ divisionId: leagueMembers.divisionId, n: sql<number>`count(*)::int` })
+    .from(leagueMembers)
+    .where(and(eq(leagueMembers.seasonId, seasonId), isNull(leagueMembers.leftAt)))
+    .groupBy(leagueMembers.divisionId);
+  return new Map(rows.map((r) => [r.divisionId, r.n]));
+}
+
+export type RankedRow = StandingRow & { pos: number };
+export type StandingsPage = { rows: RankedRow[]; total: number; page: number; pages: number; me: RankedRow | null };
+
+/**
+ * Uma página da classificação de uma divisão (página começa em 1).
+ * page = null: abre na página do `playerId`, se ele estiver na divisão; senão na primeira.
+ * `me` traz a linha do `playerId` (com posição), esteja ele na página ou não.
+ * Fatia em memória: a tabela inteira da divisão é pequena hoje.
+ */
+export async function standingsPage(seasonId: number, divisionId: number, page: number | null, size = 25, playerId?: number): Promise<StandingsPage> {
+  const all = (await standings(seasonId, divisionId)).map((r, i) => ({ ...r, pos: i + 1 }));
+  const me = playerId != null ? all.find((r) => r.playerId === playerId) ?? null : null;
+  const pages = Math.max(1, Math.ceil(all.length / size));
+  const wanted = page ?? (me ? Math.ceil(me.pos / size) : 1);
+  const p = Math.min(Math.max(1, Math.floor(wanted) || 1), pages);
+  return { rows: all.slice((p - 1) * size, p * size), total: all.length, page: p, pages, me };
+}
+
+export type SearchRow = RankedRow & { divisionId: number };
+
+/**
+ * Busca por parte do nick (sem diferenciar maiúscula) em todas as divisões da temporada.
+ * A posição é a da divisão do jogador. Ordem: divisão (sort), depois posição.
+ */
+export async function searchStandings(seasonId: number, q: string, limit = 500): Promise<SearchRow[]> {
+  const term = q.trim().slice(0, 40);
+  if (!term) return [];
+  const pattern = `%${term.replace(/[\\%_]/g, '\\$&')}%`;
+  const hits = await db
+    .select({ playerId: leagueMembers.playerId, divisionId: leagueMembers.divisionId, sort: divisions.sort })
+    .from(leagueMembers)
+    .innerJoin(players, eq(players.id, leagueMembers.playerId))
+    .innerJoin(divisions, eq(divisions.id, leagueMembers.divisionId))
+    .where(and(eq(leagueMembers.seasonId, seasonId), isNull(leagueMembers.leftAt), ilike(players.alias, pattern)))
+    .limit(limit);
+  if (hits.length === 0) return [];
+  const wanted = new Set(hits.map((h) => h.playerId));
+  const divOrder = new Map(hits.map((h) => [h.divisionId, h.sort]));
+  const out: SearchRow[] = [];
+  for (const divisionId of [...divOrder.keys()].sort((a, b) => divOrder.get(a)! - divOrder.get(b)!)) {
+    const table = await standings(seasonId, divisionId);
+    table.forEach((r, i) => { if (wanted.has(r.playerId)) out.push({ ...r, pos: i + 1, divisionId }); });
+  }
+  return out;
+}
+
+/**
+ * Partidas da temporada, mais recentes primeiro, com filtro opcional por divisão e/ou jogador
+ * (vencedor ou perdedor). Mesmo formato de `recentLeagueMatches`.
+ */
+export async function leagueMatchList(seasonId: number, opts: { divisionId?: number; playerId?: number; limit?: number } = {}) {
+  const conds = [eq(leagueMatches.seasonId, seasonId)];
+  if (opts.divisionId != null) conds.push(eq(leagueMatches.divisionId, opts.divisionId));
+  if (opts.playerId != null) conds.push(or(eq(leagueMatches.winnerPlayerId, opts.playerId), eq(leagueMatches.loserPlayerId, opts.playerId))!);
+  return db.query.leagueMatches.findMany({
+    where: and(...conds),
+    with: { winner: true, loser: true, match: { with: { members: true } }, division: true },
+    orderBy: [desc(leagueMatches.playedAt)],
+    limit: opts.limit ?? 10,
+  });
+}
+export type LeagueMatchItem = Awaited<ReturnType<typeof leagueMatchList>>[number];
+
+/** Última temporada encerrada da liga, com o total de membros que terminaram nela. null se nunca encerrou. */
+export async function lastEndedSeason(leagueId: number) {
+  const s = await db.query.seasons.findFirst({
+    where: and(eq(seasons.leagueId, leagueId), isNotNull(seasons.endedAt)),
+    orderBy: [desc(seasons.number)],
+  });
+  if (!s) return null;
+  const [c] = await db.select({ n: sql<number>`count(*)::int` }).from(leagueMembers)
+    .where(and(eq(leagueMembers.seasonId, s.id), isNull(leagueMembers.leftAt)));
+  return { season: s, members: c?.n ?? 0 };
+}
+
+/** Torneios ligados à liga (sem os cancelados): em andamento primeiro, depois os mais novos. */
+export async function leagueTournaments(leagueId: number, limit = 3) {
+  return db
+    .select({ id: tournaments.id, slug: tournaments.slug, name: tournaments.name, format: tournaments.format, teamSize: tournaments.teamSize, status: tournaments.status })
+    .from(tournaments)
+    .where(and(eq(tournaments.leagueId, leagueId), ne(tournaments.status, 'cancelled')))
+    .orderBy(sql`case when ${tournaments.status} = 'finished' then 1 else 0 end`, desc(tournaments.createdAt))
+    .limit(limit);
+}
+
+/** A liga tem webhook do Discord ligado? (só o estado; a URL nunca sai do servidor) */
+export async function leagueWebhookActive(leagueId: number): Promise<boolean> {
+  const w = await db.query.leagueWebhooks.findFirst({ where: and(eq(leagueWebhooks.leagueId, leagueId), eq(leagueWebhooks.enabled, true)), columns: { id: true } });
+  return w != null;
+}
+
+/* ── Temporadas (histórico) ── */
+
+export type SeasonListItem = { season: Season; members: number; matches: number };
+
+/** Temporadas da liga, da mais recente à mais antiga, com jogadores (ativos) e partidas contadas. */
+export async function seasonsOf(leagueId: number): Promise<SeasonListItem[]> {
+  const list = await db.query.seasons.findMany({ where: eq(seasons.leagueId, leagueId), orderBy: [desc(seasons.number)] });
+  if (!list.length) return [];
+  const ids = list.map((s) => s.id);
+  const [mem, mat] = await Promise.all([
+    db.select({ seasonId: leagueMembers.seasonId, n: sql<number>`count(*)::int` }).from(leagueMembers)
+      .where(and(inArray(leagueMembers.seasonId, ids), isNull(leagueMembers.leftAt))).groupBy(leagueMembers.seasonId),
+    db.select({ seasonId: leagueMatches.seasonId, n: sql<number>`count(*)::int` }).from(leagueMatches)
+      .where(and(inArray(leagueMatches.seasonId, ids), eq(leagueMatches.status, 'counted'))).groupBy(leagueMatches.seasonId),
+  ]);
+  const m1 = new Map(mem.map((r) => [r.seasonId, r.n]));
+  const m2 = new Map(mat.map((r) => [r.seasonId, r.n]));
+  return list.map((season) => ({ season, members: m1.get(season.id) ?? 0, matches: m2.get(season.id) ?? 0 }));
+}
+
+export type SeasonSummary = {
+  divisions: { division: Division; rows: RankedRow[] }[];
+  totals: { members: number; matches: number; divisions: number };
+};
+
+/** Resumo de uma temporada: classificação completa de cada divisão da liga e totais. */
+export async function seasonSummary(seasonId: number): Promise<SeasonSummary | null> {
+  const season = await db.query.seasons.findFirst({ where: eq(seasons.id, seasonId) });
+  if (!season) return null;
+  const divs = await db.query.divisions.findMany({ where: eq(divisions.leagueId, season.leagueId), orderBy: [asc(divisions.sort)] });
+  const lists = await Promise.all(divs.map(async (division) => ({
+    division,
+    rows: (await standings(seasonId, division.id)).map((r, i): RankedRow => ({ ...r, pos: i + 1 })),
+  })));
+  const [m] = await db.select({ n: sql<number>`count(*)::int` }).from(leagueMatches)
+    .where(and(eq(leagueMatches.seasonId, seasonId), eq(leagueMatches.status, 'counted')));
+  return {
+    divisions: lists,
+    totals: { members: lists.reduce((n, d) => n + d.rows.length, 0), matches: m?.n ?? 0, divisions: divs.length },
+  };
+}
+
+/** Campeão (1º) de cada divisão com membros numa temporada: divisionId → alias. Usado na lista de temporadas. */
+export async function seasonChampions(seasonId: number): Promise<Map<number, string>> {
+  const s = await seasonSummary(seasonId);
+  const out = new Map<number, string>();
+  for (const d of s?.divisions ?? []) if (d.rows[0]) out.set(d.division.id, d.rows[0].alias);
   return out;
 }

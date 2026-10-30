@@ -1,0 +1,48 @@
+{
+  "badges": {
+    "aria": "Badges do jogador",
+    "supporter": { "label": "Apoiador", "how": "Fez uma doação, de qualquer valor. É o mesmo badge pra todo mundo.", "title": "Ajudou com os custos do projeto" },
+    "code": { "label": "Contribuidor", "how": "Teve um pull request aceito no repositório: código, correção de dados de civ, mapa ou ladder.", "title": "Contribuiu com código" },
+    "translator": { "label": "Tradutor", "how": "Traduziu ou revisou os textos do portal em algum idioma.", "title": "Ajudou a traduzir o portal" },
+    "organizer": { "label": "Organizador", "how": "Administra uma liga com 10 membros ou mais, ou levou um torneio até a final.", "title": "Organiza liga ou torneio" }
+  },
+  "supporters": {
+    "metaTitle": "Quem ajuda o projeto",
+    "kicker": "Agradecimentos",
+    "title": "Quem ajuda o projeto",
+    "intro": "O Feudal League existe porque gente da comunidade dá tempo, código, tradução e dinheiro. Cada forma de ajudar vale um badge no perfil, e todos valem o mesmo.",
+    "badgesTitle": "Os badges",
+    "count": "{n, plural, =0 {Ninguém ainda} one {# pessoa} other {# pessoas}}",
+    "people": "Pessoas",
+    "searchPlaceholder": "Buscar pelo nick",
+    "clearSearch": "Limpar busca",
+    "filters": "Filtrar por badge",
+    "all": "Todos",
+    "empty": "Ninguém com esse nick na lista.",
+    "none": "Ninguém com esse badge na lista ainda.",
+    "more": "Ver mais",
+    "anon": "{n, plural, one {E mais # apoiador que preferiu não aparecer.} other {E mais # apoiadores que preferiram não aparecer.}} Obrigado também.",
+    "ctaKicker": "Quer aparecer aqui?",
+    "ctaText": "Badges são opcionais: quem doa escolhe se quer mostrar. Eles aparecem só no perfil e nesta página, nunca na tabela da liga nem na chave do torneio.",
+    "contribute": "Como contribuir",
+    "donate": "Apoiar o projeto"
+  },
+  "player": {
+    "evolution": {
+      "title": "Evolução na temporada",
+      "tabs": "Ligas do jogador",
+      "tab": "{league} · {division}",
+      "caption": "Temporada {n} · desde {date} · {count} na divisão",
+      "now": "Agora",
+      "best": "Melhor",
+      "season": "Na temporada",
+      "lastWeek": "Última semana",
+      "pos": "{pos}º",
+      "seasonDelta": "{n, plural, =0 {0 posições} one {{delta} posição} other {{delta} posições}}",
+      "empty": "A evolução aparece a partir da segunda semana na liga.",
+      "note": "Posição na tabela da divisão no fim de cada semana. Topo do gráfico é melhor.",
+      "week": "S{n}",
+      "aria": "Posição na divisão semana a semana"
+    }
+  }
+}

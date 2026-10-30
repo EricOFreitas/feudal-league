@@ -1,0 +1,23 @@
+{
+  "analysis": {
+    "useOne": "Uses 1 of your analyses for today.",
+    "limitTitle": "You have used all {n} analyses from the last 24 hours.",
+    "limitText": "The limit is a rolling 24-hour window starting at your first request, not midnight. This match stays available to analyze as long as the recording exists on the game server, usually a few days.",
+    "quota": {
+      "title": "Your analyses today",
+      "left": "of {limit} left",
+      "resets": "Renews in {time}.",
+      "available": "No requests in the last 24 hours.",
+      "hm": "{h} h {m} min",
+      "m": "{m} min"
+    },
+    "limits": {
+      "title": "Current limits",
+      "i1": "{n} free analyses every 24 hours, per account.",
+      "i2": "Only matches you played in, with the claimed profile.",
+      "i3": "Only recent matches: the recording disappears from the game server after a few days.",
+      "i4": "One analysis per match. Asking again shows the same one.",
+      "note": "Limits may change depending on demand."
+    }
+  }
+}

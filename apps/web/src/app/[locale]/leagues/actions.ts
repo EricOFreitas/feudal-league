@@ -50,7 +50,10 @@ export async function voidMatchAction(fd: FormData) {
   const reason = String(fd.get('reason') ?? '').trim().slice(0, 200) || null;
   if (lm.status === 'voided') await restoreLeagueMatch(id); else await voidLeagueMatch(id, reason);
   revalidatePath(`/${locale}/leagues/${league.slug}`);
-  redirect({ href: `/leagues/${league.slug}`, locale });
+  // volta pra mesma aba/página/filtro; só aceita querystring simples (nada de outra origem)
+  const back = String(fd.get('back') ?? '');
+  const qs = back.length <= 500 && /^[A-Za-z0-9%&=+._*-]*$/.test(back) ? back : '';
+  redirect({ href: `/leagues/${league.slug}${qs ? `?${qs}` : ''}`, locale });
 }
 
 export async function newSeasonAction(fd: FormData) {

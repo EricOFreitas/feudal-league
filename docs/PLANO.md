@@ -229,9 +229,26 @@ Seeds opcionais; o resto é sorteado. Bye vira W.O. automático.
 Falta: agenda por confronto, dupla eliminação e suíço, login por e-mail pra Xbox, torneios
 na página do jogador, busca de parceiro por nome em vez de id.
 
-**Fase 4 — educativo (sem prazo).**
+**Fase 4 — layout do protótipo e comunidade. ✅ Implementada em 30/10/2026.**
+Layout do Claude Design (v4) aplicado: trilha de navegação e Voltar em toda página interna,
+rodapé com Sobre/Status/Código/Traduzir/Quem ajuda/Apoiar, análise com passos e cota,
+torneios com busca, filtros e cartões da chave, liga com abas por divisão, busca em todas as
+divisões, paginação, "Minha posição", filtros de partidas e expansor "Por que contou?".
+Funcionalidades novas: página Sobre; temporadas encerradas com pódio por divisão
+(`/leagues/[slug]/seasons`); badges (Apoiador, Contribuidor, Tradutor, Organizador computado)
+e página Quem ajuda (`/supporters`; concessão por `apps/worker/src/tools/grant-badge.ts`);
+avisos no Discord por webhook da liga (`/leagues/[slug]/discord`, polling idempotente em
+`notify.ts`); imagem Open Graph por liga; evolução semanal no perfil (`standing_snapshots`);
+página de status com execuções do worker e incidentes (`sync_runs`, `incidents`).
+Feito por 6 agentes (Sonnet/Opus) orquestrados, cada um com arquivos exclusivos; strings
+passaram a `messages/base` + `messages/parts/<área>` mescladas no build.
+Falta: tela pro jogador esconder badge; fonte serifada na imagem OG; "Ver mais" dos
+apoiadores para em 60; prévia do convite com imagem OG no diálogo.
+
+**Fase 5 — educativo (sem prazo).**
 Estatísticas pessoais: win rate por civ e mapa, evolução do rating, comparação
-com a faixa (dumps do aoestats). Guias em PT/EN escritos por você.
+com a faixa (dumps do aoestats). Benchmarks por divisão medidos de replays reais pelo
+analisador, alimentando o prompt. Guias em PT/EN escritos por você.
 
 ## 9. Riscos
 
@@ -275,3 +292,5 @@ com a faixa (dumps do aoestats). Guias em PT/EN escritos por você.
   até lá segue o provisório). Repositório aberto sob AGPL-3.0. Modelo de cobrança futuro,
   condicionado à autorização da World's Edge: 3 análises/dia grátis e, acima disso, só o
   custo dos tokens. Teste de modelo local (GPU do Eric) previsto.
+- 30/10/2026 — Fase 4 (layout v4 + comunidade) entregue por agentes orquestrados. CSS do tema
+  passou pra `@layer base/components` pra utilitários do Tailwind vencerem sem `!`.

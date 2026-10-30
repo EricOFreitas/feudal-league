@@ -6,6 +6,7 @@ import {
 import { importPlayerByProfileId, importPlayerBySteamId, syncMatchHistory } from '@aoe2/sync';
 import { redirect } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
 import { checkAdditionLimit, recordAddition } from '@/lib/additions';
 
@@ -72,10 +73,12 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const { q = '' } = await searchParams;
   const t = await getTranslations('search');
   const tc = await getTranslations('common');
+  const tn = await getTranslations('nav');
+  const crumbs = <Breadcrumbs items={[{ label: tn('search') }]} />;
 
   const out = await resolve(q);
   if (out.kind === 'go') redirect({ href: `/players/${out.profileId}`, locale });
-  if (out.kind === 'msg') return <Msg back={tc('back')}>{t(out.key, { alias: out.alias ?? '' })}</Msg>;
+  if (out.kind === 'msg') return <>{crumbs}<Msg back={tc('back')}>{t(out.key, { alias: out.alias ?? '' })}</Msg></>;
   if (out.kind !== 'list') return null;
 
   const { alias, list } = out;
@@ -91,6 +94,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      {crumbs}
       <header className="text-center">
         <p className="kicker">{t('title')}</p>
         <p className="mt-2 text-parchment-200">{t('homonyms', { count: list.length, alias })}</p>

@@ -1,0 +1,23 @@
+{
+  "analysis": {
+    "useOne": "Usa 1 das suas análises de hoje.",
+    "limitTitle": "Você já usou as {n} análises das últimas 24 horas.",
+    "limitText": "O limite é uma janela de 24 horas a partir do primeiro pedido, não meia-noite. Esta partida continua disponível pra analisar enquanto a gravação existir no servidor do jogo, normalmente alguns dias.",
+    "quota": {
+      "title": "Suas análises hoje",
+      "left": "de {limit} restantes",
+      "resets": "Renova em {time}.",
+      "available": "Nenhum pedido nas últimas 24 horas.",
+      "hm": "{h} h {m} min",
+      "m": "{m} min"
+    },
+    "limits": {
+      "title": "Limites atuais",
+      "i1": "{n} análises gratuitas a cada 24 horas, por conta.",
+      "i2": "Só partidas em que você jogou, com o perfil reivindicado.",
+      "i3": "Só partidas recentes: a gravação some do servidor do jogo depois de alguns dias.",
+      "i4": "Uma análise por partida. Pedir de novo mostra a mesma.",
+      "note": "Os limites podem mudar conforme a demanda."
+    }
+  }
+}

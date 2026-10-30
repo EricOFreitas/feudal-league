@@ -1,0 +1,32 @@
+{
+  "status": {
+    "kicker": "Portal status",
+    "okTitle": "All systems working",
+    "badTitle": "Having problems",
+    "intro": "The portal depends on the game's own server. Matches only show up once they are finished, and a league match reaches the table within 15 minutes.",
+    "bannerOk": "Game server responding · last sync {when}",
+    "bannerOkNoRun": "Game server responding",
+    "bannerBad": "No successful sync in the last 30 minutes",
+    "syncTitle": "Sync",
+    "never": "never ran",
+    "runs24h": "{count, plural, =0 {no runs in 24 h} =1 {1 run in 24 h} other {# runs in 24 h}}",
+    "errors24h": "{count, plural, =0 {no errors} =1 {1 error} other {# errors}}",
+    "kinds": {
+      "league": { "name": "League members and profiles", "desc": "Rating and matches for league members, claimed profiles and added profiles." },
+      "detect": { "name": "Match detection", "desc": "Looks for finished league and tournament matches." },
+      "analysis": { "name": "Match analyses", "desc": "Queue of AI replay analyses." },
+      "snapshot": { "name": "Weekly standings snapshot", "desc": "Saves each division's standings once a week." },
+      "notify": { "name": "Discord notices", "desc": "Sends new-member and match notices to Discord." }
+    },
+    "uptimeTitle": "Last 30 days",
+    "dayOk": "no problems",
+    "dayWarn": "errors occurred, but sync ran",
+    "dayDown": "errors only",
+    "dayNone": "no data",
+    "uptimePct": "{pct}% up",
+    "today": "today",
+    "incidentsTitle": "Recent incidents",
+    "noIncidents": "No incidents recorded.",
+    "ongoing": "ongoing"
+  }
+}

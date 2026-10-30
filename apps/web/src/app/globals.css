@@ -38,6 +38,7 @@
   --shadow-panel: 0 1px 0 rgba(233, 207, 138, 0.08) inset, 0 10px 30px -12px rgba(0, 0, 0, 0.8);
 }
 
+@layer base {
 :root {
   color-scheme: dark;
 }
@@ -61,7 +62,11 @@ h1, h2, h3, .font-display {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
 }
+a { color: var(--color-gold-300); text-decoration: none; }
+a:hover { color: var(--color-gold-400); text-decoration: underline; text-decoration-color: var(--color-gold-600); }
+}
 
+@layer components {
 /* Painel: pedra escura com filete duplo de ouro */
 .panel {
   position: relative;
@@ -184,6 +189,4 @@ h1, h2, h3, .font-display {
 
 .row-win { border-left: 3px solid var(--color-moss-500); }
 .row-loss { border-left: 3px solid var(--color-crimson-500); }
-
-a { color: var(--color-gold-300); text-decoration: none; }
-a:hover { color: var(--color-gold-400); text-decoration: underline; text-decoration-color: var(--color-gold-600); }
+}
