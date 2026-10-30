@@ -251,13 +251,10 @@ com a faixa (dumps do aoestats). Guias em PT/EN escritos por você.
   reporte), faixa congelada na inscrição e revista no fim da temporada.
 - 29/10/2026 — Liga global + ligas próprias. Divisões com nomes neutros
   (Escudo…Coroa) em vez de títulos no masculino; sem toggle de gênero.
-- 30/10/2026 — Deploy no Coolify (VM .50): app `aoe2-ligas` (uuid dcpkzikxeys2yjxsu63a9au7),
-  build pack Docker Compose com `docker-compose.coolify.yml`, repo privado
-  `EricOFreitas/aoe2-ligas` via deploy key. Banco = database `aoe2` no Postgres
-  gerenciado já existente (`postgresql-pgvector`, pg18), sem instalação nova.
-  Domínio provisório `aoe2.ericofreitas.eng.br`: DNS direto no IP do gateway,
-  NPM → 192.168.100.50:3010 com Let's Encrypt. Deploy manual pela API/painel
-  (webhook de push pendente de autorização).
+- 30/10/2026 — Deploy no Coolify, build pack Docker Compose com `docker-compose.coolify.yml`,
+  deploy automático por webhook no push da `main`. Banco = database própria num Postgres
+  gerenciado já existente, sem instalação nova. Domínio provisório atrás do proxy reverso
+  do próprio servidor, com Let's Encrypt. Hosts, IPs e identificadores ficam fora do repo.
 - 29/10/2026 — `.env` fica na raiz e é carregado por `process.loadEnvFile`
   (web) e `node --env-file-if-exists` (worker, migrate).
 - 30/10/2026 — Fase 2 passa a ser o analisador de partida com IA (grátis, limite
@@ -274,3 +271,7 @@ com a faixa (dumps do aoestats). Guias em PT/EN escritos por você.
 - 30/10/2026 — Torneios: v1 com grupos opcionais + eliminação simples, times 1–4, Bo1/3/5,
   requisitos anti-smurf configuráveis (pico, partidas, partidas recentes). Testado localmente
   com jogadores reais e a partida 2v2 517326318 (`apps/worker/src/tools/test-tournament.ts`).
+- 30/10/2026 — Nome: **Feudal League** (domínio só será registrado quando houver participantes;
+  até lá segue o provisório). Repositório aberto sob AGPL-3.0. Modelo de cobrança futuro,
+  condicionado à autorização da World's Edge: 3 análises/dia grátis e, acima disso, só o
+  custo dos tokens. Teste de modelo local (GPU do Eric) previsto.

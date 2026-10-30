@@ -1,7 +1,7 @@
 {
   "site": {
-    "name": "AoE2 Leagues",
-    "tagline": "Rating-bracket leagues and tournaments for Age of Empires II: Definitive Edition",
+    "name": "Feudal League",
+    "tagline": "Leagues, tournaments and match analysis for Age of Empires II: Definitive Edition",
     "notice": "Age of Empires II: Definitive Edition © Microsoft Corporation. This site was created under Microsoft's <rules>Game Content Usage Rules</rules> and is not endorsed by or affiliated with Microsoft.",
     "source": "Rating and match data come from the game's own servers and may lag by a few minutes.",
     "donate": "Support the project"

@@ -123,7 +123,10 @@ export async function analysisContext(matchId: number, profileId: number, parse:
     const slot = slotOf.get(m.profileId);
     const p = slot ? parse.players[slot] : undefined;
     const role = m.profileId === profileId ? 'ANALYZED' : m.team === me.team ? 'ally' : 'opponent';
-    lines.push(`- slot ${slot ?? '?'} ${m.alias ?? `#${m.profileId}`} [${role}] civ ${civName(m.civId)}, rating ${m.oldRating}, ${m.outcome === 1 ? 'won' : 'lost'}` + (p ? `, APM ${p.apm}, ages: feudal click ${mmss(p.ages.feudal?.click_s)} reached ${mmss(p.ages.feudal?.reached_s)}, castle click ${mmss(p.ages.castle?.click_s)} reached ${mmss(p.ages.castle?.reached_s)}, imperial click ${mmss(p.ages.imperial?.click_s)}; first military ${p.first_military ? `${p.first_military.unit} at ${mmss(p.first_military.t_s)}` : 'none'}; town centers ${p.town_centers}; villagers queued ${p.units_queued['Villager'] ?? 0}` + (p.resigned_s != null ? `; resigned at ${mmss(p.resigned_s)}` : '') : ', (no replay data)'));
+    const tcFirst = p?.building_first_s['Town Center'];
+    const castleAt = p?.ages.castle?.reached_s;
+    const tcDelay = tcFirst != null && castleAt != null ? `, first extra TC placed ${tcFirst - castleAt >= 0 ? '+' : ''}${tcFirst - castleAt}s after reaching Castle` : p?.town_centers === 1 ? ', no extra TC' : '';
+    lines.push(`- slot ${slot ?? '?'} ${m.alias ?? `#${m.profileId}`} [${role}] civ ${civName(m.civId)}, rating ${m.oldRating}, ${m.outcome === 1 ? 'won' : 'lost'}` + (p ? `, APM ${p.apm}, ages: feudal click ${mmss(p.ages.feudal?.click_s)} reached ${mmss(p.ages.feudal?.reached_s)}, castle click ${mmss(p.ages.castle?.click_s)} reached ${mmss(p.ages.castle?.reached_s)}, imperial click ${mmss(p.ages.imperial?.click_s)}; first military ${p.first_military ? `${p.first_military.unit} at ${mmss(p.first_military.t_s)}` : 'none'}; town centers total ${p.town_centers}${tcDelay}; villagers queued ${p.units_queued['Villager'] ?? 0}` + (p.resigned_s != null ? `; resigned at ${mmss(p.resigned_s)}` : '') : ', (no replay data)'));
   }
 
   const mine = slotOf.get(profileId) ? parse.players[slotOf.get(profileId)!] : undefined;
@@ -151,16 +154,26 @@ export function buildPrompt(locale: string, context: string) {
 
 Write in ${lang}. Address the player directly ("you"/"você"). Be concrete, kind and honest; no filler, no generic advice that ignores the data.
 
+GAME RULES YOU MUST RESPECT (do not contradict these):
+- Ages: Dark → Feudal → Castle → Imperial. Feudal Age costs 500 food; Castle 800 food + 200 gold; Imperial 1000 food + 800 gold.
+- Extra Town Centers can only be built in Castle Age or later (exception: Cumans may build one extra TC in Feudal). Building 2–3 extra TCs right after reaching Castle Age is standard good play, not a delay.
+- Villager production should be continuous from every TC from 0:00 until roughly 100–120 villagers (1v1) — that is around 25–35 minutes of in-game clock at good levels, not 10 minutes. Population cap is 200.
+- Economy upgrades by age — Dark: Loom (TC). Feudal: Double-Bit Axe (lumber camp, wood), Horse Collar (mill, farms), Wheelbarrow (TC, villager speed and carry), Gold Mining, Stone Mining. Castle: Bow Saw, Heavy Plow, Hand Cart, Gold Shaft Mining, Stone Shaft Mining. Imperial: Two-Man Saw, Crop Rotation. Never place a tech in the wrong age.
+- Age-up click is when the research was queued; arrival is when it completed. Feudal research takes 130 s, Castle 160 s, Imperial 190 s. Judge timing by arrival.
+- Rough benchmarks on the in-game clock (Standard speed, open maps; approximate, say "roughly"): Feudal arrival — pros ~9:30–10:30, 1200–1500 ~11:00–12:30, below 1100 ~12:30–14:30. Castle arrival — pros ~16:00–18:30, 1200–1500 ~20:00–24:00, below 1100 ~24:00–30:00. Team-game pockets are often faster than flanks.
+
 Data limits you must respect: the recorded game stores COMMANDS, not game state. You know when things were queued, researched, placed or clicked, and the in-game clock when each age was reached, but you do NOT know resources in stock, idle villager time, units actually produced, kills or losses. Never invent such numbers. When you infer (e.g. a long gap between queues suggests idle production), say it is an inference.
 
-Use the in-game clock in mm:ss. Compare the player mostly with the other players in the SAME match (same map, same conditions); use general benchmarks for their rating band only cautiously and say so.
+Keep unit, building and technology names in English (e.g. Horse Collar, Wheelbarrow, Town Center); Brazilian players use them that way and translations are error-prone.
+
+Use the in-game clock in mm:ss. Compare the player mostly with the other players in the SAME match (same map, same conditions). Always count villagers per 5-minute window against "continuous production from all TCs" (one TC produces 12 villagers per 5 minutes at most).
 
 Format (Markdown, max ~450 words):
 ## Resumo / Summary — 2–3 sentences on what decided the game for this player.
 ## Abertura — Dark/Feudal timing and build order vs the others in the match.
 ## Economia e produção — villager flow, town centers, upgrades, market.
 ## Militar — first military, composition, timing vs the opponents' ages and compositions.
-## Três próximos passos — exactly 3 bullets, each one specific habit to practice next games.
+## Três próximos passos — exactly 3 bullets, each one specific habit to practice next games, each consistent with the game rules above.
 (Translate headings to the output language. Do not add other sections.)`;
   const user = `Match data:\n\n${context}\n\nWrite the feedback now.`;
   return { system, user };
@@ -175,7 +188,7 @@ export async function callLlm(model: string, prompt: { system: string; user: str
     method: 'POST',
     headers: {
       authorization: `Bearer ${key}`, 'content-type': 'application/json',
-      'HTTP-Referer': process.env.APP_URL ?? 'https://aoe2.ericofreitas.eng.br', 'X-Title': 'AoE2 Ligas',
+      'HTTP-Referer': process.env.APP_URL ?? 'https://feudalleague.com', 'X-Title': 'Feudal League',
     },
     body: JSON.stringify({
       model,

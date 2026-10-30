@@ -1,4 +1,4 @@
-# Ligas AoE2 — portal de ligas e torneios por faixa de rating (AoE2 DE)
+# Feudal League — ligas, torneios e análise de partidas para AoE2 DE
 
 Plano e decisões: `docs/PLANO.md`. Ler antes de mexer em escopo.
 
@@ -11,7 +11,7 @@ Plano e decisões: `docs/PLANO.md`. Ler antes de mexer em escopo.
 - **Banco:** PostgreSQL + Drizzle (`packages/db`, migrations em `packages/db/drizzle`)
 - **Dados:** API do jogo (World's Edge), só em `packages/aoe-api`. Não documentada, sem auth.
 - **Auth:** Steam OpenID 2.0 à mão (`apps/web/src/lib/steam-openid.ts`) + cookie JWT (jose)
-- **Infra:** Coolify (VM .50, `ssh coolify`) via `docker-compose.coolify.yml` (migrate + web + worker); banco é o Postgres gerenciado do Coolify (`postgresql-pgvector`), database `aoe2`. Domínio passa pelo NPM do gateway + Cloudflare, não pelo Traefik. Dev: `docker compose up -d` sobe o Postgres em 127.0.0.1:5433.
+- **Infra:** Coolify com build pack Docker Compose (`docker-compose.coolify.yml`: migrate + web + worker + analyzer); banco é um Postgres gerenciado fora do compose. Domínio chega por proxy reverso próprio, não pelo Traefik do Coolify. Detalhes privados (hosts, IPs, uuids) ficam fora do repositório. Dev: `docker compose up -d` sobe o Postgres em 127.0.0.1:5433.
 
 ## Estrutura
 
