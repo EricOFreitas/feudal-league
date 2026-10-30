@@ -46,7 +46,7 @@ const API_INCIDENT = 'Servidor do jogo sem resposta';
 async function cycle() {
   const t0 = new Date();
   const due = await pickDue();
-  if (due.length === 0) { log('nada a sincronizar'); }
+  if (due.length === 0) { log('nada a sincronizar'); await recordSyncRun('league', t0, { players: 0 }); }
   else {
     log(`sincronizando ${due.length} jogadores`);
     try {
