@@ -5,7 +5,7 @@ import { Crosshair, Globe, Search, ShieldCheck, Users, X } from 'lucide-react';
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, divisions, leagueMembers, leagues, players } from '@aoe2/db';
 import {
-  activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, placementFor,
+  MATCH_SCOPES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, placementFor,
   searchStandings, standingsPage, type RankedRow, type SearchRow,
 } from '@aoe2/sync';
 import { and, asc, eq, isNull } from 'drizzle-orm';
@@ -18,7 +18,7 @@ import { LeagueMatchRow } from '@/components/league-match-row';
 import { LeaguePager } from '@/components/league-pager';
 import { LeagueTable } from '@/components/league-table';
 import { divisionName, sessionPlayer } from '@/lib/leagues';
-import { joinAction, leaveAction, newSeasonAction, toggleStatusAction, voidMatchAction } from '../actions';
+import { joinAction, leaveAction, newSeasonAction, setMatchScopeAction, toggleStatusAction, voidMatchAction } from '../actions';
 
 type SP = Partial<Record<'joined' | 'left' | 'err' | 'div' | 'q' | 'page' | 'me' | 'mf' | 'more', string | string[]>>;
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<SP> };
@@ -312,7 +312,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               <ul className="mt-3 list-disc space-y-2 pl-4 text-sm text-parchment-200">
                 <li>{t('rules.placement')}</li>
                 <li>{t('rules.minGames', { n: league.minGames })}</li>
-                <li>{league.countNonMembers ? t('rules.detectNonMembers') : league.countRanked ? t('rules.detect') : t('rules.detectLobby')}</li>
+                <li>{league.matchScope === 'all' ? t('rules.detectAll') : league.matchScope === 'ranked' ? t('rules.detectRanked') : league.matchScope === 'lobby' ? t('rules.detectLobby') : league.countNonMembers ? t('rules.detectNonMembers') : t('rules.detect')}</li>
+                {league.countNonMembers && (league.matchScope === 'all' || league.matchScope === 'ranked') && <li>{t('rules.detectNonMembersExtra')}</li>}
                 {league.autoJoinOpponents && <li>{t('rules.autoJoin')}</li>}
                 {league.isGlobal && <li>{t('rules.claimJoin')}</li>}
                 <li>{t('rules.points', { win: league.pointsWin, loss: league.pointsLoss })}</li>
@@ -370,6 +371,15 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                   {tx('discord')}
                   <span className={`tag font-body !tracking-normal normal-case ${hookOn ? '!border-moss-500 !text-moss-500' : '!text-parchment-400'}`}>{hookOn ? tx('hookOn') : tx('hookOff')}</span>
                 </Link>
+                <form action={setMatchScopeAction} className="relative">
+                  {hidden}
+                  <label htmlFor="matchScope" className="text-sm text-parchment-200">{t('admin.matchScope')}</label>
+                  <select id="matchScope" name="matchScope" defaultValue={league.matchScope} className="input mt-1">
+                    {MATCH_SCOPES.map((s) => <option key={s} value={s}>{t(`new.scope.${s}`)}</option>)}
+                  </select>
+                  <button className={`${ghostBtn} mt-2`}>{t('admin.matchScopeSave')}</button>
+                  <p className="mt-1 text-xs text-parchment-400">{t('admin.matchScopeHint')}</p>
+                </form>
                 <form action={newSeasonAction} className="relative">
                   {hidden}
                   <button className={`${ghostBtn} text-left`}>{t('admin.newSeason')}</button>

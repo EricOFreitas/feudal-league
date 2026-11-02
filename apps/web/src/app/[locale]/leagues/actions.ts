@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, leagueMatches, leagues } from '@aoe2/db';
-import { createLeague, joinLeague, leaveLeague, restoreLeagueMatch, startNewSeason, voidLeagueMatch } from '@aoe2/sync';
+import { MATCH_SCOPES, createLeague, joinLeague, leaveLeague, restoreLeagueMatch, startNewSeason, voidLeagueMatch } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { redirect } from '@/i18n/navigation';
@@ -74,6 +74,16 @@ export async function toggleStatusAction(fd: FormData) {
   redirect({ href: `/leagues/${league.slug}`, locale });
 }
 
+export async function setMatchScopeAction(fd: FormData) {
+  const locale = localeOf(fd);
+  const league = await ownedLeague(fd);
+  if (!league) return;
+  const matchScope = MATCH_SCOPES.find((s) => s === fd.get('matchScope'));
+  if (matchScope) await db.update(leagues).set({ matchScope }).where(eq(leagues.id, league.id));
+  revalidatePath(`/${locale}/leagues/${league.slug}`);
+  redirect({ href: `/leagues/${league.slug}`, locale });
+}
+
 const divisionRow = z.object({
   nameKey: z.string().max(16).optional(),
   name: z.string().trim().max(40),
@@ -92,7 +102,7 @@ export async function createLeagueAction(_prev: CreateState, fd: FormData): Prom
   const name = String(fd.get('name') ?? '').trim();
   if (name.length < 3 || name.length > 60) return { error: 'name' };
   const description = String(fd.get('description') ?? '').trim().slice(0, 2000) || null;
-  const countRanked = fd.get('countRanked') === 'on';
+  const matchScope = MATCH_SCOPES.find((s) => s === fd.get('matchScope')) ?? 'all';
   const minGames = Math.min(200, Math.max(0, Number(fd.get('minGames')) || 0));
   const pointsLoss = fd.get('pointsLoss') === '0' ? 0 : 1;
   const countNonMembers = fd.get('countNonMembers') === 'on';
@@ -129,7 +139,7 @@ export async function createLeagueAction(_prev: CreateState, fd: FormData): Prom
   if (taken) {
     slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
   }
-  const id = await createLeague({ slug, name, description, ownerUserId: session!.uid, countRanked, minGames, pointsLoss, countNonMembers, autoJoinOpponents, divisions: divs });
+  const id = await createLeague({ slug, name, description, ownerUserId: session!.uid, matchScope, minGames, pointsLoss, countNonMembers, autoJoinOpponents, divisions: divs });
   if (!id) return { error: 'slug' };
   revalidatePath(`/${locale}/leagues`);
   redirect({ href: `/leagues/${slug}`, locale });

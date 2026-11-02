@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { POINTS_LOSS, POINTS_WIN, type LeagueMatchItem } from '@aoe2/sync';
 import { Link } from '@/i18n/navigation';
 import { divisionName } from '@/lib/leagues';
-import { mapLabel } from '@/lib/format';
+import { mapLabel, matchTypeKey } from '@/lib/format';
 import { DivisionMark } from './division-mark';
 
 /**
@@ -31,7 +31,7 @@ export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileI
   const voided = lm.status === 'voided';
   const wm = lm.match.members.find((m) => m.profileId === lm.winner.profileId);
   const lmm = lm.match.members.find((m) => m.profileId === lm.loser.profileId);
-  const lobby = lm.match.matchtypeId === 0;
+  const typeKey = matchTypeKey(lm.match.matchtypeId);
   const division = divisionName(lm.division, td);
   const map = lm.match.mapName ? mapLabel(lm.match.mapName) : tp('unknownMap');
 
@@ -46,14 +46,14 @@ export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileI
       ? { text: tw('nonMember', { division, rating: outsiderRating ?? '–' }) }
       : { text: tw('sameDivision', { division }) },
     { text: tw('afterJoin') },
-    { text: lobby ? tw('lobbyCounts') : tw('rankedCounts') },
+    { text: typeKey === 'lobby' ? tw('lobbyCounts') : typeKey === 'ranked1v1' ? tw('rankedCounts') : tw('otherCounts') },
     voided
       ? { text: lm.voidReason ? tw('voidedReason', { reason: lm.voidReason }) : tw('voided'), bad: true }
       : { text: tw('points', { winner: lm.winner.alias, loser: lm.loser.alias, w: pw, l: pl }) },
   ];
   const facts: { k: string; v: string; mono?: boolean }[] = [
     { k: tf('match'), v: `#${lm.matchId}`, mono: true },
-    { k: tf('type'), v: lobby ? tf('typeLobby', { n: lm.match.matchtypeId }) : tf('typeRanked', { n: lm.match.matchtypeId }) },
+    { k: tf('type'), v: typeKey === 'lobby' ? tf('typeLobby', { n: lm.match.matchtypeId }) : typeKey === 'ranked1v1' ? tf('typeRanked', { n: lm.match.matchtypeId }) : tf('typeOther', { type: tp(`matchType.${typeKey}`), n: lm.match.matchtypeId }) },
     { k: tf('map'), v: map },
     { k: tf('ended'), v: dtm.format(lm.match.completedAt) },
     { k: tf('result'), v: tf('resultValue', { name: lm.winner.alias }) },
@@ -79,7 +79,7 @@ export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileI
 
         <details className="group">
           <summary className="flex w-fit cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 text-parchment-300 [&::-webkit-details-marker]:hidden">
-            <span>{map} · {tp(`matchType.${lobby ? 'lobby' : 'ranked1v1'}`)} · {dtm.format(lm.playedAt)}</span>
+            <span>{map} · {tp(`matchType.${typeKey}`)} · {dtm.format(lm.playedAt)}</span>
             <span className="inline-flex items-center gap-1 text-gold-300 group-hover:text-gold-400 group-hover:underline">
               {voided ? tw('toggleVoided') : tw('toggle')}
               <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />

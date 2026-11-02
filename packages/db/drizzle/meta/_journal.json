@@ -57,6 +57,20 @@
       "when": 1793384611614,
       "tag": "0007_wandering_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793593684152,
+      "tag": "0008_lying_carlie_cooper",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793593691618,
+      "tag": "0009_bumpy_maginty",
+      "breakpoints": true
     }
   ]
 }

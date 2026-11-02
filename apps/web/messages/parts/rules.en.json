@@ -24,7 +24,7 @@
           },
           {
             "q": "Which matches count in the table?",
-            "a": "In every league: a 1v1 with exactly two players, both active members of the same division, played after both joined and after the season started; ranked RM 1v1 and lobby both count (admins can keep lobby only). In the Global League your ranked 1v1 against any player rated within your bracket also counts, even if they are not on the portal: every ranked game of yours moves you in the table. Custom leagues can turn that rule on. No report or screenshot needed."
+            "a": "In every league: a 1v1 with exactly two players, both active members of the same division, played after both joined and after the season started. The admin chooses which 1v1s count: all of them, ranked only, ranked and lobby, or lobby only; the Global League counts ranked RM 1v1 and lobby. In the Global League your ranked 1v1 against any player rated within your bracket also counts, even if they are not on the portal: every ranked game of yours moves you in the table. Custom leagues can turn that rule on. No report or screenshot needed."
           },
           {
             "q": "How many points?",

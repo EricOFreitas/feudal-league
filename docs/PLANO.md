@@ -299,3 +299,6 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   liga aos poucos (40 por ciclo, colocado pelo pico, sync a cada 6 h); quem reivindica o perfil
   entra na Global automaticamente. Ligas próprias: 3/1 e regras desligadas por padrão, dono escolhe.
   Pré-preencher com a ladder inteira foi descartado (API não aguenta sincronizar 47 mil).
+- 02/11/2026 — Ligas próprias escolhem quais 1v1 contam (`match_scope`): todo 1v1, só ranqueada,
+  ranqueada e lobby, ou só lobby. O dono muda quando quiser. Contra não-membro vale sempre só
+  ranqueada. A Global continua em ranqueada e lobby.

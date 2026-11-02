@@ -132,8 +132,8 @@ export const leagues = pgTable(
     isGlobal: boolean('is_global').notNull().default(false),
     /** open = aceita inscrição; closed = não aceita; archived = some da lista. */
     status: varchar('status', { length: 12 }).notNull().default('open'),
-    /** Partida ranqueada entre membros conta? Senão, só lobby. */
-    countRanked: boolean('count_ranked').notNull().default(true),
+    /** Quais 1v1 contam: all = qualquer modo; ranked = só RM 1v1; ranked_lobby = RM 1v1 e lobby (Global); lobby = só lobby. */
+    matchScope: varchar('match_scope', { length: 12 }).notNull().default('ranked_lobby'),
     /** Mínimo de partidas na RM 1v1 pra ter faixa confiável. */
     minGames: smallint('min_games').notNull().default(10),
     /** Pontos por vitória e por derrota em partida que conta. Global: 3/0. Padrão das ligas próprias: 3/1. */

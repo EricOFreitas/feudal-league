@@ -32,8 +32,12 @@ export const DIVISION_KEYS = DEFAULT_DIVISIONS.map((d) => d.nameKey);
 
 export const GLOBAL_SLUG = 'global';
 
+/** Quais 1v1 contam numa liga. Contra não-membro vale sempre só ranqueada 1v1. */
+export const MATCH_SCOPES = ['all', 'ranked', 'ranked_lobby', 'lobby'] as const;
+export type MatchScope = (typeof MATCH_SCOPES)[number];
+
 export type NewLeagueInput = {
-  slug: string; name: string; description?: string | null; ownerUserId: number; countRanked: boolean; minGames: number;
+  slug: string; name: string; description?: string | null; ownerUserId: number; matchScope: MatchScope; minGames: number;
   pointsWin?: number; pointsLoss?: number; countNonMembers?: boolean; autoJoinOpponents?: boolean;
   divisions: { nameKey?: string | null; name?: string | null; ratingMin: number; ratingMax: number | null }[];
 };
@@ -42,7 +46,7 @@ export async function createLeague(input: NewLeagueInput) {
   return db.transaction(async (tx) => {
     const [l] = await tx.insert(leagues).values({
       slug: input.slug, name: input.name, description: input.description ?? null, ownerUserId: input.ownerUserId,
-      countRanked: input.countRanked, minGames: input.minGames,
+      matchScope: input.matchScope, minGames: input.minGames,
       pointsWin: input.pointsWin ?? POINTS_WIN, pointsLoss: input.pointsLoss ?? POINTS_LOSS,
       countNonMembers: input.countNonMembers ?? false, autoJoinOpponents: input.autoJoinOpponents ?? false,
     }).returning({ id: leagues.id });
@@ -179,6 +183,14 @@ export async function autoLeagueProfileIds(): Promise<number[]> {
 const RM_1V1_MATCHTYPE = 6;
 const LOBBY_MATCHTYPE = 0;
 
+/** Tipos de partida que contam em cada escopo; null = qualquer 1v1. */
+function matchTypesOf(scope: string): number[] | null {
+  if (scope === 'all') return null;
+  if (scope === 'ranked') return [RM_1V1_MATCHTYPE];
+  if (scope === 'lobby') return [LOBBY_MATCHTYPE];
+  return [LOBBY_MATCHTYPE, RM_1V1_MATCHTYPE];
+}
+
 /** Garante uma linha em players pro adversário vindo do histórico (sem rating ainda; o worker completa depois). */
 async function ensurePlayer(profileId: number, alias: string | null): Promise<number> {
   const found = await db.query.players.findFirst({ where: eq(players.profileId, profileId), columns: { id: true } });
@@ -192,7 +204,8 @@ type Candidate = { match_id: number; completed_at: Date; matchtype_id: number; p
 
 /**
  * Varre o histórico já gravado e registra partidas de liga. Para cada temporada aberta:
- *  - 1v1 (exatamente 2 participantes) entre dois membros ativos da mesma divisão, depois da inscrição dos dois;
+ *  - 1v1 (exatamente 2 participantes) de um tipo aceito pelo match_scope da liga, entre dois membros ativos
+ *    da mesma divisão, depois da inscrição dos dois;
  *  - se a liga tem count_non_members: ranqueada 1v1 de um membro contra não-membro cujo rating na partida
  *    estava dentro da faixa da divisão do membro. O adversário ganha uma linha em players; se a liga tem
  *    auto_join_opponents, autoJoinOpponents() o traz pra liga no ciclo seguinte.
@@ -214,7 +227,7 @@ export async function detectLeagueMatches(): Promise<number> {
     const byProfile = new Map(members.map((m) => [m.profileId, m]));
     const divs = await db.query.divisions.findMany({ where: eq(divisions.leagueId, league.id) });
     const divById = new Map(divs.map((d) => [d.id, d]));
-    const types = league.countRanked ? [LOBBY_MATCHTYPE, RM_1V1_MATCHTYPE] : [LOBBY_MATCHTYPE];
+    const types = matchTypesOf(league.matchScope);
 
     // partidas 1v1 terminadas depois do início da temporada em que pelo menos um membro jogou, ainda não registradas
     const candidates = await db.execute<Candidate>(sql`
@@ -225,8 +238,7 @@ export async function detectLeagueMatches(): Promise<number> {
              array_agg(mm.alias order by mm.profile_id) as aliases
       from match_members mm
       join matches m on m.id = mm.match_id
-      where m.matchtype_id in ${types}
-        and m.completed_at > ${season.startedAt.toISOString()}::timestamptz
+      where ${types ? sql`m.matchtype_id in ${types} and` : sql``} m.completed_at > ${season.startedAt.toISOString()}::timestamptz
         and (select count(*) from match_members x where x.match_id = mm.match_id) = 2
         and exists (select 1 from match_members y join players p on p.profile_id = y.profile_id
                     join league_members lm on lm.player_id = p.id

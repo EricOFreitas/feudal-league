@@ -28,13 +28,16 @@ export function NewLeagueForm({ locale, defaults }: { locale: string; defaults: 
           <textarea id="description" name="description" className="input mt-2 min-h-24" maxLength={2000} placeholder={t('descriptionPlaceholder')} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="flex items-start gap-3">
-            <input type="checkbox" name="countRanked" defaultChecked className="mt-1.5 accent-gold-400" />
-            <span>
-              <span className="text-parchment-50">{t('countRanked')}</span>
-              <span className="block text-sm text-parchment-400">{t('countRankedHint')}</span>
-            </span>
-          </label>
+          <div>
+            <label htmlFor="matchScope" className="kicker block">{t('matchScope')}</label>
+            <select id="matchScope" name="matchScope" defaultValue="all" className="input mt-2">
+              <option value="all">{t('scope.all')}</option>
+              <option value="ranked">{t('scope.ranked')}</option>
+              <option value="ranked_lobby">{t('scope.ranked_lobby')}</option>
+              <option value="lobby">{t('scope.lobby')}</option>
+            </select>
+            <span className="mt-1 block text-sm text-parchment-400">{t('matchScopeHint')}</span>
+          </div>
           <div>
             <label htmlFor="minGames" className="kicker block">{t('minGames')}</label>
             <input id="minGames" name="minGames" type="number" min={0} max={200} defaultValue={10} className="input mt-2" />

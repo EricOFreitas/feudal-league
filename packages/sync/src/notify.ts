@@ -170,12 +170,12 @@ function appUrl(path: string): string | undefined {
   return base?.startsWith('https://') ? `${base}/pt${path}` : undefined;
 }
 
-type MatchText = { winner: string; loser: string; division: string; map: string; lobby: boolean; minutes: number; pw?: number; pl?: number };
+type MatchText = { winner: string; loser: string; division: string; map: string; mode: string; minutes: number; pw?: number; pl?: number };
 
 export function matchEmbed(m: MatchText, league: string, at: Date, url?: string): DiscordEmbed {
   return {
     title: `${m.winner} venceu ${m.loser}`,
-    description: `${m.division} · ${m.map} · ${m.lobby ? 'lobby' : 'ranqueada'} · ${m.minutes} min. ${m.winner} +${pts(m.pw ?? POINTS_WIN)} · ${m.loser} +${pts(m.pl ?? POINTS_LOSS)}.`,
+    description: `${m.division} · ${m.map} · ${m.mode} · ${m.minutes} min. ${m.winner} +${pts(m.pw ?? POINTS_WIN)} · ${m.loser} +${pts(m.pl ?? POINTS_LOSS)}.`,
     color: EMBED_COLORS.match, footer: { text: `${league} · ${formatDiscordDate(at)}` }, url,
   };
 }
@@ -235,7 +235,7 @@ export function seasonEmbed(s: { number: number; divisions: SeasonDivision[] }, 
 /** Exemplos da prévia da tela, montados com as mesmas funções do envio real. */
 export function previewEmbeds(league: string, division: string, at = new Date()): Record<WebhookEvent, DiscordEmbed> {
   return {
-    match: matchEmbed({ winner: 'Ceifador', loser: 'Tora', division, map: 'Arabia', lobby: true, minutes: 31 }, league, at),
+    match: matchEmbed({ winner: 'Ceifador', loser: 'Tora', division, map: 'Arabia', mode: 'lobby', minutes: 31 }, league, at),
     voided: voidedEmbed({ winner: 'Bruma', loser: 'Lobo Frio', division, reason: 'desconexão no minuto 2' }, league, at),
     tournament: tournamentEmbed({ tournament: 'Copa de Novembro', round: 'Semifinal', teamA: 'Ceifador', teamB: 'Bruma', scoreA: 2, scoreB: 1, bestOf: 3, closed: { winner: 'Ceifador', outcome: 'advances' } }, league, at),
     member: memberEmbed({ player: 'Lobo Frio', division, rating: 1012 }, league, at),
@@ -312,7 +312,7 @@ async function loadItems(hookLeagueIds: number[]): Promise<Item[]> {
     items.push({
       leagueId: lm.leagueId, event, at: isNew ? lm.createdAt : lm.updatedAt, divisionId: lm.divisionId,
       build: () => lm.status === 'voided' ? voidedEmbed({ ...base, reason: lm.voidReason }, lname(lm.leagueId), at, lurl(lm.leagueId))
-        : isNew ? matchEmbed({ ...base, map: mapName(lm.match.mapName), lobby: lm.match.matchtypeId === 0, minutes: Math.round((lm.match.completedAt.getTime() - lm.match.startedAt.getTime()) / 60000) }, lname(lm.leagueId), at, lurl(lm.leagueId))
+        : isNew ? matchEmbed({ ...base, map: mapName(lm.match.mapName), mode: lm.match.matchtypeId === 0 ? 'lobby' : lm.match.matchtypeId === 6 ? 'ranqueada' : 'outro modo', minutes: Math.round((lm.match.completedAt.getTime() - lm.match.startedAt.getTime()) / 60000) }, lname(lm.leagueId), at, lurl(lm.leagueId))
         : restoredEmbed(base, lname(lm.leagueId), at, lurl(lm.leagueId)),
       // só marca se a linha não mudou desde a leitura (Date do JS corta o microssegundo: margem de 1 ms)
       mark: async () => (await db.update(leagueMatches).set({ notifiedAt: notifiedNow })

@@ -24,7 +24,7 @@
           },
           {
             "q": "Que partida conta na tabela?",
-            "a": "Em toda liga: um 1v1 com exatamente dois jogadores, os dois membros ativos da mesma divisão, jogado depois que ambos entraram e depois do início da temporada; vale ranqueada RM 1v1 e lobby (o administrador pode deixar só lobby). Na Liga Global vale também a sua ranqueada 1v1 contra qualquer jogador com rating dentro da sua faixa, mesmo que ele não esteja no portal: cada ranqueada sua te move na tabela. Ligas próprias podem ligar essa regra. Nenhum reporte ou print é necessário."
+            "a": "Em toda liga: um 1v1 com exatamente dois jogadores, os dois membros ativos da mesma divisão, jogado depois que ambos entraram e depois do início da temporada. O administrador escolhe quais 1v1 valem: todos, só ranqueada, ranqueada e lobby ou só lobby; na Liga Global valem ranqueada RM 1v1 e lobby. Na Liga Global vale também a sua ranqueada 1v1 contra qualquer jogador com rating dentro da sua faixa, mesmo que ele não esteja no portal: cada ranqueada sua te move na tabela. Ligas próprias podem ligar essa regra. Nenhum reporte ou print é necessário."
           },
           {
             "q": "Quantos pontos vale?",
