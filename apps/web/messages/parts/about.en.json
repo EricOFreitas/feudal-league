@@ -14,8 +14,8 @@
         "text": "A match between members is found in the history and turns into points by itself."
       },
       "c3": {
-        "title": "Division by peak",
-        "text": "You enter by the highest rating you ever had, not the current one. That keeps smurfs out."
+        "title": "Division by rating",
+        "text": "In the Global League your division comes from your current rating, at most one below your peak's. That keeps smurfs out without trapping players who dropped."
       }
     },
     "contribute": {

@@ -1,0 +1,59 @@
+{
+  "homeGlobal": {
+    "search": {
+      "label": "Onde está um jogador?",
+      "placeholder": "Nick, link Steam ou profile_id",
+      "button": "Buscar"
+    },
+    "me": {
+      "you": "Você · {division}",
+      "inDivision": "Na divisão",
+      "global": "Global",
+      "of": "de {total}",
+      "missing": "Faltam <b>{n} de rating</b> para {division}.",
+      "ready": "Você já tem rating para {division}: sobe no dia 1º.",
+      "periodWeek": "na semana",
+      "periodMonth": "no mês"
+    },
+    "divisions": {
+      "title": "{total} jogadores em {count} divisões",
+      "players": "{count, plural, =1 {1 jogador} other {{n} jogadores}}",
+      "moved": "{up} subiram de divisão e {down} desceram na virada do mês"
+    },
+    "ranking": {
+      "title": "Ranking global",
+      "week": "Semana",
+      "month": "Mês",
+      "full": "Ranking completo · {total}"
+    },
+    "movers": {
+      "up": "Mais subiram",
+      "down": "Mais caíram",
+      "last7": "últimos 7 dias",
+      "last30": "últimos 30 dias",
+      "record": "{wins}V {losses}D",
+      "empty": "Ninguém nesse período ainda."
+    },
+    "changes": {
+      "title": "Trocaram de divisão"
+    },
+    "highlights": {
+      "title": "Destaques da semana",
+      "streakLabel": "Maior sequência",
+      "streak": "{n} vitórias seguidas na {division}",
+      "upsetLabel": "Maior zebra",
+      "upset": "venceu {opponent} com {gap} de diferença",
+      "busiestLabel": "Mais partidas",
+      "busiest": "{n, plural, =1 {1 partida confirmada} other {# partidas confirmadas}}"
+    },
+    "tournaments": {
+      "title": "Torneios agora",
+      "empty": "Nenhum torneio em andamento.",
+      "all": "Ver torneios"
+    },
+    "cta": {
+      "text": "As partidas continuam no jogo. O portal lê o histórico e põe cada jogador na divisão do seu rating. Quer comparar só com seu clã, Discord ou cidade?",
+      "button": "Criar uma liga"
+    }
+  }
+}

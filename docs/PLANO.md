@@ -302,3 +302,10 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
 - 02/11/2026 — Ligas próprias escolhem quais 1v1 contam (`match_scope`): todo 1v1, só ranqueada,
   ranqueada e lobby, ou só lobby. O dono muda quando quiser. Contra não-membro vale sempre só
   ranqueada. A Global continua em ranqueada e lobby.
+- 02/11/2026 — Liga Global vira mensal, com pódio e medalhas (protótipo `Home Liga Global`). A temporada
+  é o mês em Brasília; no dia 1º a tabela zera, todos são recolocados e o pódio sai até 12 h depois.
+  Medalha exige 10 partidas contadas no mês. Divisão da Global: rating atual, no máximo uma abaixo da do
+  pico. Motivo: pelo pico, 37% dos membros ficavam abaixo da própria faixa e só 15% das ranqueadas deles
+  contavam, contra 84% de quem estava na faixa; com a regra nova, 82% de todas ficam na faixa. Ligas
+  próprias seguem pelo pico, com temporada fechada à mão. Desempate novo em todas: vitórias, confronto
+  direto, menos partidas, quem chegou primeiro à pontuação. Home passa a ser a liga do mês.

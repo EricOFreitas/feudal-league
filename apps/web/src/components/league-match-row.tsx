@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import { POINTS_LOSS, POINTS_WIN, type LeagueMatchItem } from '@aoe2/sync';
+import { PODIUM_MIN_GAMES, POINTS_LOSS, POINTS_WIN, type LeagueMatchItem } from '@aoe2/sync';
 import { Link } from '@/i18n/navigation';
 import { divisionName } from '@/lib/leagues';
 import { mapLabel, matchTypeKey } from '@/lib/format';
@@ -18,14 +18,17 @@ type Props = {
   points?: { win: number; loss: number };
   /** profile_ids dos membros ativos: quem não está aqui é adversário de fora (regra da Liga Global). */
   memberProfileIds?: Set<number>;
+  /** Liga mensal: nome do mês e partidas de cada jogador no mês, pro bloco "Pódio do mês". */
+  podium?: { month: string; games: Map<number, number> };
 };
 
-export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileIds }: Props) {
+export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileIds, podium }: Props) {
   const t = await getTranslations('leagues');
   const tw = await getTranslations('leagues.detail.why');
   const tf = await getTranslations('leagues.detail.facts');
   const td = await getTranslations('division');
   const tp = await getTranslations('player');
+  const tpo = await getTranslations('podium.why');
   const dtm = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
 
   const voided = lm.status === 'voided';
@@ -44,13 +47,25 @@ export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileI
     { text: tw('twoPlayers') },
     outsider
       ? { text: tw('nonMember', { division, rating: outsiderRating ?? '–' }) }
-      : { text: tw('sameDivision', { division }) },
+      : { text: podium ? tpo('division', { division, month: podium.month }) : tw('sameDivision', { division }) },
     { text: tw('afterJoin') },
     { text: typeKey === 'lobby' ? tw('lobbyCounts') : typeKey === 'ranked1v1' ? tw('rankedCounts') : tw('otherCounts') },
     voided
       ? { text: lm.voidReason ? tw('voidedReason', { reason: lm.voidReason }) : tw('voided'), bad: true }
       : { text: tw('points', { winner: lm.winner.alias, loser: lm.loser.alias, w: pw, l: pl }) },
   ];
+  const gamesLine = (playerId: number) => {
+    const count = podium?.games.get(playerId) ?? 0;
+    const left = PODIUM_MIN_GAMES - count;
+    return left > 0 ? tpo('missing', { count, left, min: PODIUM_MIN_GAMES }) : tpo('eligible', { count });
+  };
+  const podiumLines = podium && (voided
+    ? [{ k: tpo('label'), v: tpo('voided', { month: podium.month }) }]
+    : [
+      { k: tpo('label'), v: tpo('counts', { month: podium.month, division }) },
+      { k: lm.winner.alias, v: gamesLine(lm.winner.id) },
+      { k: lm.loser.alias, v: gamesLine(lm.loser.id) },
+    ]);
   const facts: { k: string; v: string; mono?: boolean }[] = [
     { k: tf('match'), v: `#${lm.matchId}`, mono: true },
     { k: tf('type'), v: typeKey === 'lobby' ? tf('typeLobby', { n: lm.match.matchtypeId }) : typeKey === 'ranked1v1' ? tf('typeRanked', { n: lm.match.matchtypeId }) : tf('typeOther', { type: tp(`matchType.${typeKey}`), n: lm.match.matchtypeId }) },
@@ -97,6 +112,28 @@ export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileI
                   </li>
                 ))}
               </ul>
+              {podiumLines && (
+                <>
+                  <p className="kicker mt-4 mb-2">{tpo('title')}</p>
+                  <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-[0.85rem] gap-y-[0.3rem] text-sm">
+                    {podiumLines.map((l) => (
+                      <div key={l.k} className="contents">
+                        <dt className="text-parchment-400">{l.k}</dt>
+                        <dd className="text-parchment-200">{l.v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <details className="mt-[0.6rem] text-[0.85rem] leading-5 text-parchment-300">
+                    <summary className="cursor-pointer text-gold-300">{tpo('rulesTitle')}</summary>
+                    <ul className="mt-[0.4rem] flex flex-col gap-1 pl-1">
+                      <li>{tpo('rule1', { min: PODIUM_MIN_GAMES })}</li>
+                      <li>{tpo('rule2')}</li>
+                      <li>{tpo('rule3')}</li>
+                      <li>{tpo('rule4')}</li>
+                    </ul>
+                  </details>
+                </>
+              )}
             </div>
             <div className="min-w-0 flex-[1_1_220px]">
               <p className="kicker mb-2">{tf('title')}</p>

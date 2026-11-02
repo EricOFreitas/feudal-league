@@ -2,9 +2,10 @@
  * Regras de liga: divisões padrão, inscrição com checagem anti-smurf,
  * detecção de partidas entre membros e tabela de classificação.
  *
- * Pontuação por liga (points_win/points_loss; padrão 3/1, Global 3/0). Desempate: vitórias, menos derrotas,
- * rating de colocação, quem entrou antes. Ligas com count_non_members contam ranqueada 1v1 de um membro
- * contra não-membro com rating na faixa; com auto_join_opponents o adversário é trazido pra liga.
+ * Pontuação por liga (points_win/points_loss; padrão 3/1, Global 3/0). Desempate: vitórias, confronto direto,
+ * menos partidas, quem chegou primeiro à pontuação, rating de colocação, quem entrou antes. Ligas com
+ * count_non_members contam ranqueada 1v1 de um membro contra não-membro com rating na faixa; com
+ * auto_join_opponents o adversário é trazido pra liga. A Global é mensal: ver podium.ts.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
 import {
@@ -31,6 +32,30 @@ export const DEFAULT_DIVISIONS: { nameKey: string; ratingMin: number; ratingMax:
 export const DIVISION_KEYS = DEFAULT_DIVISIONS.map((d) => d.nameKey);
 
 export const GLOBAL_SLUG = 'global';
+
+/** Mínimo de partidas contadas no mês pra entrar no pódio da liga mensal. */
+export const PODIUM_MIN_GAMES = 10;
+
+const BRT_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+/** 1º do mês seguinte ao de `d`, 00:00 em Brasília (UTC-3, sem horário de verão). */
+export function monthBoundaryAfter(d: Date): Date {
+  const local = new Date(d.getTime() - BRT_OFFSET_MS);
+  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth() + 1, 1) + BRT_OFFSET_MS);
+}
+
+/** Mês de uma temporada da liga mensal (o que termina em ends_at); null nas temporadas fechadas à mão. */
+export function seasonMonth(s: Pick<Season, 'endsAt'>): { year: number; month: number } | null {
+  if (!s.endsAt) return null;
+  const local = new Date(s.endsAt.getTime() - BRT_OFFSET_MS - 1);
+  return { year: local.getUTCFullYear(), month: local.getUTCMonth() + 1 };
+}
+
+/** Em que dia do mês estamos em Brasília, pra contagem da liga mensal. */
+export function monthProgress(now = new Date()): { day: number; total: number } {
+  const local = new Date(now.getTime() - BRT_OFFSET_MS);
+  return { day: local.getUTCDate(), total: new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth() + 1, 0)).getUTCDate() };
+}
 
 /** Quais 1v1 contam numa liga. Contra não-membro vale sempre só ranqueada 1v1. */
 export const MATCH_SCOPES = ['all', 'ranked', 'ranked_lobby', 'lobby'] as const;
@@ -62,14 +87,17 @@ export async function activeSeason(leagueId: number): Promise<Season | undefined
   return db.query.seasons.findFirst({ where: and(eq(seasons.leagueId, leagueId), isNull(seasons.endedAt)), orderBy: [desc(seasons.number)] });
 }
 
-/** Fecha a temporada atual e abre a próxima. Membros ativos são recolocados pelo rating máximo atual. */
-export async function startNewSeason(leagueId: number) {
+/**
+ * Fecha a temporada atual e abre a próxima, com os membros ativos recolocados (ver placementFor).
+ * `at` fixa o instante da virada (liga mensal: a meia-noite do dia 1º, não a hora em que o worker passou).
+ */
+export async function startNewSeason(leagueId: number, opts: { at?: Date } = {}) {
   const current = await activeSeason(leagueId);
   const divs = await db.query.divisions.findMany({ where: eq(divisions.leagueId, leagueId), orderBy: [asc(divisions.sort)] });
   const league = await db.query.leagues.findFirst({ where: eq(leagues.id, leagueId) });
   if (!league) throw new Error('liga não existe');
   return db.transaction(async (tx) => {
-    const now = new Date();
+    const now = opts.at ?? new Date();
     let nextNumber = 1;
     let active: { playerId: number }[] = [];
     if (current) {
@@ -78,7 +106,7 @@ export async function startNewSeason(leagueId: number) {
       active = await tx.select({ playerId: leagueMembers.playerId }).from(leagueMembers)
         .where(and(eq(leagueMembers.seasonId, current.id), isNull(leagueMembers.leftAt)));
     }
-    const [s] = await tx.insert(seasons).values({ leagueId, number: nextNumber, startedAt: now }).returning({ id: seasons.id });
+    const [s] = await tx.insert(seasons).values({ leagueId, number: nextNumber, startedAt: now, endsAt: league.isGlobal ? monthBoundaryAfter(now) : null }).returning({ id: seasons.id });
     if (active.length) {
       const ids = active.map((a) => a.playerId);
       const ratings = await tx.select().from(playerRatings).where(and(inArray(playerRatings.playerId, ids), eq(playerRatings.leaderboardId, RM_1V1)));
@@ -101,15 +129,25 @@ export type Placement =
   | { ok: false; reason: 'no_rating' | 'few_games' | 'no_division'; rating: number; games: number };
 
 /**
- * Escolhe a divisão pelo rating MÁXIMO histórico na RM 1v1 (anti-smurf) e exige mínimo de partidas.
- * Se a API não informa pico (0), usa o rating atual.
+ * Escolhe a divisão na RM 1v1 e exige mínimo de partidas.
+ * Global: rating atual, no máximo uma divisão abaixo da do pico (anti-smurf sem prender quem caiu de rating:
+ * com a divisão pelo pico, só 15% das ranqueadas de quem caiu ficavam na faixa; medido em 02/11/2026).
+ * Ligas próprias: rating MÁXIMO histórico. Se a API não informa pico (0), usa o rating atual.
  */
-export function placementFor(league: Pick<League, 'minGames'>, divs: Division[], r: PlayerRating | undefined): Placement {
+export function placementFor(league: Pick<League, 'minGames' | 'isGlobal'>, divs: Division[], r: Pick<PlayerRating, 'rating' | 'highestRating' | 'wins' | 'losses'> | undefined): Placement {
   if (!r) return { ok: false, reason: 'no_rating', rating: 0, games: 0 };
   const games = r.wins + r.losses;
-  const rating = Math.max(r.rating, r.highestRating);
+  const peak = Math.max(r.rating, r.highestRating);
+  const rating = league.isGlobal ? r.rating : peak;
   if (games < league.minGames) return { ok: false, reason: 'few_games', rating, games };
-  const division = divs.find((d) => rating >= d.ratingMin && (d.ratingMax == null || rating <= d.ratingMax));
+  const sorted = [...divs].sort((a, b) => a.sort - b.sort);
+  const inBand = (v: number) => sorted.find((d) => v >= d.ratingMin && (d.ratingMax == null || v <= d.ratingMax));
+  let division = inBand(rating);
+  if (league.isGlobal) {
+    const top = inBand(peak);
+    const floor = top && sorted[Math.max(0, sorted.indexOf(top) - 1)];
+    if (floor && (!division || division.sort < floor.sort)) division = floor;
+  }
   if (!division) return { ok: false, reason: 'no_division', rating, games };
   return { ok: true, division, rating };
 }
@@ -180,7 +218,7 @@ export async function autoLeagueProfileIds(): Promise<number[]> {
   return rows.map((r) => r.profileId);
 }
 
-const RM_1V1_MATCHTYPE = 6;
+export const RM_1V1_MATCHTYPE = 6;
 const LOBBY_MATCHTYPE = 0;
 
 /** Tipos de partida que contam em cada escopo; null = qualquer 1v1. */
@@ -203,7 +241,8 @@ async function ensurePlayer(profileId: number, alias: string | null): Promise<nu
 type Candidate = { match_id: number; completed_at: Date; matchtype_id: number; profiles: number[]; outcomes: number[]; old_ratings: number[]; aliases: (string | null)[] };
 
 /**
- * Varre o histórico já gravado e registra partidas de liga. Para cada temporada aberta:
+ * Varre o histórico já gravado e registra partidas de liga. Para cada temporada aberta, e para o mês que acabou
+ * enquanto o pódio não é apurado (quem sincroniza a cada 6 h ainda traz partidas jogadas antes da virada):
  *  - 1v1 (exatamente 2 participantes) de um tipo aceito pelo match_scope da liga, entre dois membros ativos
  *    da mesma divisão, depois da inscrição dos dois;
  *  - se a liga tem count_non_members: ranqueada 1v1 de um membro contra não-membro cujo rating na partida
@@ -214,7 +253,7 @@ type Candidate = { match_id: number; completed_at: Date; matchtype_id: number; p
 export async function detectLeagueMatches(): Promise<number> {
   const openSeasons = await db.select({ season: seasons, league: leagues }).from(seasons)
     .innerJoin(leagues, eq(leagues.id, seasons.leagueId))
-    .where(and(isNull(seasons.endedAt), inArray(leagues.status, ['open', 'closed'])));
+    .where(and(or(isNull(seasons.endedAt), and(isNotNull(seasons.endsAt), isNull(seasons.podiumAt))), inArray(leagues.status, ['open', 'closed'])));
   let created = 0;
 
   for (const { season, league } of openSeasons) {
@@ -239,6 +278,7 @@ export async function detectLeagueMatches(): Promise<number> {
       from match_members mm
       join matches m on m.id = mm.match_id
       where ${types ? sql`m.matchtype_id in ${types} and` : sql``} m.completed_at > ${season.startedAt.toISOString()}::timestamptz
+        ${season.endsAt ? sql`and m.completed_at <= ${season.endsAt.toISOString()}::timestamptz` : sql``}
         and (select count(*) from match_members x where x.match_id = mm.match_id) = 2
         and exists (select 1 from match_members y join players p on p.profile_id = y.profile_id
                     join league_members lm on lm.player_id = p.id
@@ -330,6 +370,8 @@ export type StandingRow = {
 export async function standings(seasonId: number, divisionId: number): Promise<StandingRow[]> {
   const season = await db.query.seasons.findFirst({ where: eq(seasons.id, seasonId), with: { league: { columns: { pointsWin: true, pointsLoss: true } } } });
   const pts = leaguePoints(season?.league);
+  const played = await db.select({ winner: leagueMatches.winnerPlayerId, loser: leagueMatches.loserPlayerId, at: leagueMatches.playedAt }).from(leagueMatches)
+    .where(and(eq(leagueMatches.seasonId, seasonId), eq(leagueMatches.status, 'counted')));
   const wins = sql<number>`coalesce((select count(*) from ${leagueMatches} w where w.season_id = ${seasonId} and w.status = 'counted' and w.winner_player_id = "league_members"."player_id"), 0)::int`;
   const losses = sql<number>`coalesce((select count(*) from ${leagueMatches} l where l.season_id = ${seasonId} and l.status = 'counted' and l.loser_player_id = "league_members"."player_id"), 0)::int`;
   const rows = await db
@@ -340,9 +382,26 @@ export async function standings(seasonId: number, divisionId: number): Promise<S
     .from(leagueMembers)
     .innerJoin(players, eq(players.id, leagueMembers.playerId))
     .where(and(eq(leagueMembers.seasonId, seasonId), eq(leagueMembers.divisionId, divisionId), isNull(leagueMembers.leftAt)));
-  return rows
-    .map((r) => ({ ...r, points: r.wins * pts.win + r.losses * pts.loss }))
-    .sort((a, b) => b.points - a.points || b.wins - a.wins || a.losses - b.losses || b.placementRating - a.placementRating || a.joinedAt.getTime() - b.joinedAt.getTime());
+  const table = rows.map((r) => ({ ...r, points: r.wins * pts.win + r.losses * pts.loss }));
+
+  // confronto direto entre empatados em pontos e vitórias; momento em que cada um chegou à pontuação final
+  const tieKey = new Map(table.map((r) => [r.playerId, `${r.points}:${r.wins}`]));
+  const headToHead = new Map<number, number>();
+  const scoredAt = new Map<number, number>();
+  const bump = (id: number, n: number) => headToHead.set(id, (headToHead.get(id) ?? 0) + n);
+  const touch = (id: number, at: Date) => scoredAt.set(id, Math.max(scoredAt.get(id) ?? 0, at.getTime()));
+  for (const m of played) {
+    if (tieKey.has(m.winner) && tieKey.get(m.winner) === tieKey.get(m.loser)) { bump(m.winner, 1); bump(m.loser, -1); }
+    touch(m.winner, m.at);
+    if (pts.loss > 0) touch(m.loser, m.at);
+  }
+  return table.sort((a, b) =>
+    b.points - a.points || b.wins - a.wins
+    || (headToHead.get(b.playerId) ?? 0) - (headToHead.get(a.playerId) ?? 0)
+    || a.wins + a.losses - (b.wins + b.losses)
+    || (scoredAt.get(a.playerId) ?? 0) - (scoredAt.get(b.playerId) ?? 0)
+    || b.placementRating - a.placementRating
+    || a.joinedAt.getTime() - b.joinedAt.getTime());
 }
 
 /** Últimas partidas da liga (ou de uma divisão), com os dois jogadores e a partida do jogo. */
@@ -514,6 +573,8 @@ export async function seasonsOf(leagueId: number): Promise<SeasonListItem[]> {
 export type SeasonSummary = {
   divisions: { division: Division; rows: RankedRow[] }[];
   totals: { members: number; matches: number; divisions: number };
+  /** Liga mensal: o pódio exige PODIUM_MIN_GAMES partidas no mês. */
+  monthly: boolean;
 };
 
 /** Resumo de uma temporada: classificação completa de cada divisão da liga e totais. */
@@ -530,6 +591,7 @@ export async function seasonSummary(seasonId: number): Promise<SeasonSummary | n
   return {
     divisions: lists,
     totals: { members: lists.reduce((n, d) => n + d.rows.length, 0), matches: m?.n ?? 0, divisions: divs.length },
+    monthly: season.endsAt != null,
   };
 }
 
@@ -537,6 +599,9 @@ export async function seasonSummary(seasonId: number): Promise<SeasonSummary | n
 export async function seasonChampions(seasonId: number): Promise<Map<number, string>> {
   const s = await seasonSummary(seasonId);
   const out = new Map<number, string>();
-  for (const d of s?.divisions ?? []) if (d.rows[0]) out.set(d.division.id, d.rows[0].alias);
+  for (const d of s?.divisions ?? []) {
+    const first = s!.monthly ? d.rows.find((r) => r.wins + r.losses >= PODIUM_MIN_GAMES) : d.rows[0];
+    if (first) out.set(d.division.id, first.alias);
+  }
   return out;
 }

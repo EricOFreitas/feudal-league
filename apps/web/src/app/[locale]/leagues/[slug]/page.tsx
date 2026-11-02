@@ -5,7 +5,7 @@ import { Crosshair, Globe, Search, ShieldCheck, Users, X } from 'lucide-react';
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, divisions, leagueMembers, leagues, players } from '@aoe2/db';
 import {
-  MATCH_SCOPES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, placementFor,
+  MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, placementFor, seasonMonth,
   searchStandings, standingsPage, type RankedRow, type SearchRow,
 } from '@aoe2/sync';
 import { and, asc, eq, isNull } from 'drizzle-orm';
@@ -17,7 +17,8 @@ import { InviteDialog } from '@/components/invite-dialog';
 import { LeagueMatchRow } from '@/components/league-match-row';
 import { LeaguePager } from '@/components/league-pager';
 import { LeagueTable } from '@/components/league-table';
-import { divisionName, sessionPlayer } from '@/lib/leagues';
+import { divisionName, monthTitle, sessionPlayer } from '@/lib/leagues';
+import { monthNames } from '@/lib/format';
 import { joinAction, leaveAction, newSeasonAction, setMatchScopeAction, toggleStatusAction, voidMatchAction } from '../actions';
 
 type SP = Partial<Record<'joined' | 'left' | 'err' | 'div' | 'q' | 'page' | 'me' | 'mf' | 'more', string | string[]>>;
@@ -42,6 +43,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const t = await getTranslations('leagues');
   const tx = await getTranslations('leagues.detail');
+  const tpo = await getTranslations('podium.home');
   const td = await getTranslations('division');
   const tn = await getTranslations('nav');
   const tt = await getTranslations('tournaments');
@@ -117,6 +119,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     : [];
   const matches = fetched.slice(0, more ? MATCHES_MORE : MATCHES_FIRST);
   const hasMoreMatches = !more && fetched.length > MATCHES_FIRST;
+  const seasonMon = season ? seasonMonth(season) : null;
+  const podium = season && seasonMon
+    ? { month: monthNames(seasonMon.year, seasonMon.month, locale).long, games: await monthGames(season.id, matches.flatMap((m) => [m.winnerPlayerId, m.loserPlayerId])) }
+    : undefined;
 
   /* ── aside ── */
   const [ended, tours, hookOn] = await Promise.all([
@@ -176,8 +182,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             <div className="min-w-0 flex-[1_1_320px]">
               <p className="kicker flex flex-wrap items-center gap-2">
                 {league.isGlobal ? <Globe className="h-3.5 w-3.5" /> : null}
-                {season ? t('season', { n: season.number }) : ''}
-                {season && <span className="normal-case tracking-normal text-parchment-400">· {t('seasonSince', { date: dt.format(season.startedAt) })}</span>}
+                {season ? monthTitle(season, locale) ?? t('season', { n: season.number }) : ''}
+                {season && <span className="normal-case tracking-normal text-parchment-400">· {seasonMon ? tpo('day', monthProgress()) : t('seasonSince', { date: dt.format(season.startedAt) })}</span>}
               </p>
               <h1 className="text-3xl leading-tight font-semibold text-gold-300 sm:text-4xl">{leagueTitle}</h1>
               {league.description && <p className="mt-2 max-w-2xl whitespace-pre-line text-parchment-200">{league.description}</p>}
@@ -310,14 +316,15 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             <div className="panel p-5">
               <p className="kicker">{t('rules.title')}</p>
               <ul className="mt-3 list-disc space-y-2 pl-4 text-sm text-parchment-200">
-                <li>{t('rules.placement')}</li>
+                <li>{league.isGlobal ? t('rules.placementGlobal') : t('rules.placement')}</li>
                 <li>{t('rules.minGames', { n: league.minGames })}</li>
                 <li>{league.matchScope === 'all' ? t('rules.detectAll') : league.matchScope === 'ranked' ? t('rules.detectRanked') : league.matchScope === 'lobby' ? t('rules.detectLobby') : league.countNonMembers ? t('rules.detectNonMembers') : t('rules.detect')}</li>
                 {league.countNonMembers && (league.matchScope === 'all' || league.matchScope === 'ranked') && <li>{t('rules.detectNonMembersExtra')}</li>}
                 {league.autoJoinOpponents && <li>{t('rules.autoJoin')}</li>}
                 {league.isGlobal && <li>{t('rules.claimJoin')}</li>}
                 <li>{t('rules.points', { win: league.pointsWin, loss: league.pointsLoss })}</li>
-                <li>{t('rules.season')}</li>
+                <li>{league.isGlobal ? t('rules.seasonGlobal') : t('rules.season')}</li>
+                {league.isGlobal && <li>{t('rules.podiumGlobal', { min: PODIUM_MIN_GAMES })}</li>}
               </ul>
             <p className="mt-3 text-sm"><Link href="/rules#leagues">{tn('rules')} →</Link></p>
             </div>
@@ -325,7 +332,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             {ended && ended.season.endedAt && (
               <Link href={`/leagues/${league.slug}/seasons`} className="panel block p-5 hover:!border-gold-500 hover:!no-underline">
                 <p className="kicker">{tx('past.title')}</p>
-                <p className="mt-2 font-display text-lg text-gold-300">{tx('past.season', { n: ended.season.number })}</p>
+                <p className="mt-2 font-display text-lg text-gold-300">{monthTitle(ended.season, locale) ?? tx('past.season', { n: ended.season.number })}</p>
                 <p className="text-sm text-parchment-300">
                   {tx('past.period', { from: dshort.format(ended.season.startedAt), to: dshort.format(ended.season.endedAt), count: ended.members })}
                 </p>
@@ -418,6 +425,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                   locale={locale}
                   points={{ win: league.pointsWin, loss: league.pointsLoss }}
                   memberProfileIds={memberProfileIds}
+                  podium={podium}
                   admin={isOwner ? (
                     <form action={voidMatchAction} className="flex flex-none items-center gap-2">
                       {hidden}

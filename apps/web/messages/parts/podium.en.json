@@ -1,0 +1,57 @@
+{
+  "podium": {
+    "home": {
+      "kicker": "Global League · {month} {year}",
+      "day": "Day {day} of {total}",
+      "title": "The {month} league has started",
+      "lead": "Every confirmed match until {end} counts. The top 3 in each division get the month's medal on their profile. On the 1st the table resets and the next one begins.",
+      "rulesShort": "To make the podium: at least {min} matches in the month. You compete in the division you were in on the 1st, even if you move up or down later.",
+      "rulesLink": "Full rules",
+      "endsIn": "{days, plural, =0 {Ends today} =1 {Ends tomorrow} other {Ends in # days}} · {end} at 23:59 (Brasília)",
+      "lastPodium": "{month} podium",
+      "allPast": "All past leagues",
+      "pts": "{points} pts"
+    },
+    "rules": {
+      "title": "Podium rules",
+      "minLabel": "Minimum",
+      "min": "{min} confirmed matches in the month.",
+      "divisionLabel": "Division",
+      "division": "The one you were in on the 1st. Moving up or down during the month doesn't change where you compete.",
+      "tiebreakLabel": "Tiebreak",
+      "tiebreak1": "Most wins",
+      "tiebreak2": "Head-to-head this month",
+      "tiebreak3": "Fewest matches played",
+      "tiebreak4": "First to reach the score",
+      "medalsLabel": "Medals",
+      "medals": "One per place. Never two in the same spot.",
+      "globalOnly": "Only the Global League awards medals. Clan leagues record the podium in the league's history."
+    },
+    "why": {
+      "title": "Monthly podium",
+      "division": "Both compete in {division} in {month} (division on the 1st, even if rating changes during the month).",
+      "counts": "Counts toward the {month} {division} podium.",
+      "voided": "Doesn't count toward the {month} podium.",
+      "eligible": "{count} matches this month · eligible for the podium",
+      "missing": "{count, plural, =1 {1 match} other {# matches}} this month · {left, plural, =1 {1 more} other {# more}} to reach the minimum of {min}",
+      "label": "Podium",
+      "rulesTitle": "Podium rules",
+      "rule1": "At least {min} confirmed matches in the month.",
+      "rule2": "You compete in the division you were in on the 1st.",
+      "rule3": "Tiebreak: most wins → head-to-head this month → fewest matches → first to reach the score.",
+      "rule4": "One medal per place. Only the Global League awards medals; clan leagues record the podium in their history."
+    },
+    "medal": {
+      "place": "{n, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} place",
+      "short": "{mon} {yy}",
+      "tooltip": "{n, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} place · {division} · {month} {year} · {wins}W {losses}L",
+      "best": "Best: {n, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} {division} · {mon} {yy}"
+    },
+    "profile": {
+      "title": "{count, plural, =1 {Podium · 1} other {Podiums · #}}",
+      "summary": "{gold} gold · {silver} silver · {bronze} bronze",
+      "support": "Support",
+      "empty": "No podium yet. Finish in your division's top 3 in a Global League month."
+    }
+  }
+}

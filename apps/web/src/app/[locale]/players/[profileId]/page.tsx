@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { analysesForMatches, badgesOf, findPlayerByProfileId, importPlayerByProfileId, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
+import { analysesForMatches, badgesOf, bestMedal, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
@@ -12,9 +12,10 @@ import { RatingCard } from '@/components/rating-card';
 import { MatchRow } from '@/components/match-row';
 import { DivisionMark } from '@/components/division-mark';
 import { BadgeList } from '@/components/badge-list';
+import { BestMedalIcon, MedalShelf } from '@/components/medal';
 import { EvolutionSection } from '@/components/evolution-section';
 import { Link } from '@/i18n/navigation';
-import { divisionName } from '@/lib/leagues';
+import { divisionName, monthTitle } from '@/lib/leagues';
 import { getSession } from '@/lib/session';
 import { checkAdditionLimit, recordAddition } from '@/lib/additions';
 import { agoParts, isKnownLb, lbKey } from '@/lib/format';
@@ -74,6 +75,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const ts = await getTranslations('search');
   const td = await getTranslations('division');
   const tlg = await getTranslations('leagues');
+  const tpo = await getTranslations('podium.profile');
 
   const { player, apiError } = await loadPlayer(profileId);
   if (!player) {
@@ -91,6 +93,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const analyses = await analysesForMatches(profileId, matches.map((m) => m.id));
   const memberships = await membershipsOf(player.id);
   const badges = await badgesOf(player.id);
+  const medals = await medalsOf(player.id);
+  const best = bestMedal(medals);
   const ago = agoParts(player.lastSyncedAt);
   const countryName = player.country ? new Intl.DisplayNames([locale], { type: 'region' }).of(player.country.toUpperCase()) : null;
 
@@ -99,17 +103,13 @@ export default async function PlayerPage({ params, searchParams }: Props) {
       <Breadcrumbs items={[{ label: player.alias }]} />
       {claimed && <div className="panel border-moss-500 p-4 text-parchment-50">{ta('claimDone')}</div>}
 
-      <header className="panel corners flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between">
+      <header className="panel corners p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-4">
           <Flag code={player.country} className="text-5xl leading-none" />
           <div>
             <p className="kicker">{player.clan ? `[${player.clan}]` : countryName ?? ''}</p>
-            <h1 className="text-3xl font-semibold text-gold-300 sm:text-4xl">{player.alias}</h1>
-            {badges.length > 0 && (
-              <Link href="/supporters" className="relative z-[1] mt-1.5 flex w-fit hover:no-underline">
-                <BadgeList badges={badges} />
-              </Link>
-            )}
+            <h1 className="flex items-center gap-2 text-3xl font-semibold text-gold-300 sm:text-4xl">{player.alias}{best && <BestMedalIcon medal={best} locale={locale} />}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-parchment-300">
               <span>{t('profileId')} <span className="font-mono text-parchment-200">{player.profileId}</span></span>
               {player.steamId64 && (
@@ -133,6 +133,16 @@ export default async function PlayerPage({ params, searchParams }: Props) {
             <a href={`/auth/steam?next=/${locale}/players/${player.profileId}?claimed=1`} className="btn btn-ghost">{t('claim')}</a>
           ) : null}
         </div>
+      </div>
+      <div className="relative z-[1] mt-4 flex flex-col gap-[0.6rem] border-t border-[#3a2c1c] pt-4">
+        <MedalShelf medals={medals} locale={locale} />
+      </div>
+      {badges.length > 0 && (
+        <div className="relative z-[1] mt-4 flex flex-col gap-[0.4rem] border-t border-[#3a2c1c] pt-4">
+          <p className="font-display text-xs tracking-[0.2em] text-gold-500 uppercase">{tpo('support')}</p>
+          <Link href="/supporters" className="flex w-fit hover:no-underline"><BadgeList badges={badges} /></Link>
+        </div>
+      )}
       </header>
 
       <section>
@@ -164,7 +174,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
               <li key={m.id} className="panel p-4">
                 <Link href={`/leagues/${m.league.slug}`} className="block no-underline hover:no-underline">
                   <p className="font-display text-lg text-gold-300">{m.league.isGlobal ? tlg('global') : m.league.name}</p>
-                  <p className="mt-1 flex items-center gap-2 text-sm text-parchment-200"><DivisionMark nameKey={m.division.nameKey} className="h-4 w-4 text-gold-400" />{divisionName(m.division, td)} · {tlg('season', { n: m.season.number })}</p>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-parchment-200"><DivisionMark nameKey={m.division.nameKey} className="h-4 w-4 text-gold-400" />{divisionName(m.division, td)} · {monthTitle(m.season, locale) ?? tlg('season', { n: m.season.number })}</p>
                   <p className="mt-2 flex items-baseline justify-between"><span className="stat-num text-2xl">{t('position', { pos: m.position, total: m.total })}</span><span className="text-parchment-300">{t('points', { n: m.row?.points ?? 0 })}</span></p>
                 </Link>
               </li>

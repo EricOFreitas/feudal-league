@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { db, leagueMembers, leagues, seasons } from '@aoe2/db';
-import { seasonSummary, type RankedRow } from '@aoe2/sync';
+import { PODIUM_MIN_GAMES, seasonSummary, type RankedRow } from '@aoe2/sync';
 import { and, eq, isNull } from 'drizzle-orm';
 import { Link } from '@/i18n/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DivisionMark } from '@/components/division-mark';
 import { Flag } from '@/components/flag';
-import { divisionName, sessionPlayer } from '@/lib/leagues';
+import { divisionName, monthTitle, sessionPlayer } from '@/lib/leagues';
 
 type Props = { params: Promise<{ locale: string; slug: string; number: string }> };
 
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const found = await load(slug, number);
   if (!found) return {};
   const t = await getTranslations({ locale, namespace: 'seasons' });
-  return { title: `${t('season', { n: found.season.number })} · ${found.league.name}` };
+  return { title: `${monthTitle(found.season, locale) ?? t('season', { n: found.season.number })} · ${found.league.name}` };
 }
 
 export default async function SeasonPage({ params }: Props) {
@@ -82,7 +82,7 @@ export default async function SeasonPage({ params }: Props) {
         { label: tn('leagues'), href: '/leagues' },
         { label: leagueTitle, href: `/leagues/${league.slug}` },
         { label: tn('seasons'), href: `/leagues/${league.slug}/seasons` },
-        { label: t('season', { n: season.number }) },
+        { label: monthTitle(season, locale) ?? t('season', { n: season.number }) },
       ]} />
       <div className="space-y-10">
         <header className="panel corners p-6">
@@ -94,7 +94,7 @@ export default async function SeasonPage({ params }: Props) {
                   ? tx('periodEnded', { from: dshort.format(season.startedAt), to: dshort.format(season.endedAt!) })
                   : tx('periodOpen', { from: dshort.format(season.startedAt) })}</span>
               </p>
-              <h1 className="text-3xl leading-tight font-semibold text-gold-300 sm:text-4xl">{ended ? tx('titleEnded', { n: season.number }) : tx('titleOpen', { n: season.number })}</h1>
+              <h1 className="text-3xl leading-tight font-semibold text-gold-300 sm:text-4xl">{monthTitle(season, locale) ?? (ended ? tx('titleEnded', { n: season.number }) : tx('titleOpen', { n: season.number }))}</h1>
               <p className="mt-2 max-w-2xl text-parchment-200">{ended ? tx('leadEnded') : tx('leadOpen')}</p>
             </div>
             <dl className="flex flex-wrap gap-6">
@@ -143,7 +143,7 @@ export default async function SeasonPage({ params }: Props) {
                     <>
                       <div className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-end gap-1.5">
                         {STEPS.map((s) => {
-                          const r = rows[s.idx];
+                          const r = (summary.monthly ? rows.filter((x) => x.wins + x.losses >= PODIUM_MIN_GAMES) : rows)[s.idx];
                           if (!r) return <div key={s.idx} />;
                           return (
                             <div key={s.idx} className="flex min-w-0 flex-col items-center gap-1.5 text-center">

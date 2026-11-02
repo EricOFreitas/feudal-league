@@ -5,14 +5,15 @@
  *   - reivindicado (tem dono): a cada 60 min
  *   - só adicionado, visto nos últimos 30 dias: a cada 6 h
  * Jogador sem dono e sem visita recente não entra no ciclo; a página dele sincroniza sob demanda.
- * Depois de gravar partidas, detecta as de liga e de torneio, tira o retrato semanal das posições,
- * envia os avisos pendentes ao Discord e registra cada etapa em sync_runs (página de status).
+ * Antes de detectar, vira o mês da Liga Global. Depois de gravar partidas, detecta as de liga e de torneio,
+ * apura o pódio do mês que acabou, tira o retrato semanal das posições, envia os avisos pendentes ao Discord
+ * e registra cada etapa em sync_runs (página de status).
  * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA).
  */
 import { db, players } from '@aoe2/db';
 import {
-  activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, closeIncident, detectLeagueMatches, detectTournamentGames, openIncident,
-  processNotifications, processQueuedAnalyses, recordSyncRun, syncMatchHistory, syncRatingsByProfileIds, takeWeeklySnapshots,
+  activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardMonthlyPodiums, closeIncident, detectLeagueMatches, detectTournamentGames, openIncident,
+  processNotifications, processQueuedAnalyses, recordSyncRun, rollMonthlySeasons, syncMatchHistory, syncRatingsByProfileIds, takeWeeklySnapshots,
 } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
 
@@ -66,11 +67,14 @@ async function cycle() {
     }
   }
   const t1 = new Date();
+  if (await rollMonthlySeasons()) log('virada do mês: nova temporada da Liga Global');
   const league = await detectLeagueMatches();
   if (league) log(`${league} partidas de liga detectadas`);
   const games = await detectTournamentGames();
   if (games) log(`${games} jogos de torneio detectados`);
   await recordSyncRun('detect', t1, { matches: league + games });
+  const medals = await awardMonthlyPodiums();
+  if (medals) log(`${medals} medalhas do pódio do mês`);
   try {
     const auto = await autoJoinOpponents();
     if (auto) log(`${auto} adversários trazidos pra liga`);

@@ -4,11 +4,12 @@ import { notFound } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import { civName } from '@aoe2/aoe-api';
 import { db, matches, players } from '@aoe2/db';
-import { ANALYSIS_DAILY_LIMIT, analysisQuota, getAnalysis } from '@aoe2/sync';
+import { ANALYSIS_DAILY_LIMIT, analysisQuota, bestMedalsByProfile, getAnalysis } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { AutoRefresh } from '@/components/auto-refresh';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Markdown } from '@/components/markdown';
+import { BestMedalIcon } from '@/components/medal';
 import { Link } from '@/i18n/navigation';
 import { mapLabel, matchTypeKey } from '@/lib/format';
 import { getSession } from '@/lib/session';
@@ -60,6 +61,7 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
   const won = me.outcome === 1;
   const allies = match.members.filter((m) => m.profileId !== profileId && m.team === me.team);
   const foes = match.members.filter((m) => m.team !== me.team);
+  const foeMedals = await bestMedalsByProfile(foes.map((m) => m.profileId));
   const mins = Math.round((match.completedAt.getTime() - match.startedAt.getTime()) / 60000);
   const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
   const inProgress = analysis && ['queued', 'parsing', 'writing'].includes(analysis.status);
@@ -89,6 +91,7 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
         </div>
         <p className="mt-2 text-sm text-parchment-300">
           {allies.length > 0 && <>{tp('team')}: {who(allies)} · </>}{tp('vs')} {who(foes)}
+          {foes.map((m) => { const medal = foeMedals.get(m.profileId); return medal ? <span key={m.profileId} className="ml-1.5 inline-block align-middle"><BestMedalIcon medal={medal} locale={locale} /></span> : null; })}
         </p>
       </header>
 

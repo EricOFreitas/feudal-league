@@ -21,6 +21,15 @@ export function matchTypeKey(id: number): 'ranked1v1' | 'rankedTeam' | 'dm' | 'e
   return 'other';
 }
 
+/** Nomes de um mês no idioma da página: "novembro", "Novembro", "Nov" e "26". */
+export function monthNames(year: number, month: number, locale: string) {
+  const d = new Date(Date.UTC(year, month - 1, 15));
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const long = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(d);
+  const short = new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(d).replace('.', '');
+  return { long, longCap: cap(long), short: cap(short), yy: String(year).slice(-2) };
+}
+
 export function mapLabel(raw: string): string {
   return raw.replace(/\.rms$/i, '').replace(/[_-]+/g, ' ').trim();
 }

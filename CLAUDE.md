@@ -21,7 +21,7 @@ apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) 
 apps/analyzer       Python: replay → JSON (POST /parse). Dockerfile próprio; local: uvicorn main:app
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras: players/matches; ligas em leagues.ts; análise em analyses.ts; torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal)
+packages/sync       regras: players/matches; ligas em leagues.ts; liga mensal e medalhas em podium.ts; dados da home em home.ts; análise em analyses.ts; torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal)
 docs/PLANO.md       plano, fases, decisões
 ```
 
@@ -45,6 +45,7 @@ pnpm typecheck
 - Sem monetização (Game Content Usage Rules). Aviso no rodapé fica. Análise com IA é grátis com limite diário (`ANALYSIS_DAILY_LIMIT`) e doação opcional (`DONATION_URL`); cobrar só com autorização da World's Edge.
 - Relógio do replay = relógio do jogo (o que o jogador vê), não tempo real. O prompt diz ao modelo que replay guarda comandos, não estado.
 - Jogador é independente de usuário: qualquer visitante adiciona; dono reivindica via Steam.
+- Global é mensal (`seasons.ends_at`): worker vira o mês em `rollMonthlySeasons` e apura em `awardMonthlyPodiums`; ligas próprias fecham à mão. Medalha só na Global.
 - Liga global é semeada em `packages/db/src/migrate.ts`; divisões padrão em `DEFAULT_DIVISIONS` (sync). Nomes de divisão neutros.
 - Ações de servidor das ligas em `apps/web/src/app/[locale]/leagues/actions.ts` e dos torneios em `tournaments/actions.ts`; página checa dono por `ownerUserId === session.uid`.
 - Torneio: `stage` group|bracket em `tournament_matches`; chave criada da final pra trás (`nextMatchId/nextSlot`); só partidas depois de `bracketAt` contam. Teste local: `apps/worker/src/tools/test-tournament.ts`.

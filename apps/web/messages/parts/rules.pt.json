@@ -12,11 +12,11 @@
         "items": [
           {
             "q": "Como entro numa liga?",
-            "a": "Na Liga Global você entra sozinho ao reivindicar seu perfil (entre com a Steam e o portal acha seu perfil pela conta), e pode sair quando quiser. Nas outras ligas, clique em Entrar na página da liga. Você cai na divisão correspondente ao seu rating e fica nela até a temporada fechar. Quem joga ranqueada contra um membro da Liga Global também é trazido pra ela, na faixa do pico de rating dele."
+            "a": "Na Liga Global você entra sozinho ao reivindicar seu perfil (entre com a Steam e o portal acha seu perfil pela conta), e pode sair quando quiser. Nas outras ligas, clique em Entrar na página da liga. Você cai na divisão correspondente ao seu rating e fica nela até a temporada fechar. Quem joga ranqueada contra um membro da Liga Global também é trazido pra ela, na divisão dele."
           },
           {
             "q": "Qual rating define minha divisão?",
-            "a": "O maior rating que você já teve na ladder Random Map 1v1 (o maior entre o atual e o pico histórico), não o rating de hoje. Quem já esteve alto não entra em faixa baixa. Também é preciso ter um mínimo de partidas ranqueadas 1v1 (10 por padrão; quem cria a liga pode mudar)."
+            "a": "Na Liga Global, o seu rating atual na ladder Random Map 1v1, no máximo uma divisão abaixo da do seu pico histórico: quem já esteve alto não cai para muito longe. Vale ao entrar e a cada dia 1º. Nas ligas próprias, o maior rating que você já teve (o maior entre o atual e o pico histórico). Também é preciso ter um mínimo de partidas ranqueadas 1v1 (10 por padrão; quem cria a liga pode mudar)."
           },
           {
             "q": "Quais são as divisões?",
@@ -28,7 +28,7 @@
           },
           {
             "q": "Quantos pontos vale?",
-            "a": "Depende da liga. Na Liga Global, vitória vale 3 e derrota 0: a tabela mede vitórias na sua faixa. Nas ligas próprias o padrão é vitória 3 e derrota 1, e quem cria a liga escolhe. Desempate: mais vitórias, depois menos derrotas, depois o rating de colocação, depois quem entrou antes."
+            "a": "Depende da liga. Na Liga Global, vitória vale 3 e derrota 0: a tabela mede vitórias na sua faixa. Nas ligas próprias o padrão é vitória 3 e derrota 1, e quem cria a liga escolhe. Desempate: mais vitórias, depois confronto direto, menos partidas, quem chegou primeiro à pontuação, o rating de colocação e quem entrou antes."
           },
           {
             "q": "E se eu jogar contra alguém de outra divisão?",
@@ -52,7 +52,11 @@
           },
           {
             "q": "Como funcionam as temporadas?",
-            "a": "Quem administra fecha a temporada e abre a próxima. Todos os membros são recolocados pelo pico de rating do momento e a tabela zera. A tabela final da temporada fica guardada em Temporadas, com o pódio de cada divisão."
+            "a": "Na Liga Global, a temporada é o mês: vai do dia 1º ao último dia, até 23:59 em Brasília. No dia 1º a tabela zera e todos são recolocados. Nas ligas próprias, quem administra fecha a temporada e abre a próxima; os membros são recolocados pelo pico de rating do momento e a tabela zera. A tabela final de cada temporada fica guardada em Temporadas, com o pódio de cada divisão."
+          },
+          {
+            "q": "Como funcionam o pódio e as medalhas?",
+            "a": "Na Liga Global, os 3 primeiros de cada divisão ganham a medalha do mês no perfil. É preciso ter pelo menos 10 partidas confirmadas no mês. Desempate: mais vitórias, confronto direto no mês, menos partidas jogadas e quem chegou primeiro à pontuação. Uma medalha por posição, nunca duas no mesmo lugar. Só a Liga Global dá medalha; ligas de clã registram o pódio no histórico da liga. O pódio sai até 12 horas depois da virada, porque partidas jogadas antes da meia-noite ainda podem chegar."
           },
           {
             "q": "Posso sair e voltar?",

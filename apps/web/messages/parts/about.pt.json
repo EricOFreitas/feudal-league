@@ -14,8 +14,8 @@
         "text": "A partida entre membros é encontrada no histórico e vira pontos sozinha."
       },
       "c3": {
-        "title": "Divisão pelo pico",
-        "text": "Você entra pela maior nota que já teve, não pela atual. Isso segura smurf."
+        "title": "Divisão pelo rating",
+        "text": "Na Liga Global, sua divisão vem do rating atual, no máximo uma abaixo da do seu pico. Isso segura smurf sem prender quem caiu."
       }
     },
     "contribute": {

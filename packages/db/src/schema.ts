@@ -159,6 +159,10 @@ export const seasons = pgTable(
     endedAt: timestamp('ended_at', { withTimezone: true }),
     /** Aviso de fim de temporada já enviado (Discord). */
     notifiedAt: timestamp('notified_at', { withTimezone: true }),
+    /** Liga mensal: fim do mês (1º do mês seguinte, 00:00 em Brasília). null = temporada fechada à mão pelo dono. */
+    endsAt: timestamp('ends_at', { withTimezone: true }),
+    /** Liga mensal: pódio apurado e medalhas gravadas. */
+    podiumAt: timestamp('podium_at', { withTimezone: true }),
   },
   (t) => [uniqueIndex('seasons_league_number_idx').on(t.leagueId, t.number)],
 );
@@ -274,6 +278,7 @@ export const playersRelations = relations(players, ({ many, one }) => ({
   ratings: many(playerRatings),
   memberships: many(leagueMembers),
   badges: many(playerBadges),
+  medals: many(playerMedals),
   claimedBy: one(users, { fields: [players.claimedByUserId], references: [users.id] }),
 }));
 export const playerRatingsRelations = relations(playerRatings, ({ one }) => ({
@@ -487,6 +492,23 @@ export const playerBadges = pgTable(
   (t) => [uniqueIndex('player_badges_player_badge_idx').on(t.playerId, t.badge)],
 );
 
+/** Medalha do pódio mensal da Liga Global: 1º, 2º ou 3º de uma divisão no mês. Uma por posição. */
+export const playerMedals = pgTable(
+  'player_medals',
+  {
+    id: serial('id').primaryKey(),
+    playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+    seasonId: integer('season_id').notNull().references(() => seasons.id, { onDelete: 'cascade' }),
+    divisionId: integer('division_id').notNull().references(() => divisions.id, { onDelete: 'cascade' }),
+    position: smallint('position').notNull(),
+    points: integer('points').notNull(),
+    wins: integer('wins').notNull(),
+    losses: integer('losses').notNull(),
+    awardedAt: timestamp('awarded_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('player_medals_place_idx').on(t.seasonId, t.divisionId, t.position), index('player_medals_player_idx').on(t.playerId)],
+);
+
 /**
  * Webhook do Discord de uma liga. events = lista de chaves ('match','voided','tournament','member','season');
  * divisionIds = null (todas) ou lista de ids. A URL nunca sai do servidor.
@@ -555,6 +577,11 @@ export const incidents = pgTable(
   (t) => [index('incidents_time_idx').on(t.startedAt)],
 );
 
+export const playerMedalsRelations = relations(playerMedals, ({ one }) => ({
+  player: one(players, { fields: [playerMedals.playerId], references: [players.id] }),
+  season: one(seasons, { fields: [playerMedals.seasonId], references: [seasons.id] }),
+  division: one(divisions, { fields: [playerMedals.divisionId], references: [divisions.id] }),
+}));
 export const playerBadgesRelations = relations(playerBadges, ({ one }) => ({
   player: one(players, { fields: [playerBadges.playerId], references: [players.id] }),
 }));
@@ -584,6 +611,7 @@ export type TournamentTeamMember = typeof tournamentTeamMembers.$inferSelect;
 export type TournamentMatch = typeof tournamentMatches.$inferSelect;
 export type TournamentGame = typeof tournamentGames.$inferSelect;
 export type PlayerBadge = typeof playerBadges.$inferSelect;
+export type PlayerMedal = typeof playerMedals.$inferSelect;
 export type LeagueWebhook = typeof leagueWebhooks.$inferSelect;
 export type StandingSnapshot = typeof standingSnapshots.$inferSelect;
 export type SyncRun = typeof syncRuns.$inferSelect;

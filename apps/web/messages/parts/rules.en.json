@@ -12,11 +12,11 @@
         "items": [
           {
             "q": "How do I join a league?",
-            "a": "You join the Global League automatically when you claim your profile (sign in with Steam and the portal finds your profile through your account), and you can leave any time. For other leagues, click Join on the league page. You are placed in the division matching your rating and stay there until the season closes. Whoever plays ranked against a Global League member is also brought in, in the bracket of their peak rating."
+            "a": "You join the Global League automatically when you claim your profile (sign in with Steam and the portal finds your profile through your account), and you can leave any time. For other leagues, click Join on the league page. You are placed in the division matching your rating and stay there until the season closes. Whoever plays ranked against a Global League member is also brought in, in their division."
           },
           {
             "q": "Which rating decides my division?",
-            "a": "The highest rating you ever had on the Random Map 1v1 ladder (the higher of current and all-time peak), not today's rating. Someone who has been high does not enter a low bracket. You also need a minimum of ranked 1v1 games (10 by default; league creators can change it)."
+            "a": "In the Global League, your current rating on the Random Map 1v1 ladder, at most one division below your all-time peak's: someone who has been high can't drop too far. It applies when you join and on every 1st. In custom leagues, the highest rating you ever had (the higher of current and all-time peak). You also need a minimum of ranked 1v1 games (10 by default; league creators can change it)."
           },
           {
             "q": "What are the divisions?",
@@ -28,7 +28,7 @@
           },
           {
             "q": "How many points?",
-            "a": "It depends on the league. In the Global League a win is worth 3 and a loss 0: the table measures wins in your bracket. Custom leagues default to win 3, loss 1, and the creator chooses. Tiebreaks: more wins, then fewer losses, then placement rating, then who joined first."
+            "a": "It depends on the league. In the Global League a win is worth 3 and a loss 0: the table measures wins in your bracket. Custom leagues default to win 3, loss 1, and the creator chooses. Tiebreaks: more wins, then head-to-head, fewest matches, first to reach the score, placement rating and who joined first."
           },
           {
             "q": "What if I play someone from another division?",
@@ -52,7 +52,11 @@
           },
           {
             "q": "How do seasons work?",
-            "a": "The admin closes the season and opens the next. Everyone is re-placed by their current peak rating and the table resets. The final table is kept under Seasons, with each division's podium."
+            "a": "In the Global League, the season is the month: from the 1st to the last day, until 23:59 Brasília time. On the 1st the table resets and everyone is re-placed. In custom leagues, the admin closes the season and opens the next; everyone is re-placed by their current peak rating and the table resets. The final table of each season is kept under Seasons, with each division's podium."
+          },
+          {
+            "q": "How do the podium and medals work?",
+            "a": "In the Global League, the top 3 in each division get the month's medal on their profile. You need at least 10 confirmed matches in the month. Tiebreak: most wins, head-to-head this month, fewest matches played and first to reach the score. One medal per place, never two in the same spot. Only the Global League awards medals; clan leagues record the podium in the league's history. The podium comes out up to 12 hours after the turn of the month, because matches played before midnight can still arrive."
           },
           {
             "q": "Can I leave and come back?",

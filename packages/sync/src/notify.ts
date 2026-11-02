@@ -33,7 +33,7 @@ import {
   type LeagueWebhook,
 } from '@aoe2/db';
 import { and, asc, eq, inArray, isNotNull, isNull, lt, notInArray, or, sql, type SQL } from 'drizzle-orm';
-import { POINTS_LOSS, POINTS_WIN, standings } from './leagues';
+import { PODIUM_MIN_GAMES, POINTS_LOSS, POINTS_WIN, standings } from './leagues';
 
 export const WEBHOOK_EVENTS = ['match', 'voided', 'tournament', 'member', 'season'] as const;
 export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
@@ -376,14 +376,14 @@ async function loadItems(hookLeagueIds: number[]): Promise<Item[]> {
 
   // fim de temporada: pódio de cada divisão, filtrado pelas divisões de cada webhook
   const ended = await db.query.seasons.findMany({
-    where: and(isNotNull(seasons.endedAt), isNull(seasons.notifiedAt), inArray(seasons.leagueId, hookLeagueIds)),
+    where: and(isNotNull(seasons.endedAt), isNull(seasons.notifiedAt), inArray(seasons.leagueId, hookLeagueIds), or(isNull(seasons.endsAt), isNotNull(seasons.podiumAt))),
     orderBy: [asc(seasons.endedAt)], limit: LOAD_LIMIT,
   });
   for (const s of ended) {
     const divs = await db.query.divisions.findMany({ where: eq(divisions.leagueId, s.leagueId), orderBy: [asc(divisions.sort)] });
     const perDiv: SeasonDivision[] = [];
     for (const d of divs) {
-      const rows = (await standings(s.id, d.id)).filter((r) => r.wins + r.losses > 0).slice(0, 3);
+      const rows = (await standings(s.id, d.id)).filter((r) => r.wins + r.losses >= (s.endsAt ? PODIUM_MIN_GAMES : 1)).slice(0, 3);
       perDiv.push({ divisionId: d.id, division: discordDivisionName(d), podium: rows.map((r) => ({ player: r.alias, points: r.points })) });
     }
     const at = s.endedAt!;

@@ -16,36 +16,6 @@
     "language": "Language",
     "tournaments": "Tournaments"
   },
-  "home": {
-    "title": "Your AoE2 matches become a league.",
-    "subtitle": "Matches stay in the game, ranked or lobby. The portal reads the history, places everyone in the division of their rating and compares you with people at your level. Create the league of your clan, Discord or city.",
-    "add": {
-      "title": "Add a player",
-      "hint": "Paste a Steam profile link, a SteamID64, an AoE2 profile_id or the exact in-game nickname.",
-      "placeholder": "https://steamcommunity.com/id/... or nickname",
-      "button": "Search",
-      "free": "No account needed. Anyone can add anyone."
-    },
-    "steps": {
-      "title": "How it works",
-      "one": {
-        "title": "Add",
-        "text": "Paste a Steam link or nickname. The portal starts tracking the rating on every ladder."
-      },
-      "two": {
-        "title": "Join your bracket",
-        "text": "Leagues have rating divisions, from Shield to Crown. If you're at 900, you compete with people at 900."
-      },
-      "three": {
-        "title": "Play in AoE2",
-        "text": "Matches happen in the game itself, ranked or lobby. Results enter the table from the history, no screenshots."
-      }
-    },
-    "recent": "Recently added",
-    "empty": "Nobody yet. Be the first.",
-    "leaguesCta": "See leagues",
-    "kicker": "Rating-bracket leagues · Age of Empires II: DE"
-  },
   "search": {
     "title": "Which one is you?",
     "homonyms": "We found {count} profiles with the nickname \"{alias}\". Pick the right one by flag, rating and last match.",
@@ -159,7 +129,7 @@
   },
   "leagues": {
     "title": "Leagues",
-    "intro": "A league groups players into divisions by rating band. Your band is set by your peak RM 1v1 rating and stays frozen until the season ends. Within a division, a win is worth 3 points and a loss 1.",
+    "intro": "A league groups players into divisions by rating band. Your division stays frozen until the season ends: in the Global League, that happens every month. Points for wins and losses depend on the league.",
     "global": "Global League",
     "globalHint": "Open to everyone. Join and show up in your band's table.",
     "members": "{count, plural, =0 {no members} =1 {1 member} other {# members}}",
@@ -214,11 +184,14 @@
       "detectAll": "Every 1v1 between two members of the same division counts automatically, ranked or not: lobby, Empire Wars and other modes, no reporting.",
       "detectRanked": "Only ranked 1v1 (RM) between two members of the same division counts. Lobby and other modes are excluded.",
       "detectNonMembersExtra": "Your ranked 1v1 against a non-member rated within your bracket also counts.",
-      "points": "Win {win} points, loss {loss}. Tiebreaks: wins, then fewer losses, then rating.",
+      "points": "Win {win} points, loss {loss}. Tiebreaks: wins, then head-to-head, fewest matches and first to reach the score.",
       "season": "Your division stays frozen until the season ends. Then everyone is re-placed by their current rating.",
       "detectNonMembers": "Your ranked 1v1 against any player rated within your bracket counts, in the league or not. Between members of the same division, lobby counts too.",
-      "autoJoin": "Whoever plays against a member is brought into the league and placed in their bracket by peak rating.",
-      "claimJoin": "Claiming your profile joins this league automatically. You can leave any time."
+      "autoJoin": "Whoever plays against a member is brought into the league and placed in their division.",
+      "claimJoin": "Claiming your profile joins this league automatically. You can leave any time.",
+      "placementGlobal": "Your division comes from your current RM 1v1 rating, at most one below your peak's. Players who have been high can't drop too far.",
+      "seasonGlobal": "The league is monthly. Your division stays frozen until the end of the month; on the 1st the table resets and everyone is re-placed.",
+      "podiumGlobal": "The top 3 in each division, with at least {min} matches in the month, get the month's medal on their profile."
     },
     "new": {
       "title": "New league",

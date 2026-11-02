@@ -1,0 +1,59 @@
+{
+  "homeGlobal": {
+    "search": {
+      "label": "Where is a player?",
+      "placeholder": "Nick, Steam link or profile_id",
+      "button": "Search"
+    },
+    "me": {
+      "you": "You · {division}",
+      "inDivision": "In division",
+      "global": "Global",
+      "of": "of {total}",
+      "missing": "<b>{n} rating</b> to reach {division}.",
+      "ready": "You already have the rating for {division}: you move up on the 1st.",
+      "periodWeek": "this week",
+      "periodMonth": "this month"
+    },
+    "divisions": {
+      "title": "{total} players in {count} divisions",
+      "players": "{count, plural, =1 {1 player} other {{n} players}}",
+      "moved": "{up} moved up a division and {down} moved down at the turn of the month"
+    },
+    "ranking": {
+      "title": "Global ranking",
+      "week": "Week",
+      "month": "Month",
+      "full": "Full ranking · {total}"
+    },
+    "movers": {
+      "up": "Biggest gains",
+      "down": "Biggest drops",
+      "last7": "last 7 days",
+      "last30": "last 30 days",
+      "record": "{wins}W {losses}L",
+      "empty": "Nobody in this period yet."
+    },
+    "changes": {
+      "title": "Changed division"
+    },
+    "highlights": {
+      "title": "This week's highlights",
+      "streakLabel": "Longest streak",
+      "streak": "{n} wins in a row in {division}",
+      "upsetLabel": "Biggest upset",
+      "upset": "beat {opponent} with a {gap} rating gap",
+      "busiestLabel": "Most matches",
+      "busiest": "{n, plural, =1 {1 confirmed match} other {# confirmed matches}}"
+    },
+    "tournaments": {
+      "title": "Tournaments now",
+      "empty": "No tournament in progress.",
+      "all": "See tournaments"
+    },
+    "cta": {
+      "text": "Matches are still played in the game. The portal reads the history and places each player in the division for their rating. Want to compare only with your clan, Discord or city?",
+      "button": "Create a league"
+    }
+  }
+}

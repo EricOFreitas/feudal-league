@@ -7,7 +7,7 @@ import { seasonChampions, seasonsOf } from '@aoe2/sync';
 import { asc, eq } from 'drizzle-orm';
 import { Link } from '@/i18n/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { divisionName } from '@/lib/leagues';
+import { divisionName, monthTitle } from '@/lib/leagues';
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -63,7 +63,7 @@ export default async function SeasonsPage({ params }: Props) {
                     <div className="relative z-[1]">
                       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                         <h2 className="font-display text-xl text-gold-300">
-                          {t('season', { n: season.number })}
+                          {monthTitle(season, locale) ?? t('season', { n: season.number })}
                           {!ended && <span className="tag ml-3 !border-moss-500 !text-moss-500 align-middle">{t('current')}</span>}
                         </h2>
                         <span className="font-display text-sm tabular-nums text-parchment-300">

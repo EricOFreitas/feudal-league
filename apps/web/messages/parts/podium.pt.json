@@ -1,0 +1,57 @@
+{
+  "podium": {
+    "home": {
+      "kicker": "Liga Global · {month} {year}",
+      "day": "Dia {day} de {total}",
+      "title": "A liga de {month} começou",
+      "lead": "Toda partida confirmada até {end} conta. Os 3 primeiros de cada divisão ganham a medalha do mês no perfil. No dia 1º a tabela zera e começa a próxima.",
+      "rulesShort": "Para entrar no pódio: mínimo de {min} partidas no mês. Você disputa na divisão em que estava no dia 1º, mesmo se subir ou cair depois.",
+      "rulesLink": "Regras completas",
+      "endsIn": "{days, plural, =0 {Encerra hoje} =1 {Encerra amanhã} other {Encerra em # dias}} · {end} às 23:59 (Brasília)",
+      "lastPodium": "Pódio de {month}",
+      "allPast": "Todas as ligas anteriores",
+      "pts": "{points} pts"
+    },
+    "rules": {
+      "title": "Regras do pódio",
+      "minLabel": "Mínimo",
+      "min": "{min} partidas confirmadas no mês.",
+      "divisionLabel": "Divisão",
+      "division": "A do dia 1º. Subir ou cair durante o mês não muda onde você disputa.",
+      "tiebreakLabel": "Desempate",
+      "tiebreak1": "Mais vitórias",
+      "tiebreak2": "Confronto direto no mês",
+      "tiebreak3": "Menos partidas jogadas",
+      "tiebreak4": "Quem chegou primeiro à pontuação",
+      "medalsLabel": "Medalhas",
+      "medals": "Uma por posição. Nunca duas no mesmo lugar.",
+      "globalOnly": "Só a Liga Global dá medalha. Ligas de clã registram o pódio no histórico da liga."
+    },
+    "why": {
+      "title": "Pódio do mês",
+      "division": "Os dois disputam a {division} em {month} (divisão do dia 1º, mesmo que o rating mude no mês).",
+      "counts": "Conta para o pódio de {month} da {division}.",
+      "voided": "Não conta para o pódio de {month}.",
+      "eligible": "{count} partidas no mês · já pode entrar no pódio",
+      "missing": "{count, plural, =1 {1 partida} other {# partidas}} no mês · {left, plural, =1 {falta 1} other {faltam #}} para o mínimo de {min}",
+      "label": "Pódio",
+      "rulesTitle": "Regras do pódio",
+      "rule1": "Mínimo de {min} partidas confirmadas no mês.",
+      "rule2": "Você disputa na divisão em que estava no dia 1º.",
+      "rule3": "Desempate: mais vitórias → confronto direto no mês → menos partidas → quem chegou primeiro à pontuação.",
+      "rule4": "Uma medalha por posição. Só a Liga Global dá medalha; ligas de clã registram o pódio no histórico."
+    },
+    "medal": {
+      "place": "{n}º lugar",
+      "short": "{mon} {yy}",
+      "tooltip": "{n}º lugar · {division} · {month} {year} · {wins}V {losses}D",
+      "best": "Melhor: {n}º {division} · {mon} {yy}"
+    },
+    "profile": {
+      "title": "{count, plural, =1 {Pódio · 1} other {Pódios · #}}",
+      "summary": "{gold} ouro · {silver} prata · {bronze} bronze",
+      "support": "Apoio",
+      "empty": "Ainda sem pódio. Termine entre os 3 primeiros da sua divisão num mês da Liga Global."
+    }
+  }
+}
