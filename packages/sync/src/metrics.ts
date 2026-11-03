@@ -11,8 +11,10 @@ import { and, desc, eq, gt, inArray, isNull, notExists, sql } from 'drizzle-orm'
 import { alias, type PgColumn } from 'drizzle-orm/pg-core';
 import { AnalyzerError, parseReplay, type ParseOut } from './analyzer';
 
-/** Partidas na divisão (90 dias) antes de mostrar comparação. */
+/** Partidas na divisão (90 dias) pra comparação confiável; abaixo disso a tabela mostra os números com aviso. */
 export const BENCHMARK_MIN_SAMPLES = 30;
+/** Abaixo disto a divisão nem aparece (mediana de meia dúzia de partidas não diz nada). */
+export const BENCHMARK_SHOW_SAMPLES = 10;
 const BENCHMARK_DAYS = 90;
 /** Partidas de liga lidas por ciclo do worker (5 min) e idade máxima; depois disso a gravação costuma ter sumido. */
 const METRICS_PER_CYCLE = Number(process.env.METRICS_PER_CYCLE ?? 20);

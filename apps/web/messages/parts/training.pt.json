@@ -2,7 +2,7 @@
   "benchmarks": {
     "title": "Seus números e os da divisão",
     "intro": "Medidos na gravação, sem IA. A divisão é a mediana de {n} partidas 1v1 de jogadores da mesma faixa nos últimos 90 dias.",
-    "notEnough": "Ainda não há partidas suficientes na sua divisão pra comparar ({n} de {min}). Os seus números já ficam guardados.",
+    "notEnough": "Sua divisão ainda tem menos de {min} partidas lidas ({n}). Os seus números já ficam guardados e a comparação aparece em algumas horas.",
     "noDivision": "Entre numa liga pra comparar seus números com a sua divisão.",
     "col": {
       "metric": "Métrica",
@@ -30,7 +30,8 @@
       "title": "Números recentes",
       "intro": "{n, plural, =1 {Sua última partida 1v1 com gravação lida} other {Mediana das suas últimas # partidas 1v1 com gravação lida}}, ao lado da mediana de {d} partidas da sua divisão nos últimos 90 dias. Sem IA.",
       "empty": "Ainda não há partida sua com gravação lida. Partidas de liga são lidas sozinhas; as outras, quando você pede análise."
-    }
+    },
+    "few": "Sua divisão tem só {n} partidas lidas até agora; abaixo de {min} a mediana ainda oscila. O site lê as gravações das partidas de liga sozinho, e o número sobe a cada hora."
   },
   "sparring": {
     "title": "Treino · {division}",

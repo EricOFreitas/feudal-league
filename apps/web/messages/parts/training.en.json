@@ -2,7 +2,7 @@
   "benchmarks": {
     "title": "Your numbers and the division's",
     "intro": "Measured from the recording, no AI. The division is the median of {n} 1v1 games by players in the same bracket over the last 90 days.",
-    "notEnough": "Not enough games in your division to compare yet ({n} of {min}). Your numbers are already saved.",
+    "notEnough": "Your division still has fewer than {min} parsed games ({n}). Your numbers are already saved and the comparison shows up in a few hours.",
     "noDivision": "Join a league to compare your numbers with your division.",
     "col": {
       "metric": "Metric",
@@ -30,7 +30,8 @@
       "title": "Recent numbers",
       "intro": "{n, plural, =1 {Your last 1v1 game with a parsed recording} other {Median of your last # 1v1 games with a parsed recording}}, next to the median of {d} games in your division over the last 90 days. No AI.",
       "empty": "No game of yours has a parsed recording yet. League games are read automatically; others, when you request an analysis."
-    }
+    },
+    "few": "Your division has only {n} parsed games so far; below {min} the median still swings. The site reads league game recordings on its own, and the count grows every hour."
   },
   "sparring": {
     "title": "Sparring · {division}",

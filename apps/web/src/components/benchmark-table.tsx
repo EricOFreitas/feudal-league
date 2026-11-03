@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { LOWER_IS_BETTER, METRIC_KEYS, type DivisionBenchmark, type MetricKey, type MetricNumbers } from '@aoe2/sync';
+import { BENCHMARK_SHOW_SAMPLES, LOWER_IS_BETTER, METRIC_KEYS, type DivisionBenchmark, type MetricKey, type MetricNumbers } from '@aoe2/sync';
 
 const TIME_KEYS = new Set<MetricKey>(['feudalS', 'castleS', 'imperialS', 'tcIdleS', 'firstMilitaryS']);
 const LABEL: Record<MetricKey, string> = {
@@ -25,8 +25,10 @@ type Props = {
 /** Tabela "Você / sua divisão / divisão acima" (treino, T1). Servidor; sem estado. */
 export async function BenchmarkTable({ mine, division, above, divisionLabel, aboveLabel, minSamples, heading = true }: Props) {
   const t = await getTranslations('benchmarks');
-  const enough = division != null && division.samples >= minSamples;
-  const aboveOk = above != null && above.samples >= minSamples;
+  // mostra a partir de BENCHMARK_SHOW_SAMPLES; até minSamples avisa que ainda é pouco
+  const enough = division != null && division.samples >= BENCHMARK_SHOW_SAMPLES;
+  const few = enough && division.samples < minSamples;
+  const aboveOk = above != null && above.samples >= BENCHMARK_SHOW_SAMPLES;
 
   const tone = (k: MetricKey, v: number | null) => {
     const ref = enough ? division.metrics[k]?.p50 : undefined;
@@ -43,9 +45,12 @@ export async function BenchmarkTable({ mine, division, above, divisionLabel, abo
       {divisionLabel == null ? (
         <p className="mt-2 text-sm text-parchment-300">{t('noDivision')}</p>
       ) : enough ? (
-        heading && <p className="mt-2 text-sm text-parchment-300">{t('intro', { n: division.samples })}</p>
+        <>
+          {heading && <p className="mt-2 text-sm text-parchment-300">{t('intro', { n: division.samples })}</p>}
+          {few && <p className="mt-2 text-sm text-gold-300">{t('few', { n: division.samples, min: minSamples })}</p>}
+        </>
       ) : (
-        <p className="mt-2 text-sm text-parchment-300">{t('notEnough', { n: division?.samples ?? 0, min: minSamples })}</p>
+        <p className="mt-2 text-sm text-parchment-300">{t('notEnough', { n: division?.samples ?? 0, min: BENCHMARK_SHOW_SAMPLES })}</p>
       )}
       <table className="mt-4 w-full text-sm">
         <thead>
