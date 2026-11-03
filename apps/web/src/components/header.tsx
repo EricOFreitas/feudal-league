@@ -18,7 +18,7 @@ export async function Header() {
           <span className="font-display text-lg font-semibold tracking-wide text-gold-300">{site('name')}</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm">
-          <NavLinks items={[{ href: '/leagues', label: t('leagues') }, { href: '/tournaments', label: t('tournaments') }]} />
+          <NavLinks items={[{ href: '/leagues', label: t('leagues') }, { href: '/tournaments', label: t('tournaments') }, { href: '/training', label: t('training') }]} />
           <LocaleSwitcher label={t('language')} />
           {session ? (
             <>

@@ -57,5 +57,161 @@
       "not_member": "Você não é membro desta liga.",
       "no_division_below": "Não há divisão abaixo da sua pra mentorar."
     }
+  },
+  "nav": {
+    "training": "Treino"
+  },
+  "training": {
+    "kicker": "Treino",
+    "title": "Como treinar",
+    "intro": "O que o site mede nas suas partidas, o que fazer com isso e as ferramentas de fora que valem a pena. Tudo grátis.",
+    "site": {
+      "title": "O que o site faz por você",
+      "items": [
+        {
+          "name": "Seus números contra a divisão",
+          "what": "Toda partida de liga tem a gravação lida pelo site, sem IA: chegada às eras, aldeões aos 10, 15 e 20 minutos, Centro da Cidade parado, primeira unidade militar e ações por minuto. A tabela no seu perfil e na análise compara você com a mediana da sua divisão e da de cima.",
+          "href": "/me",
+          "link": "Ver meu perfil"
+        },
+        {
+          "name": "Análise da partida com IA",
+          "what": "Três por dia, grátis. A IA recebe os seus números e os da divisão e escreve o que decidiu a partida e o que treinar. Peça na lista de partidas do seu perfil.",
+          "href": "/me",
+          "link": "Minhas partidas"
+        },
+        {
+          "name": "Treino na liga",
+          "what": "Na página da sua divisão, clique em Quero treinar. Quem está disponível aparece na lista por 2 horas; quando um de vocês abre o lobby no jogo, o botão Entrar no lobby aparece e abre o jogo direto nele. Quem é da divisão de cima pode se oferecer como mentor.",
+          "href": "/leagues/global",
+          "link": "Liga Global"
+        }
+      ]
+    },
+    "order": {
+      "title": "Em que ordem treinar",
+      "items": [
+        "Escolha uma build order só e repita até sair sem pensar. Os sites abaixo têm as mais comuns com a divisão de aldeões em cada passo.",
+        "Jogue e olhe a tabela: Centro da Cidade parado e aldeões aos 10 minutos são os dois números que mais separam divisões. Resolva esses antes de pensar em micro.",
+        "Quando os números da Idade Feudal estiverem na mediana da divisão de cima, passe pra chegada à Idade dos Castelos.",
+        "Peça análise com IA nas derrotas que você não entendeu, não em todas. Treino com alguém da sua divisão vale mais que mais uma ranqueada."
+      ]
+    },
+    "ext": {
+      "bo": {
+        "title": "Build orders",
+        "items": [
+          {
+            "name": "Interactive Build Order Guide",
+            "what": "Cenários dentro do jogo que ensinam 10 build orders passo a passo e dão nota no fim. Procure pelo nome no Mod Center do jogo. Parado desde 2020, mas ainda é a referência.",
+            "url": "https://www.ageofempires.com/mods/"
+          },
+          {
+            "name": "IdleTC",
+            "what": "Build orders com a divisão de aldeões em cada passo e uma visão compacta pra deixar aberta enquanto joga. Grátis, sem conta.",
+            "url": "https://idletc.com"
+          },
+          {
+            "name": "Build Order Guide",
+            "what": "Catálogo e editor de build orders, com os tempos esperados de cada era.",
+            "url": "https://buildorderguide.com"
+          },
+          {
+            "name": "Build Order Reference",
+            "what": "As build orders do autor do Interactive Build Order Guide, escritas, com os tempos alvo.",
+            "url": "https://buildorderreference.com"
+          }
+        ]
+      },
+      "hotkeys": {
+        "title": "Hotkeys",
+        "items": [
+          {
+            "name": "AoE2 Hotkeys Practice",
+            "what": "Treino de sequências e velocidade no navegador. Carrega o seu arquivo de hotkeys do jogo. Código aberto.",
+            "url": "https://github.com/bsubramaniam/aoe2-hotkeys-practice"
+          },
+          {
+            "name": "Villager Trainer",
+            "what": "Treino de hotkey de aldeão no navegador, sem o jogo aberto.",
+            "url": "https://aoe-hippo.com/villager-trainer"
+          },
+          {
+            "name": "Curso de hotkeys (KeyCombiner)",
+            "what": "Tabela de todas as hotkeys do jogo e curso com 30 lições. Link do tópico no AoE Zone.",
+            "url": "https://aoezone.net/threads/all-de-hotkeys-in-a-searchable-table-mapped-onto-a-virtual-keyboard-and-an-interactive-course-with-30-lessons-to-learn-them.178231/"
+          }
+        ]
+      },
+      "micro": {
+        "title": "Micro",
+        "items": [
+          {
+            "name": "Art of War",
+            "what": "Os desafios oficiais, no menu do jogo. Comece por eles: economia, micro e cerco, com medalha por tempo.",
+            "url": null
+          },
+          {
+            "name": "Micro Wars",
+            "what": "Cenários de micro pro DE (arqueiros, galés, torres, cerco). Procure no Mod Center; o código está no GitHub.",
+            "url": "https://github.com/twestura/Micro-Wars"
+          }
+        ]
+      },
+      "review": {
+        "title": "Rever a partida",
+        "items": [
+          {
+            "name": "CaptureAge",
+            "what": "Assiste à gravação com visão total dos dois lados, gráficos de economia e exército. Pra entender uma derrota específica.",
+            "url": "https://captureage.com"
+          },
+          {
+            "name": "AoE2 Insights",
+            "what": "Perfil, histórico e estatísticas por civ e mapa. A análise minuto a minuto é paga.",
+            "url": "https://www.aoe2insights.com"
+          },
+          {
+            "name": "AoE2 Tech Tree",
+            "what": "Árvore de tecnologias de todas as civs, com custo e tempo de cada unidade e pesquisa.",
+            "url": "https://aoe2techtree.net"
+          },
+          {
+            "name": "AoE2 Companion",
+            "what": "Aplicativo de celular com perfil, partidas ao vivo e build orders.",
+            "url": "https://www.aoe2companion.com"
+          }
+        ]
+      },
+      "qol": {
+        "title": "Mods de qualidade de vida",
+        "intro": "Todos no Mod Center do jogo, grátis. Ajudam a ver melhor, sem mudar as regras.",
+        "items": [
+          {
+            "name": "Improved Small Trees",
+            "what": "Árvores menores: você enxerga aldeões e inimigos atrás da floresta.",
+            "url": null
+          },
+          {
+            "name": "Bigger Idle Villager Warning",
+            "what": "Aviso maior de aldeão parado.",
+            "url": null
+          },
+          {
+            "name": "Improved Tech Tree UI",
+            "what": "Árvore de tecnologias da sua civ sempre à mão.",
+            "url": null
+          },
+          {
+            "name": "Mods de grid",
+            "what": "Quadriculado no chão pra alinhar casas, muros e fazendas.",
+            "url": null
+          }
+        ]
+      }
+    },
+    "open": "abrir",
+    "inGame": "no jogo",
+    "roadmap": "O que vem a seguir no site: conferidor de build order (compara a partida com a build que você escolheu), foco de treino da semana e desafios com medalha."
   }
 }

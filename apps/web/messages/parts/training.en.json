@@ -57,5 +57,161 @@
       "not_member": "You are not a member of this league.",
       "no_division_below": "There is no division below yours to mentor."
     }
+  },
+  "nav": {
+    "training": "Training"
+  },
+  "training": {
+    "kicker": "Training",
+    "title": "How to train",
+    "intro": "What the site measures in your games, what to do with it, and the outside tools worth your time. All free.",
+    "site": {
+      "title": "What the site does for you",
+      "items": [
+        {
+          "name": "Your numbers against the division",
+          "what": "Every league game has its recording read by the site, no AI: age-up times, villagers at 10, 15 and 20 minutes, Town Center idle time, first military unit and actions per minute. The table on your profile and on the analysis compares you with the median of your division and the one above.",
+          "href": "/me",
+          "link": "See my profile"
+        },
+        {
+          "name": "AI match analysis",
+          "what": "Three a day, free. The AI gets your numbers and the division's and writes what decided the game and what to train. Request it from the match list on your profile.",
+          "href": "/me",
+          "link": "My matches"
+        },
+        {
+          "name": "Sparring in the league",
+          "what": "On your division page, click I want to train. Whoever is available shows up in the list for 2 hours; when one of you opens the lobby in the game, the Join lobby button appears and opens the game straight into it. Players from the division above can offer to mentor.",
+          "href": "/leagues/global",
+          "link": "Global League"
+        }
+      ]
+    },
+    "order": {
+      "title": "What to train, in order",
+      "items": [
+        "Pick one build order and repeat it until it runs without thinking. The sites below have the common ones with the villager split at each step.",
+        "Play and look at the table: Town Center idle time and villagers at 10 minutes are the two numbers that separate divisions the most. Fix those before thinking about micro.",
+        "When your Feudal Age numbers reach the median of the division above, move on to the Castle Age timing.",
+        "Request an AI analysis on the losses you did not understand, not on every game. A practice game with someone in your division is worth more than one more ranked game."
+      ]
+    },
+    "ext": {
+      "bo": {
+        "title": "Build orders",
+        "items": [
+          {
+            "name": "Interactive Build Order Guide",
+            "what": "In-game scenarios that teach 10 build orders step by step and grade you at the end. Search for it by name in the game's Mod Center. Unmaintained since 2020, still the reference.",
+            "url": "https://www.ageofempires.com/mods/"
+          },
+          {
+            "name": "IdleTC",
+            "what": "Build orders with the villager split at each step and a compact view to keep open while playing. Free, no account.",
+            "url": "https://idletc.com"
+          },
+          {
+            "name": "Build Order Guide",
+            "what": "Catalog and editor of build orders, with the expected age-up times.",
+            "url": "https://buildorderguide.com"
+          },
+          {
+            "name": "Build Order Reference",
+            "what": "The written build orders from the author of the Interactive Build Order Guide, with target times.",
+            "url": "https://buildorderreference.com"
+          }
+        ]
+      },
+      "hotkeys": {
+        "title": "Hotkeys",
+        "items": [
+          {
+            "name": "AoE2 Hotkeys Practice",
+            "what": "Sequence and speed drills in the browser. Loads your hotkey file from the game. Open source.",
+            "url": "https://github.com/bsubramaniam/aoe2-hotkeys-practice"
+          },
+          {
+            "name": "Villager Trainer",
+            "what": "Villager hotkey drills in the browser, without the game open.",
+            "url": "https://aoe-hippo.com/villager-trainer"
+          },
+          {
+            "name": "Hotkey course (KeyCombiner)",
+            "what": "Table of every hotkey in the game plus a 30-lesson course. Link to the AoE Zone thread.",
+            "url": "https://aoezone.net/threads/all-de-hotkeys-in-a-searchable-table-mapped-onto-a-virtual-keyboard-and-an-interactive-course-with-30-lessons-to-learn-them.178231/"
+          }
+        ]
+      },
+      "micro": {
+        "title": "Micro",
+        "items": [
+          {
+            "name": "Art of War",
+            "what": "The official challenges, in the game menu. Start there: economy, micro and siege, with medals by time.",
+            "url": null
+          },
+          {
+            "name": "Micro Wars",
+            "what": "Micro scenarios for DE (archers, galleys, towers, siege). Search the Mod Center; the code is on GitHub.",
+            "url": "https://github.com/twestura/Micro-Wars"
+          }
+        ]
+      },
+      "review": {
+        "title": "Reviewing a game",
+        "items": [
+          {
+            "name": "CaptureAge",
+            "what": "Watch the recording with full vision of both sides, economy and army graphs. For understanding one specific loss.",
+            "url": "https://captureage.com"
+          },
+          {
+            "name": "AoE2 Insights",
+            "what": "Profile, history and stats by civ and map. The minute-by-minute analysis is paid.",
+            "url": "https://www.aoe2insights.com"
+          },
+          {
+            "name": "AoE2 Tech Tree",
+            "what": "Tech tree of every civ, with cost and time of every unit and research.",
+            "url": "https://aoe2techtree.net"
+          },
+          {
+            "name": "AoE2 Companion",
+            "what": "Mobile app with profile, live games and build orders.",
+            "url": "https://www.aoe2companion.com"
+          }
+        ]
+      },
+      "qol": {
+        "title": "Quality-of-life mods",
+        "intro": "All in the game's Mod Center, free. They help you see better without changing the rules.",
+        "items": [
+          {
+            "name": "Improved Small Trees",
+            "what": "Smaller trees: you can see villagers and enemies behind the forest.",
+            "url": null
+          },
+          {
+            "name": "Bigger Idle Villager Warning",
+            "what": "A bigger idle-villager warning.",
+            "url": null
+          },
+          {
+            "name": "Improved Tech Tree UI",
+            "what": "Your civ's tech tree always at hand.",
+            "url": null
+          },
+          {
+            "name": "Grid mods",
+            "what": "A grid on the ground to line up houses, walls and farms.",
+            "url": null
+          }
+        ]
+      }
+    },
+    "open": "open",
+    "inGame": "in the game",
+    "roadmap": "Coming next on the site: a build-order checker (compares your game with the build you chose), a weekly training focus, and challenges with medals."
   }
 }

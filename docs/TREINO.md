@@ -140,6 +140,12 @@ aconteceu (hoje a partida só aparece como partida de liga).
 
 ### T6 — Página "Como treinar" + cenário próprio (ver §3 e §4)
 
+Página feita em 03/11/2026: `/training` ("Treino" no menu), texto em
+`messages/parts/training.*.json` (namespace `training`): o que o site mede,
+em que ordem treinar, e os links de §3 conferidos (todos respondem 200;
+KeyCombiner aponta pro tópico do AoE Zone porque a URL direta deu 404).
+Cenário próprio continua pendente de T2.
+
 ## 2b. Onde fica no site
 
 Seção nova **Treino** (`/pt/treino`, `/en/training`), no menu principal:
