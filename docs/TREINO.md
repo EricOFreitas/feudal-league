@@ -63,6 +63,22 @@ subida de era ocupam a fila); a mesma simulação dá o TC parado. Teste
 local: `apps/worker/src/tools/test-metrics.ts <profileId> [matchId]`.
 Casas atrasadas ficou de fora: exige simular população, fica pra depois.
 
+Conferência fina (03/11/2026, dados do jogo via aoe2techtree.net):
+aldeão 25 s; Loom 25; Town Watch 25; Town Patrol 40; Wheelbarrow 75;
+Hand Cart 55; Feudal 130; Castelos 160; Imperial 190. Bônus aplicados
+(a civ vem da API, o cabeçalho do replay não parseia): Persas TC
++5/10/15/20% por era; Malaios era +66% mais rápida; Godos Loom
+instantâneo; Portugueses techs +25%; Chineses 6 aldeões iniciais;
+Maias 4; Bengalis +2 por TC a cada era; qualquer 2º TC antes da
+Castelos (Cumanos) encerra a simulação. Bizantinos e Vikings têm techs
+de graça, que não geram comando, então não precisam de regra.
+Nomes oficiais PT-BR do jogo: Centro da Cidade, Aldeão, Idade das
+Trevas / Feudal / dos Castelos / Imperial.
+Bug achado e corrigido: o replay traz no relógio 0 mensagens sobradas da
+partida anterior ("gg", "avançou para Idade Imperial"); o analyzer
+contava como era alcançada. Agora ignora chat nos 5 primeiros segundos.
+Isso também corrige as eras que a análise com IA recebia.
+
 ### T2 — Conferidor de build order
 
 O jogador escolhe uma BO (ex.: 22 pop scouts), joga, e a análise mostra

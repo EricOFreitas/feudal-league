@@ -7,6 +7,7 @@
  * Imprime os números dos dois jogadores, grava em match_metrics e mostra os benchmarks da liga do jogador.
  */
 import { db, matches, matchMembers } from '@aoe2/db';
+import { civName } from '@aoe2/aoe-api';
 import { benchmarksForLeague, globalDivisionOf, metricsFromParse, parseReplay, storeMatchMetrics, syncMatchHistory } from '@aoe2/sync';
 import { desc, eq, inArray, sql } from 'drizzle-orm';
 
@@ -34,7 +35,7 @@ const ids = [profileId, ...match.members.map((m) => m.profileId).filter((p) => p
 console.log(`partida ${matchId} (${match.completedAt.toISOString()}, ${match.mapName}), jogadores ${ids.join(' vs ')}`);
 
 const t0 = Date.now();
-const parse = await parseReplay(matchId, ids);
+const parse = await parseReplay(matchId, ids, Object.fromEntries(match.members.map((m) => [m.profileId, civName(m.civId)])));
 console.log(`parse em ${Date.now() - t0} ms, duração ${parse.duration_s}s, header_ok=${parse.header_ok}, slots=${JSON.stringify(parse.slots)}`);
 for (const pid of ids) {
   const m = metricsFromParse(parse, pid);

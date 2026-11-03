@@ -41,6 +41,14 @@ AGE_ORDER = ['feudal', 'castle', 'imperial']
 # Serve pra estimar TC parado: a gravação não diz quando a vila saiu, só quando foi pedida.
 TC_RESEARCH_S = {22: 25, 8: 25, 280: 40, 213: 75, 249: 55, 101: 130, 102: 160, 103: 190}
 VILLAGER_TRAIN_S = 25
+AGE_TECHS = {101, 102, 103}
+# Bônus de civ que mudam esses tempos (texto oficial do jogo, conferido em 03/11/2026 em aoe2techtree.net):
+#   Persians: TC trabalha +5/10/15/20% mais rápido na Trevas/Feudal/Castelos/Imperial (aldeões e pesquisas do TC)
+#   Malay: subir de era +66% mais rápido · Goths: Loom instantâneo · Portuguese: tecnologias +25% mais rápidas
+#   Chinese: começa com +3 aldeões · Mayans: +1 · Bengalis: cada TC gera 2 aldeões ao chegar à era seguinte
+#   Cumans: 2º TC na Feudal (qualquer TC colocado antes da Castelos encerra a simulação de um TC só)
+START_VILLAGERS = {'Chinese': 6, 'Mayans': 4}
+PERSIAN_TC_RATE = (1.05, 1.10, 1.15, 1.20)
 MILITARY_BUILDINGS = {'Barracks', 'Archery Range', 'Stable', 'Siege Workshop', 'Castle', 'Dock', 'Monastery'}
 ECO_UNITS = {'Villager', 'Fishing Ship', 'Trade Cart', 'Trade Cog'}
 MAX_DOWNLOAD = 60 * 1024 * 1024
@@ -53,6 +61,8 @@ class ParseRequest(BaseModel):
     game_id: int
     profile_ids: list[int] = Field(min_length=1)
     """O primeiro é o jogador analisado; a URL oficial exige um participante."""
+    civs: dict[int, str] = {}
+    """profile_id → civ em inglês (vem da API do jogo; o cabeçalho não parseia). Só pra bônus que mudam tempos."""
 
 
 def obj_name(i):
@@ -96,13 +106,14 @@ def slot_order(header: bytes, profile_ids: list[int]) -> dict[int, int]:
     return {i + 1: pid for i, (_, pid) in enumerate(found)}
 
 
-def summarize(data: bytes, profile_ids: list[int]) -> dict:
+def summarize(data: bytes, profile_ids: list[int], civs: dict[int, str] | None = None) -> dict:
     hlen = struct.unpack('<I', data[:4])[0]
     try:
         header = zlib.decompress(data[8:hlen], -15)
     except zlib.error:
         header = b''
     slots = slot_order(header, profile_ids) if header else {}
+    civ_of_slot = {slot: (civs or {}).get(pid) for slot, pid in slots.items()}
 
     body = io.BytesIO(data[hlen:])
     fast.meta(body)
@@ -114,6 +125,24 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
         'tc_count': 1, 'market_s': None, 'idle_gaps': 0,
         'tc_busy_until': 0, 'tc_idle': 0, 'tc_idle_until': None, 'villagers_by_bucket': collections.Counter(), 'villagers_done_by_bucket': collections.Counter(),
     })
+
+    def tc_rate(p, slot):
+        """Fator de velocidade do TC pela civ e pela era atual (1.0 = padrão)."""
+        return PERSIAN_TC_RATE[min(len(p['ages_reached']), 3)] if civ_of_slot.get(slot) == 'Persians' else 1.0
+
+    def research_s(slot, p, tid):
+        """Quanto tempo a pesquisa `tid` ocupa a fila do TC, já com bônus de civ."""
+        civ = civ_of_slot.get(slot)
+        t = TC_RESEARCH_S[tid]
+        if tid in AGE_TECHS:
+            if civ == 'Malay':
+                t /= 1.66
+        else:
+            if civ == 'Goths' and tid == 22:
+                return 0
+            if civ == 'Portuguese':
+                t /= 1.25
+        return t / tc_rate(p, slot)
 
     def tc_use(p, sec, dur):
         """Fila do TC ocupada por `dur` s a partir de `sec` (ou de quando desocupar). Antes disso, estava parada.
@@ -151,10 +180,14 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             except Exception:
                 continue
             text = msg.get('message') or ''
+            if clock < 5000:  # sobras da partida anterior ("gg", "avançou para Idade Imperial") vêm gravadas no relógio 0
+                continue
             m = re.match(r'<player_id,(\d+),', text)
-            if m:  # mensagem do sistema: k-ésima = k-ésima era
+            if m and len(P[int(m.group(1))]['ages_reached']) < 3:  # mensagem do sistema: k-ésima = k-ésima era
                 pp = P[int(m.group(1))]
                 pp['ages_reached'].append(clock // 1000)
+                if civ_of_slot.get(int(m.group(1))) == 'Bengalis':  # 2 aldeões de graça por TC ao chegar à era
+                    pp['villagers_done_by_bucket'][clock // 1000 // BUCKET_S] += 2 * pp['tc_count']
                 if len(pp['ages_reached']) == 2:  # Castelo: a partir daqui mais TCs, a estimativa de TC parado acaba
                     tc_stop(pp, clock // 1000)
             elif msg.get('player') and msg.get('tauntNumber', -1) == -1 and len(P[msg['player']]['chat']) < 12:
@@ -179,7 +212,7 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             if tid is not None:
                 p['techs'][tid] = sec  # último clique vence (cancelamento/clique duplo)
                 if tid in TC_RESEARCH_S:
-                    tc_use(p, sec, TC_RESEARCH_S[tid])
+                    tc_use(p, sec, research_s(pid, p, tid))
         elif name in ('DE_QUEUE', 'QUEUE'):
             u = obj_name(d.get('unit_id'))
             n = d.get('amount') or 1
@@ -191,10 +224,11 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
                     p['villagers_by_bucket'][b] += n
                     # vila PRODUZIDA: shift-queue pede 5 de uma vez, então o pedido não diz quando ela saiu.
                     # Até a Castelo simula a fila do único TC; depois, com vários TCs, assume que sai na hora.
-                    free = tc_use(p, sec, VILLAGER_TRAIN_S * n)
+                    each = VILLAGER_TRAIN_S / tc_rate(p, pid)
+                    free = tc_use(p, sec, each * n)
                     for i in range(n):
-                        done = sec if free is None else free - VILLAGER_TRAIN_S * (n - 1 - i)
-                        p['villagers_done_by_bucket'][done // BUCKET_S] += 1
+                        done = sec if free is None else free - each * (n - 1 - i)
+                        p['villagers_done_by_bucket'][int(done) // BUCKET_S] += 1
             else:
                 p['mil_by_bucket'][b] += n
                 if p['first_military'] is None:
@@ -205,6 +239,7 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             p['building_first'].setdefault(b, sec)
             if b == 'Town Center':
                 p['tc_count'] += 1
+                tc_stop(p, sec)  # 2º TC (Cumanos na Feudal, ou qualquer um): simulação de um TC só acaba aqui
             if b == 'Market' and p['market_s'] is None:
                 p['market_s'] = sec
         elif name == 'WALL':
@@ -241,6 +276,8 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             'villagers_queued_per_5min': [p['vils_by_bucket'][b] for b in buckets],
             'villagers_only_per_5min': [p['villagers_by_bucket'][b] for b in buckets],
             'villagers_done_per_5min': [p['villagers_done_by_bucket'][b] for b in buckets],
+            'villagers_start': START_VILLAGERS.get(civ_of_slot.get(slot) or '', 3),
+            'civ': civ_of_slot.get(slot),
             'military_queued_per_5min': [p['mil_by_bucket'][b] for b in buckets],
             'town_centers': p['tc_count'],
             'market_s': p['market_s'],
@@ -271,7 +308,7 @@ def parse(req: ParseRequest):
     t0 = time.time()
     data = download(req.game_id, req.profile_ids[0])
     try:
-        out = summarize(data, req.profile_ids)
+        out = summarize(data, req.profile_ids, req.civs)
     except Exception as e:
         raise HTTPException(422, f'replay não parseável: {e}')
     out['game_id'] = req.game_id

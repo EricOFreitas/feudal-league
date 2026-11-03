@@ -5,7 +5,8 @@
  * custa o download do replay e 0,1 s de CPU. A análise pedida pelo jogador também grava (storeMatchMetrics).
  * Benchmark = quartis dos últimos 90 dias de partidas 1v1 dos jogadores da divisão.
  */
-import { db, divisions, leagueMatches, leagueMembers, leagues, matchMetrics, players, seasons } from '@aoe2/db';
+import { civName } from '@aoe2/aoe-api';
+import { db, divisions, leagueMatches, leagueMembers, leagues, matchMembers, matchMetrics, players, seasons } from '@aoe2/db';
 import { and, desc, eq, gt, inArray, isNull, notExists, sql } from 'drizzle-orm';
 import { alias, type PgColumn } from 'drizzle-orm/pg-core';
 import { AnalyzerError, parseReplay, type ParseOut } from './analyzer';
@@ -37,7 +38,8 @@ export function metricsFromParse(parse: ParseOut, profileId: number): (MetricNum
   if (!p) return null;
   // produzidas (fila do TC simulada até a Castelo), não pedidas: shift-queue pede 5 de uma vez
   const buckets = p.villagers_done_per_5min ?? p.villagers_only_per_5min ?? p.villagers_queued_per_5min;
-  const upTo = (minutes: number) => (parse.duration_s < minutes * 60 ? null : buckets.slice(0, minutes / 5).reduce((a, b) => a + b, 0));
+  const start = p.villagers_start ?? 3;  // aldeões iniciais (Chinese 6, Mayans 4): o número mostrado é o total vivo produzido, não só os treinados
+  const upTo = (minutes: number) => (parse.duration_s < minutes * 60 ? null : start + buckets.slice(0, minutes / 5).reduce((a, b) => a + b, 0));
   const age = (k: 'feudal' | 'castle' | 'imperial') => p.ages[k]?.reached_s ?? null;
   return {
     durationS: parse.duration_s,
@@ -47,6 +49,12 @@ export function metricsFromParse(parse: ParseOut, profileId: number): (MetricNum
     firstMilitaryS: p.first_military?.t_s ?? null,
     apm: Math.round(p.apm),
   };
+}
+
+/** profile_id → civ em inglês dos participantes (a API do jogo dá; o cabeçalho do replay não parseia). */
+export async function civsOfMatch(matchId: number): Promise<Record<number, string>> {
+  const rows = await db.select({ profileId: matchMembers.profileId, civId: matchMembers.civId }).from(matchMembers).where(eq(matchMembers.matchId, matchId));
+  return Object.fromEntries(rows.map((r) => [r.profileId, civName(r.civId)]));
 }
 
 /** Divisão atual na Liga Global de cada profile (só membros ativos em temporada aberta). */
@@ -131,7 +139,7 @@ export async function collectLeagueMetrics(limit = METRICS_PER_CYCLE): Promise<{
   for (const r of todo) {
     const match = { id: r.matchId, completedAt: r.playedAt, profileIds: [r.winnerProfile, r.loserProfile] };
     try {
-      const parse = await parseReplay(r.matchId, match.profileIds);
+      const parse = await parseReplay(r.matchId, match.profileIds, await civsOfMatch(r.matchId));
       const division = new Map(match.profileIds.map((p) => [p, r.divisionId]));
       const n = await storeMatchMetrics(match, parse, 'league', division);
       if (n === 0) { await markMatch(match, r.divisionId, 'failed', 'jogadores não identificados na gravação'); out.failed++; }

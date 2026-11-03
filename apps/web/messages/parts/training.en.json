@@ -14,10 +14,10 @@
       "feudal": "Feudal Age reached",
       "castle": "Castle Age reached",
       "imperial": "Imperial Age reached",
-      "vils10": "Villagers by 10:00",
-      "vils15": "Villagers by 15:00",
-      "vils20": "Villagers by 20:00",
-      "tcIdle": "TC idle before Castle (estimated)",
+      "vils10": "Villagers at 10:00",
+      "vils15": "Villagers at 15:00",
+      "vils20": "Villagers at 20:00",
+      "tcIdle": "Town Center idle before Castle Age (estimated)",
       "firstMilitary": "First military unit",
       "apm": "Actions per minute"
     },
@@ -25,7 +25,7 @@
     "never": "not reached",
     "none": "none",
     "topDivision": "already the highest",
-    "note": "Villagers are those produced by the TC (queue simulated until Castle; after that, with several TCs, it is approximate). TC idle is estimated from gaps between queue commands; Loom and age-ups count as TC busy.",
+    "note": "Villagers = starting ones plus those produced by the Town Center, with the queue simulated until Castle Age (after that, with several Town Centers, it is approximate). Idle time is estimated from gaps between queue commands; Loom and age-ups count as busy. Civ bonuses that change these timings (Persians, Malay, Goths, Portuguese, Chinese, Mayans, Bengalis) are applied.",
     "player": {
       "title": "Recent numbers",
       "intro": "{n, plural, =1 {Your last 1v1 game with a parsed recording} other {Median of your last # 1v1 games with a parsed recording}}, next to the median of {d} games in your division over the last 90 days. No AI.",

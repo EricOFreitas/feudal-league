@@ -11,13 +11,13 @@
       "above": "Divisão acima"
     },
     "metric": {
-      "feudal": "Chegada à Feudal",
-      "castle": "Chegada à Castelo",
-      "imperial": "Chegada à Imperial",
-      "vils10": "Vilas até 10:00",
-      "vils15": "Vilas até 15:00",
-      "vils20": "Vilas até 20:00",
-      "tcIdle": "TC parado até a Castelo (estimado)",
+      "feudal": "Chegada à Idade Feudal",
+      "castle": "Chegada à Idade dos Castelos",
+      "imperial": "Chegada à Idade Imperial",
+      "vils10": "Aldeões aos 10:00",
+      "vils15": "Aldeões aos 15:00",
+      "vils20": "Aldeões aos 20:00",
+      "tcIdle": "Centro da Cidade parado até a Idade dos Castelos (estimado)",
       "firstMilitary": "Primeira unidade militar",
       "apm": "Ações por minuto"
     },
@@ -25,7 +25,7 @@
     "never": "não chegou",
     "none": "nenhuma",
     "topDivision": "já é a mais alta",
-    "note": "Vilas são as produzidas pelo TC (fila simulada até a Castelo; depois, com vários TCs, é aproximado). TC parado é estimado pelos intervalos entre pedidos; Loom e subida de era contam como TC ocupado.",
+    "note": "Aldeões = os iniciais mais os produzidos pelo Centro da Cidade, com a fila simulada até a Idade dos Castelos (depois, com vários Centros, é aproximado). Centro parado é estimado pelos intervalos entre pedidos; Loom e subida de era contam como ocupado. Bônus de civ que mudam esses tempos (Persas, Malaios, Godos, Portugueses, Chineses, Maias, Bengalis) entram na conta.",
     "player": {
       "title": "Números recentes",
       "intro": "{n, plural, =1 {Sua última partida 1v1 com gravação lida} other {Mediana das suas últimas # partidas 1v1 com gravação lida}}, ao lado da mediana de {d} partidas da sua divisão nos últimos 90 dias. Sem IA.",

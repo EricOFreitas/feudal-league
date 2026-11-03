@@ -229,9 +229,9 @@ export async function processQueuedAnalyses(limit = 3): Promise<number> {
     const claimed = await db.update(matchAnalyses).set({ status: 'parsing', startedAt: new Date() }).where(and(eq(matchAnalyses.id, a.id), eq(matchAnalyses.status, 'queued'))).returning({ id: matchAnalyses.id });
     if (claimed.length === 0) continue;
     try {
-      const members = await db.select({ profileId: matchMembers.profileId }).from(matchMembers).where(eq(matchMembers.matchId, a.matchId));
+      const members = await db.select({ profileId: matchMembers.profileId, civId: matchMembers.civId }).from(matchMembers).where(eq(matchMembers.matchId, a.matchId));
       const ids = [a.profileId, ...members.map((m) => m.profileId).filter((p) => p !== a.profileId)];
-      const parse = await parseReplay(a.matchId, ids);
+      const parse = await parseReplay(a.matchId, ids, Object.fromEntries(members.map((m) => [m.profileId, civName(m.civId)])));
       await db.update(matchAnalyses).set({ status: 'writing', parse }).where(eq(matchAnalyses.id, a.id));
       try {  // números de treino (T1): grava mesmo que a IA falhe depois
         const m = await db.query.matches.findFirst({ where: eq(matches.id, a.matchId) });
