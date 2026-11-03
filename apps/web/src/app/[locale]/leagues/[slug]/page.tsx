@@ -5,7 +5,7 @@ import { Crosshair, Globe, Search, ShieldCheck, Users, X } from 'lucide-react';
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, divisions, leagueMembers, leagues, players } from '@aoe2/db';
 import {
-  MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, placementFor, seasonMonth,
+  AUTO_JOIN_MAX_MEMBERS, MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, placementFor, seasonMonth,
   searchStandings, standingsPage, type RankedRow, type SearchRow,
 } from '@aoe2/sync';
 import { and, asc, eq, isNull } from 'drizzle-orm';
@@ -320,7 +320,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                 <li>{t('rules.minGames', { n: league.minGames })}</li>
                 <li>{league.matchScope === 'all' ? t('rules.detectAll') : league.matchScope === 'ranked' ? t('rules.detectRanked') : league.matchScope === 'lobby' ? t('rules.detectLobby') : league.countNonMembers ? t('rules.detectNonMembers') : t('rules.detect')}</li>
                 {league.countNonMembers && (league.matchScope === 'all' || league.matchScope === 'ranked') && <li>{t('rules.detectNonMembersExtra')}</li>}
-                {league.autoJoinOpponents && <li>{t('rules.autoJoin')}</li>}
+                {league.autoJoinOpponents && <li>{t('rules.autoJoin', { max: AUTO_JOIN_MAX_MEMBERS })}</li>}
                 {league.isGlobal && <li>{t('rules.claimJoin')}</li>}
                 <li>{t('rules.points', { win: league.pointsWin, loss: league.pointsLoss })}</li>
                 <li>{league.isGlobal ? t('rules.seasonGlobal') : t('rules.season')}</li>

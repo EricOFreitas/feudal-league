@@ -187,7 +187,7 @@
       "points": "Win {win} points, loss {loss}. Tiebreaks: wins, then head-to-head, fewest matches and first to reach the score.",
       "season": "Your division stays frozen until the season ends. Then everyone is re-placed by their current rating.",
       "detectNonMembers": "Your ranked 1v1 against any player rated within your bracket counts, in the league or not. Between members of the same division, lobby counts too.",
-      "autoJoin": "Whoever plays against a member is brought into the league and placed in their division.",
+      "autoJoin": "Whoever plays against a member is brought into the league, up to {max, number} members, and placed in their division. Beyond that, only players who ask can join.",
       "claimJoin": "Claiming your profile joins this league automatically. You can leave any time.",
       "placementGlobal": "Your division comes from your current RM 1v1 rating, at most one below your peak's. Players who have been high can't drop too far.",
       "seasonGlobal": "The league is monthly. Your division stays frozen until the end of the month; on the 1st the table resets and everyone is re-placed.",
@@ -225,7 +225,7 @@
       "countNonMembers": "Ranked vs non-member in bracket counts",
       "countNonMembersHint": "Only ranked 1v1 against an opponent rated within the member's division range.",
       "autoJoin": "Bring the opponent into the league",
-      "autoJoinHint": "Whoever played a member joins on their own, in the bracket of their peak rating."
+      "autoJoinHint": "Whoever played against a member joins automatically, in the bracket of their peak, until the league reaches 5,000 members."
     },
     "admin": {
       "title": "Admin",

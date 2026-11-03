@@ -187,7 +187,7 @@
       "points": "Vitória {win} pontos, derrota {loss}. Desempate por vitórias, depois confronto direto, menos partidas e quem chegou primeiro à pontuação.",
       "season": "Sua divisão fica congelada até o fim da temporada. Aí todo mundo é recolocado pelo rating do momento.",
       "detectNonMembers": "Sua ranqueada 1v1 contra qualquer jogador com rating na sua faixa conta, esteja ele na liga ou não. Entre membros da mesma divisão, lobby também conta.",
-      "autoJoin": "Quem joga contra um membro é trazido pra liga e colocado na divisão dele.",
+      "autoJoin": "Quem joga contra um membro é trazido pra liga, até {max, number} membros, e colocado na divisão dele. Passando disso, só entra quem pedir.",
       "claimJoin": "Quem reivindica o perfil entra nesta liga automaticamente. Dá pra sair quando quiser.",
       "placementGlobal": "Sua divisão vem do seu rating atual na RM 1v1, no máximo uma abaixo da do seu pico. Quem já esteve alto não cai para muito longe.",
       "seasonGlobal": "A liga é mensal. Sua divisão fica congelada até o fim do mês; no dia 1º a tabela zera e todo mundo é recolocado.",
@@ -225,7 +225,7 @@
       "countNonMembers": "Ranqueada contra não-membro da faixa conta",
       "countNonMembersHint": "Vale só ranqueada 1v1 contra adversário com rating dentro da faixa da divisão do membro.",
       "autoJoin": "Trazer o adversário pra liga",
-      "autoJoinHint": "Quem jogou contra um membro entra na liga sozinho, na faixa do pico dele."
+      "autoJoinHint": "Quem jogou contra um membro entra na liga sozinho, na faixa do pico dele, até a liga chegar a 5.000 membros."
     },
     "admin": {
       "title": "Administração",

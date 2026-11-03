@@ -12,7 +12,7 @@
         "items": [
           {
             "q": "Como entro numa liga?",
-            "a": "Na Liga Global você entra sozinho ao reivindicar seu perfil (entre com a Steam e o portal acha seu perfil pela conta), e pode sair quando quiser. Nas outras ligas, clique em Entrar na página da liga. Você cai na divisão correspondente ao seu rating e fica nela até a temporada fechar. Quem joga ranqueada contra um membro da Liga Global também é trazido pra ela, na divisão dele."
+            "a": "Na Liga Global você entra sozinho ao reivindicar seu perfil (entre com a Steam e o portal acha seu perfil pela conta), e pode sair quando quiser. Nas outras ligas, clique em Entrar na página da liga. Você cai na divisão correspondente ao seu rating e fica nela até a temporada fechar. Quem joga ranqueada contra um membro da Liga Global também é trazido pra ela, na divisão dele, até a liga chegar a 5.000 membros. Passando disso, só entra quem pedir."
           },
           {
             "q": "Qual rating define minha divisão?",

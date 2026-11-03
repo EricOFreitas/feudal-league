@@ -309,3 +309,5 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   contavam, contra 84% de quem estava na faixa; com a regra nova, 82% de todas ficam na faixa. Ligas
   próprias seguem pelo pico, com temporada fechada à mão. Desempate novo em todas: vitórias, confronto
   direto, menos partidas, quem chegou primeiro à pontuação. Home passa a ser a liga do mês.
+- 03/11/2026 — Auto-join para em 5.000 membros por liga; depois só entra quem pedir. Motivo: depois da
+  recolocação a Global ganhava cerca de 4 mil membros por dia, e o worker atende uns 18 mil a cada 6 h.

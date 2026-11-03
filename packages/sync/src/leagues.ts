@@ -33,6 +33,9 @@ export const DIVISION_KEYS = DEFAULT_DIVISIONS.map((d) => d.nameKey);
 
 export const GLOBAL_SLUG = 'global';
 
+/** Teto do auto-join: com a liga nesse tamanho, só entra quem pedir (botão Entrar ou reivindicar o perfil). */
+export const AUTO_JOIN_MAX_MEMBERS = 5000;
+
 /** Mínimo de partidas contadas no mês pra entrar no pódio da liga mensal. */
 export const PODIUM_MIN_GAMES = 10;
 
@@ -329,16 +332,21 @@ export async function detectLeagueMatches(): Promise<number> {
 
 /**
  * Traz pra liga, aos poucos, os adversários de partidas que contaram (ligas com auto_join_opponents).
- * Por ciclo: até `limit` jogadores. Busca o rating deles na API (lotes de 20) e coloca pelo pico;
- * quem não é elegível (poucas partidas, sem rating) fica marcado e não é tentado de novo por 30 dias.
+ * Por ciclo: até `limit` jogadores, sem passar de `maxMembers` na liga. Busca o rating deles na API e coloca
+ * pela regra da liga; quem não é elegível (poucas partidas, sem rating) fica marcado e não é tentado de novo
+ * por 30 dias.
  */
-export async function autoJoinOpponents(limit = 40): Promise<number> {
+export async function autoJoinOpponents(limit = 40, maxMembers = AUTO_JOIN_MAX_MEMBERS): Promise<number> {
   const targets = await db.select({ league: leagues, season: seasons }).from(leagues)
     .innerJoin(seasons, and(eq(seasons.leagueId, leagues.id), isNull(seasons.endedAt)))
     .where(and(eq(leagues.autoJoinOpponents, true), eq(leagues.status, 'open')));
   let joined = 0;
   for (const { league, season } of targets) {
     if (limit <= 0) break;
+    const [count] = await db.select({ n: sql<number>`count(*)::int` }).from(leagueMembers)
+      .where(and(eq(leagueMembers.seasonId, season.id), isNull(leagueMembers.leftAt)));
+    const room = Math.min(limit, maxMembers - (count?.n ?? 0));
+    if (room <= 0) continue;
     const rows = await db.execute<{ id: number; profile_id: number }>(sql`
       select distinct p.id, p.profile_id
       from league_matches x
@@ -346,7 +354,7 @@ export async function autoJoinOpponents(limit = 40): Promise<number> {
       where x.season_id = ${season.id}
         and (p.auto_join_checked_at is null or p.auto_join_checked_at < now() - interval '30 days')
         and not exists (select 1 from league_members lm where lm.season_id = ${season.id} and lm.player_id = p.id and lm.left_at is null)
-      limit ${limit}
+      limit ${room}
     `);
     const list = [...rows].map((r) => ({ id: Number(r.id), profileId: Number(r.profile_id) }));
     if (list.length === 0) continue;

@@ -12,7 +12,7 @@
         "items": [
           {
             "q": "How do I join a league?",
-            "a": "You join the Global League automatically when you claim your profile (sign in with Steam and the portal finds your profile through your account), and you can leave any time. For other leagues, click Join on the league page. You are placed in the division matching your rating and stay there until the season closes. Whoever plays ranked against a Global League member is also brought in, in their division."
+            "a": "You join the Global League automatically when you claim your profile (sign in with Steam and the portal finds your profile through your account), and you can leave any time. For other leagues, click Join on the league page. You are placed in the division matching your rating and stay there until the season closes. Whoever plays ranked against a Global League member is also brought in, in their division, until the league reaches 5,000 members. Beyond that, only players who ask can join."
           },
           {
             "q": "Which rating decides my division?",
