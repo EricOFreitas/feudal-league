@@ -9,18 +9,20 @@
  * apura o pódio do mês que acabou, tira o retrato semanal das posições, envia os avisos pendentes ao Discord
  * e registra cada etapa em sync_runs (página de status).
  * Depois lê a gravação das partidas de liga novas e guarda os números de treino (sem IA; docs/TREINO.md).
- * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA).
+ * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA) e, a cada 30 s, lê os lobbies
+ * abertos por quem está disponível pra treinar (só chama a API se alguém estiver).
  */
 import { db, players } from '@aoe2/db';
 import {
   activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardMonthlyPodiums, closeIncident, collectLeagueMetrics, detectLeagueMatches, detectTournamentGames, openIncident,
-  processNotifications, processQueuedAnalyses, recordSyncRun, rollMonthlySeasons, syncMatchHistory, syncRatingsByProfileIds, takeWeeklySnapshots,
+  processNotifications, processQueuedAnalyses, purgeExpiredSparring, recordSyncRun, rollMonthlySeasons, syncMatchHistory, syncOpenLobbies, syncRatingsByProfileIds, takeWeeklySnapshots,
 } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
 
 const ONCE = process.argv.includes('--once');
 const CYCLE_MS = 5 * 60 * 1000;
 const ANALYSIS_MS = 10 * 1000;
+const LOBBY_MS = 30 * 1000;
 const log = (...a: unknown[]) => console.log(new Date().toISOString(), ...a);
 
 async function pickDue(): Promise<number[]> {
@@ -94,6 +96,7 @@ async function cycle() {
   const t2 = new Date();
   const snaps = await takeWeeklySnapshots();
   if (snaps) { log(`${snaps} posições fotografadas (semana)`); await recordSyncRun('snapshot', t2, { players: snaps }); }
+  try { const purged = await purgeExpiredSparring(); if (purged) log(`${purged} disponibilidades de treino vencidas apagadas`); } catch (e) { log('erro na limpeza do treino:', (e as Error).message); }
   const t3 = new Date();
   try {
     const sent = await processNotifications();
@@ -117,11 +120,25 @@ async function analysisLoop() {
   }
 }
 
+async function lobbyLoop() {
+  let last = -1;
+  for (;;) {
+    try {
+      const n = await syncOpenLobbies();
+      if (n !== last) { if (n || last > 0) log(`lobbies de treino abertos: ${n}`); last = n; }
+    } catch (e) { log('erro nos lobbies:', (e as Error).message); }
+    if (ONCE) return;
+    await new Promise((r) => setTimeout(r, LOBBY_MS));
+  }
+}
+
 const analyses = analysisLoop();
+const lobbies = lobbyLoop();
 for (;;) {
   try { await cycle(); } catch (e) { log('erro no ciclo:', (e as Error).message); }
   if (ONCE) break;
   await new Promise((r) => setTimeout(r, CYCLE_MS));
 }
 await analyses;
+await lobbies;
 process.exit(0);

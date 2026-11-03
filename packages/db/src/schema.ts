@@ -274,6 +274,44 @@ export const matchAnalyses = pgTable(
   ],
 );
 
+/* ───────────────────────── Treino: sparring e mentoria (T5) ───────────────────────── */
+
+/** "Quero treinar" / "Topo mentorar": uma linha por (jogador, liga), vale até expires_at. */
+export const sparringAvailability = pgTable(
+  'sparring_availability',
+  {
+    id: serial('id').primaryKey(),
+    playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+    leagueId: integer('league_id').notNull().references(() => leagues.id, { onDelete: 'cascade' }),
+    /** Divisão do jogador na liga. Mentor aparece pra divisão abaixo desta. */
+    divisionId: integer('division_id').notNull().references(() => divisions.id, { onDelete: 'cascade' }),
+    /** train | mentor. */
+    kind: varchar('kind', { length: 8 }).notNull().default('train'),
+    note: text('note'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /** Aviso "quer treinar" já enviado (Discord). */
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
+  },
+  (t) => [uniqueIndex('sparring_player_league_idx').on(t.playerId, t.leagueId), index('sparring_league_expires_idx').on(t.leagueId, t.expiresAt)],
+);
+
+/** Lobbies abertos no jogo por quem está disponível pra treinar; o worker refaz a cada 30 s. */
+export const openLobbies = pgTable(
+  'open_lobbies',
+  {
+    /** id do anúncio no jogo: é o que aoe2de://0/<id> abre. */
+    id: bigint('id', { mode: 'number' }).primaryKey(),
+    hostProfileId: integer('host_profile_id').notNull(),
+    description: text('description'),
+    passwordProtected: boolean('password_protected').notNull().default(false),
+    players: smallint('players').notNull().default(1),
+    maxPlayers: smallint('max_players').notNull().default(2),
+    seenAt: timestamp('seen_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('open_lobbies_host_idx').on(t.hostProfileId)],
+);
+
 /* ───────────────────────── Treino: métricas por partida (T1) ───────────────────────── */
 
 /**
@@ -620,6 +658,11 @@ export const incidents = pgTable(
   (t) => [index('incidents_time_idx').on(t.startedAt)],
 );
 
+export const sparringAvailabilityRelations = relations(sparringAvailability, ({ one }) => ({
+  player: one(players, { fields: [sparringAvailability.playerId], references: [players.id] }),
+  division: one(divisions, { fields: [sparringAvailability.divisionId], references: [divisions.id] }),
+  league: one(leagues, { fields: [sparringAvailability.leagueId], references: [leagues.id] }),
+}));
 export const playerMedalsRelations = relations(playerMedals, ({ one }) => ({
   player: one(players, { fields: [playerMedals.playerId], references: [players.id] }),
   season: one(seasons, { fields: [playerMedals.seasonId], references: [seasons.id] }),
@@ -649,6 +692,8 @@ export type LeagueMember = typeof leagueMembers.$inferSelect;
 export type LeagueMatch = typeof leagueMatches.$inferSelect;
 export type MatchAnalysis = typeof matchAnalyses.$inferSelect;
 export type MatchMetric = typeof matchMetrics.$inferSelect;
+export type SparringAvailability = typeof sparringAvailability.$inferSelect;
+export type OpenLobbyRow = typeof openLobbies.$inferSelect;
 export type Tournament = typeof tournaments.$inferSelect;
 export type TournamentTeam = typeof tournamentTeams.$inferSelect;
 export type TournamentTeamMember = typeof tournamentTeamMembers.$inferSelect;

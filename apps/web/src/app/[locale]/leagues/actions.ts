@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, leagueMatches, leagues } from '@aoe2/db';
-import { MATCH_SCOPES, createLeague, joinLeague, leaveLeague, restoreLeagueMatch, startNewSeason, voidLeagueMatch } from '@aoe2/sync';
+import { MATCH_SCOPES, SPARRING_KINDS, SPARRING_NOTE_MAX, clearSparring, createLeague, joinLeague, leaveLeague, restoreLeagueMatch, setSparring, startNewSeason, voidLeagueMatch, type SparringKind } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { redirect } from '@/i18n/navigation';
@@ -146,3 +146,30 @@ export async function createLeagueAction(_prev: CreateState, fd: FormData): Prom
   return null;
 }
 
+
+/* ───────────────────────── treino (T5) ───────────────────────── */
+
+export async function setSparringAction(fd: FormData) {
+  const locale = localeOf(fd);
+  const slug = String(fd.get('slug') ?? '');
+  const leagueId = idOf(fd, 'leagueId');
+  const kindRaw = String(fd.get('kind') ?? 'train');
+  const kind: SparringKind = (SPARRING_KINDS as readonly string[]).includes(kindRaw) ? (kindRaw as SparringKind) : 'train';
+  const note = String(fd.get('note') ?? '').replace(/\s+/g, ' ').trim().slice(0, SPARRING_NOTE_MAX);
+  const { player } = await sessionPlayer();
+  if (!player || !Number.isInteger(leagueId)) redirect({ href: `/leagues/${slug}`, locale });
+  const r = await setSparring(player!.id, leagueId, kind, note || null);
+  revalidatePath(`/${locale}/leagues/${slug}`);
+  redirect({ href: r.ok ? `/leagues/${slug}?div=${r.divisionId}&sp=ok` : `/leagues/${slug}?sp=${r.reason}`, locale });
+}
+
+export async function clearSparringAction(fd: FormData) {
+  const locale = localeOf(fd);
+  const slug = String(fd.get('slug') ?? '');
+  const leagueId = idOf(fd, 'leagueId');
+  const div = Number(fd.get('div')) || null;
+  const { player } = await sessionPlayer();
+  if (player && Number.isInteger(leagueId)) await clearSparring(player.id, leagueId);
+  revalidatePath(`/${locale}/leagues/${slug}`);
+  redirect({ href: `/leagues/${slug}${div ? `?div=${div}` : ''}`, locale });
+}

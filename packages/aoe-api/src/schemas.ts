@@ -93,3 +93,17 @@ export type Member = z.infer<typeof memberSchema>;
 export type LeaderboardStat = z.infer<typeof leaderboardStatSchema>;
 export type ApiMatch = z.infer<typeof matchSchema>;
 export type ApiMatchMember = z.infer<typeof matchMemberSchema>;
+
+/** Lobby anunciado (findAdvertisements). Números vêm como string em matchmembers. */
+export const advertisementSchema = z.object({
+  id: z.number(),
+  host_profile_id: z.number(),
+  description: z.string().nullable().optional().default(''),
+  passwordprotected: z.number().optional().default(0),
+  maxplayers: z.number(),
+  matchtype_id: z.number().optional().default(0),
+  state: z.number().optional().default(0),
+  matchmembers: z.array(z.object({ profile_id: z.coerce.number() })).optional().default([]),
+});
+export const advertisementsResponse = z.object({ result: resultSchema, matches: z.array(advertisementSchema) });
+export type Advertisement = z.infer<typeof advertisementSchema>;

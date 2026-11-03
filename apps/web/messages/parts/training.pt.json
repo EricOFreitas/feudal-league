@@ -31,5 +31,31 @@
       "intro": "{n, plural, =1 {Sua última partida 1v1 com gravação lida} other {Mediana das suas últimas # partidas 1v1 com gravação lida}}, ao lado da mediana de {d} partidas da sua divisão nos últimos 90 dias. Sem IA.",
       "empty": "Ainda não há partida sua com gravação lida. Partidas de liga são lidas sozinhas; as outras, quando você pede análise."
     }
+  },
+  "sparring": {
+    "title": "Treino · {division}",
+    "intro": "Quem está disponível agora pra um treino. Um dos dois cria o lobby no jogo; o botão de entrar aparece aqui em até 30 segundos e abre o jogo direto no lobby.",
+    "trainers": "Disponíveis pra treinar",
+    "mentors": "Mentores da divisão {division}",
+    "empty": "Ninguém disponível agora.",
+    "until": "até {time}",
+    "join": "Entrar no lobby",
+    "password": "com senha",
+    "lobbyName": "lobby “{name}”",
+    "steam": "Steam",
+    "you": "você",
+    "mine": "Você está disponível até {time}.",
+    "mineMentor": "Você está na lista de mentores até {time}.",
+    "leave": "Não estou mais disponível",
+    "note": "Nota (opcional): mapa, horário, Discord…",
+    "train": "Quero treinar",
+    "mentor": "Topo mentorar a divisão {division}",
+    "hours": "Vale por {h} horas. Treino conta na liga como qualquer partida.",
+    "login": "Entrar com Steam pra ficar disponível",
+    "notMember": "Só membros desta divisão (ou da de cima, como mentores) entram na lista.",
+    "err": {
+      "not_member": "Você não é membro desta liga.",
+      "no_division_below": "Não há divisão abaixo da sua pra mentorar."
+    }
   }
 }

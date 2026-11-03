@@ -29,15 +29,15 @@
  * - Texto em português: a liga é brasileira e o Discord não tem i18n nesta versão.
  */
 import {
-  db, divisions, leagueMatches, leagueMembers, leagueWebhooks, leagues, seasons, tournamentGames, tournamentMatches, tournaments,
+  db, divisions, leagueMatches, leagueMembers, leagueWebhooks, leagues, seasons, sparringAvailability, tournamentGames, tournamentMatches, tournaments,
   type LeagueWebhook,
 } from '@aoe2/db';
 import { and, asc, eq, inArray, isNotNull, isNull, lt, notInArray, or, sql, type SQL } from 'drizzle-orm';
 import { PODIUM_MIN_GAMES, POINTS_LOSS, POINTS_WIN, standings } from './leagues';
 
-export const WEBHOOK_EVENTS = ['match', 'voided', 'tournament', 'member', 'season'] as const;
+export const WEBHOOK_EVENTS = ['match', 'voided', 'tournament', 'member', 'season', 'sparring'] as const;
 export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
-export const DEFAULT_WEBHOOK_EVENTS: WebhookEvent[] = ['match', 'voided', 'tournament', 'season'];
+export const DEFAULT_WEBHOOK_EVENTS: WebhookEvent[] = ['match', 'voided', 'tournament', 'season', 'sparring'];
 export const WEBHOOK_URL_RE = /^https:\/\/(discord|discordapp)\.com\/api\/webhooks\/\S+$/;
 /** Embeds por webhook em cada ciclo do worker (uma mensagem; o Discord aceita até 10). */
 export const MAX_EMBEDS_PER_CYCLE = 5;
@@ -46,7 +46,7 @@ const LOAD_LIMIT = 200;
 const USERNAME = 'Feudal League';
 
 export const EMBED_COLORS = {
-  match: 0x4f7a3a, restored: 0x4f7a3a, voided: 0xa6342e, tournament: 0xd4af5a, member: 0x3b6ea8, season: 0xe9cf8a, test: 0xd4af5a,
+  match: 0x4f7a3a, restored: 0x4f7a3a, voided: 0xa6342e, tournament: 0xd4af5a, member: 0x3b6ea8, season: 0xe9cf8a, sparring: 0x7a6a3a, test: 0xd4af5a,
 } as const;
 
 export type DiscordEmbed = { title: string; description: string; color: number; footer: { text: string }; url?: string };
@@ -217,6 +217,18 @@ export function memberEmbed(m: { player: string; division: string; rating: numbe
   };
 }
 
+const hm = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+
+export function sparringEmbed(s: { player: string; division: string; kind: 'train' | 'mentor'; note: string | null; until: Date }, league: string, at: Date, url?: string): DiscordEmbed {
+  const what = s.kind === 'mentor' ? `${s.player} topa mentorar` : `${s.player} quer treinar`;
+  const where = s.kind === 'mentor' ? `Mentor da divisão ${s.division}, disponível pra quem é da divisão abaixo` : `Disponível na divisão ${s.division}`;
+  return {
+    title: what,
+    description: `${where} até ${hm.format(s.until)} (Brasília).${s.note ? ` "${s.note}"` : ''} Quando o lobby abrir, o botão de entrar aparece na página da liga.`,
+    color: EMBED_COLORS.sparring, footer: { text: `${league} · ${formatDiscordDate(at)}` }, url,
+  };
+}
+
 type SeasonDivision = { divisionId: number; division: string; podium: { player: string; points: number }[] };
 
 export function seasonEmbed(s: { number: number; divisions: SeasonDivision[] }, league: string, at: Date, url?: string): DiscordEmbed {
@@ -240,6 +252,7 @@ export function previewEmbeds(league: string, division: string, at = new Date())
     tournament: tournamentEmbed({ tournament: 'Copa de Novembro', round: 'Semifinal', teamA: 'Ceifador', teamB: 'Bruma', scoreA: 2, scoreB: 1, bestOf: 3, closed: { winner: 'Ceifador', outcome: 'advances' } }, league, at),
     member: memberEmbed({ player: 'Lobo Frio', division, rating: 1012 }, league, at),
     season: seasonEmbed({ number: 3, divisions: [{ divisionId: 0, division, podium: [{ player: 'Ceifador', points: 31 }, { player: 'Tora', points: 27 }, { player: 'Bruma', points: 22 }] }] }, league, at),
+    sparring: sparringEmbed({ player: 'Tora', division, kind: 'train', note: 'Arábia, estou no Discord', until: new Date(at.getTime() + 2 * 60 * 60 * 1000) }, league, at),
   };
 }
 
@@ -284,6 +297,7 @@ async function markWithoutHooks(hookLeagueIds: number[]) {
   await db.update(leagueMembers).set({ notifiedAt: sql`now()` })
     .where(and(isNull(leagueMembers.notifiedAt), hookLeagueIds.length ? or(isNotNull(leagueMembers.leftAt), notInArray(leagueMembers.leagueId, hookLeagueIds)) : undefined));
   await db.update(seasons).set({ notifiedAt: sql`now()` }).where(and(isNotNull(seasons.endedAt), isNull(seasons.notifiedAt), outside(seasons.leagueId)));
+  await db.update(sparringAvailability).set({ notifiedAt: sql`now()` }).where(and(isNull(sparringAvailability.notifiedAt), outside(sparringAvailability.leagueId)));
   const tmOutside = db.select({ id: tournamentMatches.id }).from(tournamentMatches).innerJoin(tournaments, eq(tournaments.id, tournamentMatches.tournamentId))
     .where(hookLeagueIds.length ? or(isNull(tournaments.leagueId), notInArray(tournaments.leagueId, hookLeagueIds)) : undefined);
   await db.update(tournamentGames).set({ notifiedAt: sql`now()` }).where(and(isNull(tournamentGames.notifiedAt), inArray(tournamentGames.tournamentMatchId, tmOutside)));
@@ -371,6 +385,21 @@ async function loadItems(hookLeagueIds: number[]): Promise<Item[]> {
       leagueId: mb.leagueId, event: 'member', at: mb.joinedAt, divisionId: mb.divisionId,
       build: rollover ? null : () => memberEmbed({ player: mb.player.alias, division: discordDivisionName(mb.division), rating: mb.placementRating }, lname(mb.leagueId), mb.joinedAt, lurl(mb.leagueId)),
       mark: async () => (await db.update(leagueMembers).set({ notifiedAt: sql`now()` }).where(and(eq(leagueMembers.id, mb.id), isNull(leagueMembers.notifiedAt))).returning({ id: leagueMembers.id })).length > 0,
+    });
+  }
+
+  // quero treinar / topo mentorar (só enquanto vale; vencida sem aviso só marca)
+  const sparring = await db.query.sparringAvailability.findMany({
+    where: and(isNull(sparringAvailability.notifiedAt), inArray(sparringAvailability.leagueId, hookLeagueIds)),
+    with: { player: { columns: { alias: true } }, division: true },
+    orderBy: [asc(sparringAvailability.createdAt)], limit: LOAD_LIMIT,
+  });
+  for (const sp of sparring) {
+    const expired = sp.expiresAt.getTime() < Date.now();
+    items.push({
+      leagueId: sp.leagueId, event: 'sparring', at: sp.createdAt, divisionId: sp.divisionId,
+      build: expired ? null : () => sparringEmbed({ player: sp.player.alias, division: discordDivisionName(sp.division), kind: sp.kind === 'mentor' ? 'mentor' : 'train', note: sp.note, until: sp.expiresAt }, lname(sp.leagueId), sp.createdAt, lurl(sp.leagueId) ? `${lurl(sp.leagueId)}?div=${sp.divisionId}` : undefined),
+      mark: async () => (await db.update(sparringAvailability).set({ notifiedAt: sql`now()` }).where(and(eq(sparringAvailability.id, sp.id), isNull(sparringAvailability.notifiedAt))).returning({ id: sparringAvailability.id })).length > 0,
     });
   }
 

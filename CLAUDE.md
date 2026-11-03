@@ -17,11 +17,11 @@ Plano e decisões: `docs/PLANO.md`. Ler antes de mexer em escopo.
 
 ```
 apps/web            Next.js (páginas em src/app/[locale]/, rotas de auth em src/app/auth/)
-apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) + detecção de partidas de liga + métricas de treino (replay sem IA) + fila de análises
+apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) + detecção de partidas de liga + métricas de treino (replay sem IA) + lobbies de treino (30 s) + fila de análises
 apps/analyzer       Python: replay → JSON (POST /parse). Dockerfile próprio; local: uvicorn main:app
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras: players/matches; ligas em leagues.ts; liga mensal e medalhas em podium.ts; dados da home em home.ts; análise em analyses.ts (cliente do analyzer em analyzer.ts); métricas de treino e benchmarks por divisão em metrics.ts (docs/TREINO.md); torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal)
+packages/sync       regras: players/matches; ligas em leagues.ts; liga mensal e medalhas em podium.ts; dados da home em home.ts; análise em analyses.ts (cliente do analyzer em analyzer.ts); métricas de treino e benchmarks por divisão em metrics.ts e sparring/mentoria em sparring.ts (docs/TREINO.md); torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal)
 docs/PLANO.md       plano, fases, decisões
 ```
 

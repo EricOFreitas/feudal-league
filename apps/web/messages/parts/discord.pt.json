@@ -20,11 +20,30 @@
     },
     "events": {
       "title": "O que postar",
-      "match": { "label": "Partida da liga confirmada", "hint": "Quem venceu quem, divisão, mapa e pontos." },
-      "voided": { "label": "Partida anulada ou restaurada", "hint": "Com o motivo, se você escrever um." },
-      "tournament": { "label": "Torneios", "hint": "Resultado de cada jogo, quem avança e o campeão." },
-      "member": { "label": "Novo membro", "hint": "Pode ficar barulhento em liga grande." },
-      "season": { "label": "Fim de temporada", "hint": "Campeão e pódio de cada divisão." }
+      "match": {
+        "label": "Partida da liga confirmada",
+        "hint": "Quem venceu quem, divisão, mapa e pontos."
+      },
+      "voided": {
+        "label": "Partida anulada ou restaurada",
+        "hint": "Com o motivo, se você escrever um."
+      },
+      "tournament": {
+        "label": "Torneios",
+        "hint": "Resultado de cada jogo, quem avança e o campeão."
+      },
+      "member": {
+        "label": "Novo membro",
+        "hint": "Pode ficar barulhento em liga grande."
+      },
+      "season": {
+        "label": "Fim de temporada",
+        "hint": "Campeão e pódio de cada divisão."
+      },
+      "sparring": {
+        "label": "Quero treinar / topo mentorar",
+        "hint": "Quem ficou disponível pra treino na divisão, por 2 horas."
+      }
     },
     "divisions": {
       "title": "Divisões",

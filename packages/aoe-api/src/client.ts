@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import {
+  advertisementsResponse,
   leaderboardResponse,
   matchHistoryResponse,
   personalStatResponse,
@@ -33,8 +34,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let lastCallAt = 0;
 const MIN_INTERVAL_MS = 500;
 
-async function call<T>(path: string, params: Record<string, string>, schema: z.ZodType<T>): Promise<T> {
-  const url = new URL(`${BASE}/${path}`);
+async function call<T>(path: string, params: Record<string, string>, schema: z.ZodType<T>, base = BASE): Promise<T> {
+  const url = new URL(`${base}/${path}`);
   url.searchParams.set('title', TITLE);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
@@ -136,4 +137,21 @@ export function joinStats(ps: PersonalStats): Map<number, { member: Member; stat
 export function steamIdFromName(name: string): string | null {
   const m = /^\/steam\/(\d{17})$/.exec(name);
   return m ? m[1]! : null;
+}
+
+export type OpenLobby = { id: number; hostProfileId: number; description: string; passwordProtected: boolean; players: number; maxPlayers: number; memberProfileIds: number[] };
+
+/**
+ * Lobbies abertos agora (o mesmo que a lista do jogo mostra). ~95 lobbies / 225 KB em 03/11/2026.
+ * Só lobbies ainda não iniciados (state 0). O id é o que o link aoe2de://0/<id> abre.
+ */
+export async function findOpenLobbies(): Promise<OpenLobby[]> {
+  const data = await call('findAdvertisements', {}, advertisementsResponse, `${HOST}/community/advertisement`);
+  assertOk(data.result, 'findAdvertisements');
+  return data.matches
+    .filter((m) => m.state === 0)
+    .map((m) => ({
+      id: m.id, hostProfileId: m.host_profile_id, description: (m.description ?? '').trim(), passwordProtected: m.passwordprotected !== 0,
+      players: m.matchmembers.length, maxPlayers: m.maxplayers, memberProfileIds: m.matchmembers.map((x) => x.profile_id),
+    }));
 }

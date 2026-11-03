@@ -31,5 +31,31 @@
       "intro": "{n, plural, =1 {Your last 1v1 game with a parsed recording} other {Median of your last # 1v1 games with a parsed recording}}, next to the median of {d} games in your division over the last 90 days. No AI.",
       "empty": "No game of yours has a parsed recording yet. League games are read automatically; others, when you request an analysis."
     }
+  },
+  "sparring": {
+    "title": "Sparring · {division}",
+    "intro": "Who is available for a practice game right now. One of you creates the lobby in the game; the join button shows up here within 30 seconds and opens the game straight into the lobby.",
+    "trainers": "Available to train",
+    "mentors": "Mentors from the {division} division",
+    "empty": "Nobody available right now.",
+    "until": "until {time}",
+    "join": "Join lobby",
+    "password": "password",
+    "lobbyName": "lobby “{name}”",
+    "steam": "Steam",
+    "you": "you",
+    "mine": "You are available until {time}.",
+    "mineMentor": "You are listed as a mentor until {time}.",
+    "leave": "I'm no longer available",
+    "note": "Note (optional): map, time, Discord…",
+    "train": "I want to train",
+    "mentor": "I'll mentor the {division} division",
+    "hours": "Lasts {h} hours. Practice games count in the league like any other.",
+    "login": "Sign in with Steam to become available",
+    "notMember": "Only members of this division (or the one above, as mentors) can join the list.",
+    "err": {
+      "not_member": "You are not a member of this league.",
+      "no_division_below": "There is no division below yours to mentor."
+    }
   }
 }

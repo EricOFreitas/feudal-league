@@ -124,6 +124,20 @@ sem IA. Discord já existe pra avisar.
 
 Sem dependência técnica. Dá pra fazer a qualquer hora.
 
+**Feito em 03/11/2026.** Tabelas `sparring_availability` (uma por jogador e
+liga, vale 2 h, kind train|mentor) e `open_lobbies`; `packages/sync/sparring.ts`;
+cliente `findOpenLobbies` em `packages/aoe-api` (endpoint público
+`community/advertisement/findAdvertisements`, ~95 lobbies/225 KB, 1,3 s). O
+worker lê os lobbies a cada 30 s só enquanto alguém está disponível e guarda
+os dos anfitriões disponíveis; o painel "Treino · divisão" na página da liga
+(lado direito) lista disponíveis e mentores da divisão de cima, com botão
+"Entrar no lobby" que abre o jogo por `aoe2de://0/<id>` (precisa do Steam
+aberto; não testado em máquina com o jogo). Aviso no Discord: evento
+`sparring`, ligado por padrão nos webhooks novos; nos existentes o dono marca.
+Decisão do Eric: treino conta na liga como partida normal.
+Fica pra depois: contagem de treinos no perfil; detectar que o treino
+aconteceu (hoje a partida só aparece como partida de liga).
+
 ### T6 — Página "Como treinar" + cenário próprio (ver §3 e §4)
 
 ## 2b. Onde fica no site

@@ -5,7 +5,7 @@ import { Crosshair, Globe, Search, ShieldCheck, Users, X } from 'lucide-react';
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, divisions, leagueMembers, leagues, players } from '@aoe2/db';
 import {
-  AUTO_JOIN_MAX_MEMBERS, MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, placementFor, seasonMonth,
+  AUTO_JOIN_MAX_MEMBERS, MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, mySparring, placementFor, seasonMonth, sparringFor,
   searchStandings, standingsPage, type RankedRow, type SearchRow,
 } from '@aoe2/sync';
 import { and, asc, eq, isNull } from 'drizzle-orm';
@@ -17,11 +17,13 @@ import { InviteDialog } from '@/components/invite-dialog';
 import { LeagueMatchRow } from '@/components/league-match-row';
 import { LeaguePager } from '@/components/league-pager';
 import { LeagueTable } from '@/components/league-table';
+import { SparringPanel } from '@/components/sparring-panel';
+import { AutoRefresh } from '@/components/auto-refresh';
 import { divisionName, monthTitle, sessionPlayer } from '@/lib/leagues';
 import { monthNames } from '@/lib/format';
 import { joinAction, leaveAction, newSeasonAction, setMatchScopeAction, toggleStatusAction, voidMatchAction } from '../actions';
 
-type SP = Partial<Record<'joined' | 'left' | 'err' | 'div' | 'q' | 'page' | 'me' | 'mf' | 'more', string | string[]>>;
+type SP = Partial<Record<'joined' | 'left' | 'err' | 'div' | 'q' | 'page' | 'me' | 'mf' | 'more' | 'sp', string | string[]>>;
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<SP> };
 
 const PAGE_SIZE = 25;
@@ -62,6 +64,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const placement = player && !membership ? placementFor(league, divs, player.ratings.find((r) => r.leaderboardId === RM_1V1)) : null;
 
   const counts = season ? await divisionCounts(season.id) : new Map<number, number>();
+  const mine = player ? await mySparring(player.id, league.id) : null;
   const memberTotal = [...counts.values()].reduce((a, b) => a + b, 0);
   const memberProfileIds = new Set(season
     ? (await db.select({ profileId: players.profileId }).from(leagueMembers).innerJoin(players, eq(players.id, leagueMembers.playerId))
@@ -81,6 +84,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     ?? (membership ? divs.find((d) => d.id === membership.divisionId) : undefined)
     ?? divs.find((d) => (counts.get(d.id) ?? 0) > 0)
     ?? divs[0];
+  const sparring = season && activeDiv ? await sparringFor(league.id, activeDiv.id) : null;
   const pageParam = Number.parseInt(one(sp.page), 10);
   const askedPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : null;
   const onMyDivision = membership != null && activeDiv?.id === membership.divisionId;
@@ -313,6 +317,22 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
           {/* ── aside ── */}
           <aside className="flex flex-[1_1_320px] flex-col gap-4">
+            {season && activeDiv && !searching && sparring && (
+              <>
+                {sparring.trainers.length + sparring.mentors.length > 0 && <AutoRefresh seconds={30} />}
+                <SparringPanel
+                  locale={locale}
+                  league={{ id: league.id, slug: league.slug }}
+                  division={{ id: activeDiv.id, label: divisionName(activeDiv, td) }}
+                  aboveLabel={sparring.above ? divisionName(sparring.above, td) : null}
+                  trainers={sparring.trainers}
+                  mentors={sparring.mentors}
+                  me={session ? { canTrain: membership?.divisionId === activeDiv.id, canMentor: sparring.above != null && membership?.divisionId === sparring.above.id, mine: mine ? { kind: mine.kind, expiresAt: mine.expiresAt } : null } : null}
+                  myPlayerId={player?.id ?? null}
+                  flash={one(sp.sp) || null}
+                />
+              </>
+            )}
             <div className="panel p-5">
               <p className="kicker">{t('rules.title')}</p>
               <ul className="mt-3 list-disc space-y-2 pl-4 text-sm text-parchment-200">

@@ -14,7 +14,7 @@ export type DiscordFlash = 'saved' | 'removed' | 'test' | 'testFailed' | 'url';
 const URL_RE = /^https:\/\/(discord|discordapp)\.com\/api\/webhooks\/\S+$/;
 const EVENTS: WebhookEvent[] = ['match', 'voided', 'tournament', 'member', 'season'];
 /** Ordem da prévia: os três do protótipo primeiro; membro e temporada só aparecem se faltar exemplo. */
-const PREVIEW_ORDER: WebhookEvent[] = ['match', 'tournament', 'voided', 'member', 'season'];
+const PREVIEW_ORDER: WebhookEvent[] = ['match', 'tournament', 'voided', 'sparring', 'member', 'season'];
 
 type Props = {
   locale: string;

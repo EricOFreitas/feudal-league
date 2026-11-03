@@ -20,11 +20,30 @@
     },
     "events": {
       "title": "What to post",
-      "match": { "label": "League match confirmed", "hint": "Who beat whom, division, map and points." },
-      "voided": { "label": "Match voided or restored", "hint": "With the reason, if you write one." },
-      "tournament": { "label": "Tournaments", "hint": "Every game result, who advances and the champion." },
-      "member": { "label": "New member", "hint": "Can get noisy in a big league." },
-      "season": { "label": "End of season", "hint": "Champion and podium of each division." }
+      "match": {
+        "label": "League match confirmed",
+        "hint": "Who beat whom, division, map and points."
+      },
+      "voided": {
+        "label": "Match voided or restored",
+        "hint": "With the reason, if you write one."
+      },
+      "tournament": {
+        "label": "Tournaments",
+        "hint": "Every game result, who advances and the champion."
+      },
+      "member": {
+        "label": "New member",
+        "hint": "Can get noisy in a big league."
+      },
+      "season": {
+        "label": "End of season",
+        "hint": "Champion and podium of each division."
+      },
+      "sparring": {
+        "label": "Wants to train / offers mentoring",
+        "hint": "Who became available for sparring in the division, for 2 hours."
+      }
     },
     "divisions": {
       "title": "Divisions",
