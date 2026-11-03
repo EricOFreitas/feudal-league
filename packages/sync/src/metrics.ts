@@ -9,7 +9,7 @@ import { civName } from '@aoe2/aoe-api';
 import { db, divisions, leagueMatches, leagueMembers, leagues, matchMembers, matchMetrics, players, seasons } from '@aoe2/db';
 import { and, desc, eq, gt, inArray, isNull, notExists, sql } from 'drizzle-orm';
 import { alias, type PgColumn } from 'drizzle-orm/pg-core';
-import { AnalyzerError, parseReplay, type ParseOut } from './analyzer';
+import { AnalyzerError, parseReplay, type ParseEvent, type ParseOut } from './analyzer';
 
 /** Partidas na divisão (90 dias) pra comparação confiável; abaixo disso a tabela mostra os números com aviso. */
 export const BENCHMARK_MIN_SAMPLES = 30;
@@ -34,7 +34,7 @@ export type DivisionBenchmark = { divisionId: number; samples: number; metrics: 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Números de um jogador a partir do resumo do analyzer; null se ele não foi identificado na gravação. */
-export function metricsFromParse(parse: ParseOut, profileId: number): (MetricNumbers & { durationS: number; tcIdleUntilS: number | null }) | null {
+export function metricsFromParse(parse: ParseOut, profileId: number): (MetricNumbers & { durationS: number; tcIdleUntilS: number | null; events: ParseEvent[] | null }) | null {
   const slot = Object.entries(parse.slots).find(([, pid]) => pid === profileId)?.[0];
   const p = slot ? parse.players[slot] : undefined;
   if (!p) return null;
@@ -50,6 +50,7 @@ export function metricsFromParse(parse: ParseOut, profileId: number): (MetricNum
     tcIdleS: p.tc_idle_s ?? null, tcIdleUntilS: p.tc_idle_until_s ?? null,
     firstMilitaryS: p.first_military?.t_s ?? null,
     apm: Math.round(p.apm),
+    events: p.events ?? null,
   };
 }
 
@@ -90,7 +91,7 @@ export async function storeMatchMetrics(
     const values = {
       matchId: match.id, profileId, divisionId: divisionByProfile.get(profileId) ?? null, playedAt: match.completedAt, status: 'ok', error: null, source,
       durationS: m.durationS, feudalS: m.feudalS, castleS: m.castleS, imperialS: m.imperialS, vils10: m.vils10, vils15: m.vils15, vils20: m.vils20,
-      tcIdleS: m.tcIdleS, tcIdleUntilS: m.tcIdleUntilS, firstMilitaryS: m.firstMilitaryS, apm: m.apm,
+      tcIdleS: m.tcIdleS, tcIdleUntilS: m.tcIdleUntilS, firstMilitaryS: m.firstMilitaryS, apm: m.apm, events: m.events,
     };
     const { matchId: _m, profileId: _p, source: _s, ...update } = values;
     void _m; void _p; void _s;

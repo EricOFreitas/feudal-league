@@ -4,10 +4,11 @@ import { notFound } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import { civName } from '@aoe2/aoe-api';
 import { db, divisions, matches, players } from '@aoe2/db';
-import { ANALYSIS_DAILY_LIMIT, BENCHMARK_MIN_SAMPLES, analysisQuota, benchmarksForLeague, bestMedalsByProfile, divisionAbove, getAnalysis, globalDivisionOf, metricsOf } from '@aoe2/sync';
+import { ANALYSIS_DAILY_LIMIT, BENCHMARK_MIN_SAMPLES, analysisQuota, benchmarksForLeague, bestMedalsByProfile, buildOrderById, divisionAbove, getAnalysis, globalDivisionOf, metricsOf } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { AutoRefresh } from '@/components/auto-refresh';
 import { BenchmarkTable } from '@/components/benchmark-table';
+import { BoCheckPanel } from '@/components/bo-check-panel';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Markdown } from '@/components/markdown';
 import { BestMedalIcon } from '@/components/medal';
@@ -17,7 +18,7 @@ import { divisionName } from '@/lib/leagues';
 import { getSession } from '@/lib/session';
 import { requestAnalysisAction, retryAnalysisAction } from './actions';
 
-type Props = { params: Promise<{ locale: string; matchId: string; profileId: string }>; searchParams: Promise<{ err?: string }> };
+type Props = { params: Promise<{ locale: string; matchId: string; profileId: string }>; searchParams: Promise<{ err?: string; bo?: string }> };
 
 const ERRORS = ['no_match', 'not_member', 'not_owner', 'limit'] as const;
 type Err = (typeof ERRORS)[number];
@@ -41,7 +42,9 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
   const matchId = Number(rawM);
   const profileId = Number(rawP);
   if (!Number.isInteger(matchId) || !Number.isInteger(profileId)) notFound();
-  const err = asErr((await searchParams).err);
+  const sp = await searchParams;
+  const err = asErr(sp.err);
+  const selectedBo = sp.bo ? buildOrderById(sp.bo) : null;
 
   const t = await getTranslations('analysis');
   const tp = await getTranslations('player');
@@ -115,6 +118,11 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
         {metric && metric.status === 'ok' && bench && (
           <section className="panel p-6">
             <BenchmarkTable mine={metric} division={bench.division} above={bench.above} divisionLabel={bench.divisionLabel} aboveLabel={bench.aboveLabel} minSamples={BENCHMARK_MIN_SAMPLES} />
+          </section>
+        )}
+        {metric && metric.status === 'ok' && (
+          <section id="bo" className="panel p-6">
+            <BoCheckPanel locale={locale} events={metric.events ?? null} ages={{ feudalS: metric.feudalS, castleS: metric.castleS }} selected={selectedBo} action={`/${locale}/analyses/${matchId}/${profileId}#bo`} />
           </section>
         )}
         <section className="panel p-6">

@@ -214,5 +214,31 @@
     "open": "open",
     "inGame": "in the game",
     "roadmap": "Coming next on the site: a build-order checker (compares your game with the build you chose), a weekly training focus, and challenges with medals."
+  },
+  "bo": {
+    "title": "Check build order",
+    "intro": "Pick the build you tried to follow. The site compares its milestones (buildings, researches, units and how many villagers you had at the time) with the recording. Which resource each villager went to is not stored in the recording.",
+    "choose": "Build order",
+    "check": "Check",
+    "none": "Pick a build order to check.",
+    "score": "{ok} of {total} milestones on time ({score}%)",
+    "split": "Villager split",
+    "col": {
+      "step": "Milestone",
+      "plan": "In the build",
+      "you": "You",
+      "status": "Result"
+    },
+    "vils": "{n} villagers",
+    "at": "at {time}",
+    "status": {
+      "ok": "on time",
+      "early": "early",
+      "late": "late",
+      "off_vils": "villagers off",
+      "missing": "did not happen"
+    },
+    "noEvents": "This recording was read before the checker existed. New games work right away.",
+    "tolerance": "Tolerance: up to 45 s late and 1 villager of difference. In-game clock. Build numbers are the generic Arabia ones."
   }
 }

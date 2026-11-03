@@ -96,6 +96,22 @@ Fonte das BOs: escrever as 6 a 8 mais comuns (scouts, archers, MAA,
 fast castle, drush FC, trush, 2 de água). Não copiar texto de terceiros;
 BO é conhecimento público, a redação é nossa.
 
+**Feito em 03/11/2026.** O analyzer devolve `events` (construções,
+pesquisas e unidades militares até a Castelos, com aldeões vivos na hora)
+e `match_metrics.events` guarda isso (jsonb, ~3 KB por linha). BOs de
+referência em `packages/sync/src/build-orders.ts` (scouts-22, archers-23,
+maa-21, fc-28, drush-fc; números genéricos de Arábia, editáveis);
+conferidor puro em `bo-check.ts` (tolerância 45 s de atraso, 1 aldeão);
+painel "Conferir build order" na página da análise (`?bo=<id>`), funciona
+em partida de liga lida sem pedir análise. O que a gravação NÃO deixa
+conferir: em que recurso cada aldeão foi (ORDER só tem o id do alvo).
+Regras aprendidas na partida de teste: fundação cancelada não é
+reconhecível (cada BUILD conta); pesquisa clicada 2x fica com o último
+clique; subida de era usa chegada − duração como início (exato), e as
+outras pesquisas do TC usam o início real na fila, não o clique.
+Linhas de match_metrics lidas antes desse deploy não têm `events`
+(a tela avisa).
+
 ### T3 — Foco de treino da semana
 
 Das últimas N análises do jogador, extrair o erro mais recorrente

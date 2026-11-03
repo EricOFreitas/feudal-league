@@ -1,0 +1,1 @@
+ALTER TABLE "match_metrics" ADD COLUMN "events" jsonb;

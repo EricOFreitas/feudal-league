@@ -10,6 +10,7 @@ na ordem dos jogadores.
 
 Relógio do corpo = relógio do jogo (o que o jogador vê), não tempo real.
 """
+import bisect
 import collections
 import io
 import json
@@ -106,6 +107,21 @@ def slot_order(header: bytes, profile_ids: list[int]) -> dict[int, int]:
     return {i + 1: pid for i, (_, pid) in enumerate(found)}
 
 
+def tidy_events(events: list[dict]) -> list[dict]:
+    """Limpa a linha do tempo: pesquisa clicada mais de uma vez fica só com o último clique (cancelamento).
+    Construção fica como foi colocada: fundação cancelada não gera comando que dê pra reconhecer."""
+    out = []
+    last_research = {}
+    for e in events:
+        if e['k'] == 'r':
+            last_research[e['n']] = e
+            continue
+        out.append(e)
+    out.extend(last_research.values())
+    out.sort(key=lambda e: e['t'])
+    return out
+
+
 def summarize(data: bytes, profile_ids: list[int], civs: dict[int, str] | None = None) -> dict:
     hlen = struct.unpack('<I', data[:4])[0]
     try:
@@ -124,7 +140,19 @@ def summarize(data: bytes, profile_ids: list[int], civs: dict[int, str] | None =
         'first_military': None, 'walls': 0, 'deletes': 0, 'resigned_s': None, 'chat': [], 'ages_reached': [],
         'tc_count': 1, 'market_s': None, 'idle_gaps': 0,
         'tc_busy_until': 0, 'tc_idle': 0, 'tc_idle_until': None, 'villagers_by_bucket': collections.Counter(), 'villagers_done_by_bucket': collections.Counter(),
+        'villagers_done_at': [], 'events': [],
     })
+    EVENTS_MAX = 200
+
+    def villagers_at(p, slot, sec):
+        """Aldeões vivos (iniciais + produzidos) até `sec`, pela simulação da fila do TC."""
+        return START_VILLAGERS.get(civ_of_slot.get(slot) or '', 3) + bisect.bisect_right(p['villagers_done_at'], sec)
+
+    def event(p, slot, sec, kind, name, amount=1):
+        """Linha do tempo pro conferidor de build order: construções, pesquisas e unidades militares até a Castelos."""
+        if p['tc_idle_until'] is not None or len(p['events']) >= EVENTS_MAX:
+            return
+        p['events'].append({'t': sec, 'k': kind, 'n': name, 'v': villagers_at(p, slot, sec), 'a': amount})
 
     def tc_rate(p, slot):
         """Fator de velocidade do TC pela civ e pela era atual (1.0 = padrão)."""
@@ -212,7 +240,12 @@ def summarize(data: bytes, profile_ids: list[int], civs: dict[int, str] | None =
             if tid is not None:
                 p['techs'][tid] = sec  # último clique vence (cancelamento/clique duplo)
                 if tid in TC_RESEARCH_S:
+                    # pesquisa do TC entra atrás dos aldeões já na fila: o marco é quando ela COMEÇA, não o clique
+                    start = sec if p['tc_idle_until'] is not None else max(p['tc_busy_until'], sec)
                     tc_use(p, sec, research_s(pid, p, tid))
+                    event(p, pid, start, 'r', tech_name(tid))
+                else:
+                    event(p, pid, sec, 'r', tech_name(tid))
         elif name in ('DE_QUEUE', 'QUEUE'):
             u = obj_name(d.get('unit_id'))
             n = d.get('amount') or 1
@@ -229,12 +262,15 @@ def summarize(data: bytes, profile_ids: list[int], civs: dict[int, str] | None =
                     for i in range(n):
                         done = sec if free is None else free - each * (n - 1 - i)
                         p['villagers_done_by_bucket'][int(done) // BUCKET_S] += 1
+                        bisect.insort(p['villagers_done_at'], done)
             else:
                 p['mil_by_bucket'][b] += n
+                event(p, pid, sec, 'q', u, n)
                 if p['first_military'] is None:
                     p['first_military'] = {'t_s': sec, 'unit': u}
         elif name == 'BUILD':
             b = obj_name(d.get('building_id'))
+            event(p, pid, sec, 'b', b)
             p['buildings'][b] += 1
             p['building_first'].setdefault(b, sec)
             if b == 'Town Center':
@@ -251,8 +287,15 @@ def summarize(data: bytes, profile_ids: list[int], civs: dict[int, str] | None =
             tc_stop(p, sec)
 
     duration = clock // 1000
-    for p in P.values():
+    for slot, p in P.items():
         tc_stop(p, duration)
+        # subida de era: a chegada é exata (mensagem do jogo), então o início = chegada - duração, sem depender da fila simulada
+        for i, tid in enumerate((101, 102, 103)):
+            if i < len(p['ages_reached']):
+                for e in p['events']:
+                    if e['k'] == 'r' and e['n'] == tech_name(tid):
+                        e['t'] = max(0, int(p['ages_reached'][i] - research_s(slot, p, tid)))
+                        e['v'] = villagers_at(p, slot, e['t'])
     players = {}
     for slot, p in sorted(P.items()):
         ages = {}
@@ -277,6 +320,7 @@ def summarize(data: bytes, profile_ids: list[int], civs: dict[int, str] | None =
             'villagers_only_per_5min': [p['villagers_by_bucket'][b] for b in buckets],
             'villagers_done_per_5min': [p['villagers_done_by_bucket'][b] for b in buckets],
             'villagers_start': START_VILLAGERS.get(civ_of_slot.get(slot) or '', 3),
+            'events': tidy_events(p['events']),
             'civ': civ_of_slot.get(slot),
             'military_queued_per_5min': [p['mil_by_bucket'][b] for b in buckets],
             'town_centers': p['tc_count'],

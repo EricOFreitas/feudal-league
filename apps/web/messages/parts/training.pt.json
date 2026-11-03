@@ -214,5 +214,31 @@
     "open": "abrir",
     "inGame": "no jogo",
     "roadmap": "O que vem a seguir no site: conferidor de build order (compara a partida com a build que você escolheu), foco de treino da semana e desafios com medalha."
+  },
+  "bo": {
+    "title": "Conferir build order",
+    "intro": "Escolha a build que você tentou seguir. O site compara os marcos dela (construções, pesquisas, unidades e quantos aldeões você tinha na hora) com a gravação. Em que recurso cada aldeão foi colocado a gravação não guarda.",
+    "choose": "Build order",
+    "check": "Conferir",
+    "none": "Escolha uma build order pra conferir.",
+    "score": "{ok} de {total} marcos no tempo ({score}%)",
+    "split": "Divisão de aldeões",
+    "col": {
+      "step": "Marco",
+      "plan": "Na build",
+      "you": "Você",
+      "status": "Resultado"
+    },
+    "vils": "{n} aldeões",
+    "at": "aos {time}",
+    "status": {
+      "ok": "no tempo",
+      "early": "adiantado",
+      "late": "atrasado",
+      "off_vils": "aldeões fora",
+      "missing": "não aconteceu"
+    },
+    "noEvents": "Esta gravação foi lida antes do conferidor existir. Em partidas novas ele funciona direto.",
+    "tolerance": "Tolerância: até 45 s de atraso e 1 aldeão de diferença. Tempos no relógio do jogo. Números das builds são os genéricos de Arábia."
   }
 }

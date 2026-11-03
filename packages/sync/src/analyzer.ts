@@ -4,6 +4,8 @@
  */
 const ANALYZER_URL = process.env.ANALYZER_URL ?? 'http://127.0.0.1:8000';
 
+export type ParseEvent = { t: number; k: 'b' | 'r' | 'q'; n: string; v: number; a: number };
+
 export type ParseOut = {
   duration_s: number;
   header_ok: boolean;
@@ -16,6 +18,8 @@ export type ParseOut = {
     building_first_s: Record<string, number>; villagers_queued_per_5min: number[]; villagers_only_per_5min?: number[]; villagers_done_per_5min?: number[]; villagers_start?: number; civ?: string | null; military_queued_per_5min: number[];
     town_centers: number; market_s: number | null; walls: number; deletes: number; idle_gaps_60s: number; resigned_s: number | null;
     tc_idle_s?: number; tc_idle_until_s?: number | null;
+    /** Linha do tempo até a Castelos: b = construção, r = pesquisa, q = unidade militar; v = aldeões vivos na hora; a = quantidade. */
+    events?: ParseEvent[];
     chat: { t_s: number; text: string }[];
   }>;
 };

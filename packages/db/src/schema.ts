@@ -346,6 +346,8 @@ export const matchMetrics = pgTable(
     tcIdleUntilS: integer('tc_idle_until_s'),
     firstMilitaryS: integer('first_military_s'),
     apm: smallint('apm'),
+    /** Linha do tempo até a Castelos (construções, pesquisas, unidades, aldeões na hora) pro conferidor de build order. */
+    events: jsonb('events').$type<{ t: number; k: 'b' | 'r' | 'q'; n: string; v: number; a: number }[]>(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
