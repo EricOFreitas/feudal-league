@@ -1,0 +1,35 @@
+{
+  "benchmarks": {
+    "title": "Your numbers and the division's",
+    "intro": "Measured from the recording, no AI. The division is the median of {n} 1v1 games by players in the same bracket over the last 90 days.",
+    "notEnough": "Not enough games in your division to compare yet ({n} of {min}). Your numbers are already saved.",
+    "noDivision": "Join a league to compare your numbers with your division.",
+    "col": {
+      "metric": "Metric",
+      "you": "You",
+      "division": "Your division",
+      "above": "Division above"
+    },
+    "metric": {
+      "feudal": "Feudal Age reached",
+      "castle": "Castle Age reached",
+      "imperial": "Imperial Age reached",
+      "vils10": "Villagers by 10:00",
+      "vils15": "Villagers by 15:00",
+      "vils20": "Villagers by 20:00",
+      "tcIdle": "TC idle before Castle (estimated)",
+      "firstMilitary": "First military unit",
+      "apm": "Actions per minute"
+    },
+    "range": "middle half: {lo} to {hi}",
+    "never": "not reached",
+    "none": "none",
+    "topDivision": "already the highest",
+    "note": "Villagers are those produced by the TC (queue simulated until Castle; after that, with several TCs, it is approximate). TC idle is estimated from gaps between queue commands; Loom and age-ups count as TC busy.",
+    "player": {
+      "title": "Recent numbers",
+      "intro": "{n, plural, =1 {Your last 1v1 game with a parsed recording} other {Median of your last # 1v1 games with a parsed recording}}, next to the median of {d} games in your division over the last 90 days. No AI.",
+      "empty": "No game of yours has a parsed recording yet. League games are read automatically; others, when you request an analysis."
+    }
+  }
+}

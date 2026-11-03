@@ -37,6 +37,10 @@ except Exception:  # pragma: no cover
 REPLAY_URL = 'https://aoe.ms/replay/?gameId={game}&profileId={profile}'
 AGES = {101: 'feudal', 102: 'castle', 103: 'imperial'}
 AGE_ORDER = ['feudal', 'castle', 'imperial']
+# Pesquisas feitas no TC e quanto tempo ocupam a fila dele (segundos, velocidade normal).
+# Serve pra estimar TC parado: a gravação não diz quando a vila saiu, só quando foi pedida.
+TC_RESEARCH_S = {22: 25, 8: 25, 280: 40, 213: 75, 249: 55, 101: 130, 102: 160, 103: 190}
+VILLAGER_TRAIN_S = 25
 MILITARY_BUILDINGS = {'Barracks', 'Archery Range', 'Stable', 'Siege Workshop', 'Castle', 'Dock', 'Monastery'}
 ECO_UNITS = {'Villager', 'Fishing Ship', 'Trade Cart', 'Trade Cog'}
 MAX_DOWNLOAD = 60 * 1024 * 1024
@@ -108,7 +112,26 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
         'building_first': {}, 'vils_by_bucket': collections.Counter(), 'mil_by_bucket': collections.Counter(),
         'first_military': None, 'walls': 0, 'deletes': 0, 'resigned_s': None, 'chat': [], 'ages_reached': [],
         'tc_count': 1, 'market_s': None, 'idle_gaps': 0,
+        'tc_busy_until': 0, 'tc_idle': 0, 'tc_idle_until': None, 'villagers_by_bucket': collections.Counter(), 'villagers_done_by_bucket': collections.Counter(),
     })
+
+    def tc_use(p, sec, dur):
+        """Fila do TC ocupada por `dur` s a partir de `sec` (ou de quando desocupar). Antes disso, estava parada.
+        Devolve quando a fila fica livre de novo, ou None depois da Castelo (vários TCs, simulação não vale)."""
+        if p['tc_idle_until'] is not None:
+            return None
+        if sec > p['tc_busy_until']:
+            p['tc_idle'] += sec - p['tc_busy_until']
+        p['tc_busy_until'] = max(p['tc_busy_until'], sec) + dur
+        return p['tc_busy_until']
+
+    def tc_stop(p, sec):
+        """Fecha a estimativa de TC parado (chegou à Castelo, desistiu ou acabou)."""
+        if p['tc_idle_until'] is not None:
+            return
+        if sec > p['tc_busy_until']:
+            p['tc_idle'] += sec - p['tc_busy_until']
+        p['tc_idle_until'] = sec
     last_action_at = {}
     ops = 0
     while True:
@@ -130,7 +153,10 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             text = msg.get('message') or ''
             m = re.match(r'<player_id,(\d+),', text)
             if m:  # mensagem do sistema: k-ésima = k-ésima era
-                P[int(m.group(1))]['ages_reached'].append(clock // 1000)
+                pp = P[int(m.group(1))]
+                pp['ages_reached'].append(clock // 1000)
+                if len(pp['ages_reached']) == 2:  # Castelo: a partir daqui mais TCs, a estimativa de TC parado acaba
+                    tc_stop(pp, clock // 1000)
             elif msg.get('player') and msg.get('tauntNumber', -1) == -1 and len(P[msg['player']]['chat']) < 12:
                 P[msg['player']]['chat'].append((clock // 1000, text[:80]))
             continue
@@ -152,6 +178,8 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             tid = d.get('technology_id')
             if tid is not None:
                 p['techs'][tid] = sec  # último clique vence (cancelamento/clique duplo)
+                if tid in TC_RESEARCH_S:
+                    tc_use(p, sec, TC_RESEARCH_S[tid])
         elif name in ('DE_QUEUE', 'QUEUE'):
             u = obj_name(d.get('unit_id'))
             n = d.get('amount') or 1
@@ -159,6 +187,14 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             b = sec // BUCKET_S
             if u in ECO_UNITS:
                 p['vils_by_bucket'][b] += n
+                if u == 'Villager':
+                    p['villagers_by_bucket'][b] += n
+                    # vila PRODUZIDA: shift-queue pede 5 de uma vez, então o pedido não diz quando ela saiu.
+                    # Até a Castelo simula a fila do único TC; depois, com vários TCs, assume que sai na hora.
+                    free = tc_use(p, sec, VILLAGER_TRAIN_S * n)
+                    for i in range(n):
+                        done = sec if free is None else free - VILLAGER_TRAIN_S * (n - 1 - i)
+                        p['villagers_done_by_bucket'][done // BUCKET_S] += 1
             else:
                 p['mil_by_bucket'][b] += n
                 if p['first_military'] is None:
@@ -177,8 +213,11 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             p['deletes'] += 1
         elif name == 'RESIGN':
             p['resigned_s'] = sec
+            tc_stop(p, sec)
 
     duration = clock // 1000
+    for p in P.values():
+        tc_stop(p, duration)
     players = {}
     for slot, p in sorted(P.items()):
         ages = {}
@@ -200,12 +239,16 @@ def summarize(data: bytes, profile_ids: list[int]) -> dict:
             'buildings': dict(p['buildings'].most_common()),
             'building_first_s': dict(sorted(p['building_first'].items(), key=lambda x: x[1])),
             'villagers_queued_per_5min': [p['vils_by_bucket'][b] for b in buckets],
+            'villagers_only_per_5min': [p['villagers_by_bucket'][b] for b in buckets],
+            'villagers_done_per_5min': [p['villagers_done_by_bucket'][b] for b in buckets],
             'military_queued_per_5min': [p['mil_by_bucket'][b] for b in buckets],
             'town_centers': p['tc_count'],
             'market_s': p['market_s'],
             'walls': p['walls'],
             'deletes': p['deletes'],
             'idle_gaps_60s': p['idle_gaps'],
+            'tc_idle_s': p['tc_idle'],
+            'tc_idle_until_s': p['tc_idle_until'],
             'resigned_s': p['resigned_s'],
             'chat': [{'t_s': t, 'text': x} for t, x in p['chat']],
         }

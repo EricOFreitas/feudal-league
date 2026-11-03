@@ -50,6 +50,8 @@ services:
       OPENROUTER_API_KEY: '${OPENROUTER_API_KEY:-}'
       LLM_MODEL: '${LLM_MODEL:-anthropic/claude-haiku-5.5}'
       ANALYSIS_DAILY_LIMIT: '${ANALYSIS_DAILY_LIMIT:-3}'
+      METRICS_PER_CYCLE: '${METRICS_PER_CYCLE:-20}'
+      METRICS_MAX_AGE_DAYS: '${METRICS_MAX_AGE_DAYS:-14}'
     depends_on:
       migrate:
         condition: service_completed_successfully

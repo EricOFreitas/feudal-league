@@ -274,6 +274,49 @@ export const matchAnalyses = pgTable(
   ],
 );
 
+/* ───────────────────────── Treino: métricas por partida (T1) ───────────────────────── */
+
+/**
+ * Números objetivos de um jogador numa partida 1v1, lidos da gravação sem IA.
+ * O worker colhe sozinho nas partidas de liga (source league) e a análise pedida também grava (source analysis).
+ * Linhas com status unavailable/failed existem só pra não tentar de novo.
+ */
+export const matchMetrics = pgTable(
+  'match_metrics',
+  {
+    id: serial('id').primaryKey(),
+    matchId: bigint('match_id', { mode: 'number' }).notNull().references(() => matches.id, { onDelete: 'cascade' }),
+    profileId: integer('profile_id').notNull(),
+    /** Divisão do jogador na partida de liga, ou a atual na Global quando veio de análise. null = fora de liga. */
+    divisionId: integer('division_id').references(() => divisions.id, { onDelete: 'set null' }),
+    playedAt: timestamp('played_at', { withTimezone: true }).notNull(),
+    /** ok | unavailable (gravação sumiu do servidor) | failed. Só ok tem números. */
+    status: varchar('status', { length: 12 }).notNull().default('ok'),
+    error: text('error'),
+    /** league | analysis. */
+    source: varchar('source', { length: 8 }).notNull().default('league'),
+    durationS: integer('duration_s'),
+    feudalS: integer('feudal_s'),
+    castleS: integer('castle_s'),
+    imperialS: integer('imperial_s'),
+    /** Vilas produzidas até 10:00, 15:00 e 20:00: fila do TC simulada até a Castelo (null se a partida acabou antes). */
+    vils10: smallint('vils_10'),
+    vils15: smallint('vils_15'),
+    vils20: smallint('vils_20'),
+    /** TC parado estimado (s) até chegar à Castelo (ou desistir/acabar), e até que segundo a estimativa vale. */
+    tcIdleS: integer('tc_idle_s'),
+    tcIdleUntilS: integer('tc_idle_until_s'),
+    firstMilitaryS: integer('first_military_s'),
+    apm: smallint('apm'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('match_metrics_match_profile_idx').on(t.matchId, t.profileId),
+    index('match_metrics_division_idx').on(t.divisionId, t.playedAt),
+    index('match_metrics_profile_idx').on(t.profileId, t.playedAt),
+  ],
+);
+
 export const playersRelations = relations(players, ({ many, one }) => ({
   ratings: many(playerRatings),
   memberships: many(leagueMembers),
@@ -605,6 +648,7 @@ export type Division = typeof divisions.$inferSelect;
 export type LeagueMember = typeof leagueMembers.$inferSelect;
 export type LeagueMatch = typeof leagueMatches.$inferSelect;
 export type MatchAnalysis = typeof matchAnalyses.$inferSelect;
+export type MatchMetric = typeof matchMetrics.$inferSelect;
 export type Tournament = typeof tournaments.$inferSelect;
 export type TournamentTeam = typeof tournamentTeams.$inferSelect;
 export type TournamentTeamMember = typeof tournamentTeamMembers.$inferSelect;

@@ -9,11 +9,12 @@
 import { civName, leaderboardOfMatchType } from '@aoe2/aoe-api';
 import { db, matchAnalyses, matchMembers, matches, players, type MatchAnalysis } from '@aoe2/db';
 import { and, asc, eq, gt, inArray, sql } from 'drizzle-orm';
+import { AnalyzerError, parseReplay, type ParseOut } from './analyzer';
 import { membershipsOf } from './leagues';
+import { BENCHMARK_MIN_SAMPLES, benchmarksForLeague, divisionAbove, globalDivisionOf, storeMatchMetrics, type DivisionBenchmark, type MetricKey } from './metrics';
 
 export const ANALYSIS_DAILY_LIMIT = Number(process.env.ANALYSIS_DAILY_LIMIT ?? 3);
 export const DEFAULT_MODEL = process.env.LLM_MODEL ?? 'anthropic/claude-haiku-5.5';
-const ANALYZER_URL = process.env.ANALYZER_URL ?? 'http://127.0.0.1:8000';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export type RequestReason = 'no_match' | 'not_member' | 'not_owner' | 'limit';
@@ -82,38 +83,6 @@ export async function analysesForMatches(profileId: number, matchIds: number[]) 
 
 /* ───────────────────────── processamento (worker) ───────────────────────── */
 
-type ParseOut = {
-  duration_s: number;
-  header_ok: boolean;
-  slots: Record<string, number>;
-  players: Record<string, {
-    profile_id: number | null; actions: number; apm: number;
-    ages: Record<'feudal' | 'castle' | 'imperial', { click_s: number | null; reached_s: number | null } | null>;
-    techs: { t_s: number; name: string }[]; units_queued: Record<string, number>;
-    first_military: { t_s: number; unit: string } | null; buildings: Record<string, number>;
-    building_first_s: Record<string, number>; villagers_queued_per_5min: number[]; military_queued_per_5min: number[];
-    town_centers: number; market_s: number | null; walls: number; deletes: number; idle_gaps_60s: number; resigned_s: number | null;
-    chat: { t_s: number; text: string }[];
-  }>;
-};
-
-export class AnalyzerError extends Error {
-  constructor(message: string, public status: number) { super(message); }
-}
-
-export async function parseReplay(matchId: number, profileIds: number[]): Promise<ParseOut> {
-  const res = await fetch(`${ANALYZER_URL}/parse`, {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ game_id: matchId, profile_ids: profileIds }),
-    signal: AbortSignal.timeout(90_000),
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new AnalyzerError(`analyzer HTTP ${res.status}: ${body.slice(0, 200)}`, res.status);
-  }
-  return (await res.json()) as ParseOut;
-}
-
 const mmss = (s: number | null | undefined) => (s == null ? '–' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`);
 
 /** Contexto completo pro prompt: partida + participantes + liga do jogador + resumo do replay. */
@@ -133,6 +102,25 @@ export async function analysisContext(matchId: number, profileId: number, parse:
   lines.push(`Match ${match.id}: ${kind}, map ${match.mapName.replace(/\.rms$/, '')}, ${match.members.length} players, in-game duration ${mmss(parse.duration_s)} (Standard speed; clock as players see it).`);
   lines.push(`Analyzed player: ${me.alias ?? `#${profileId}`} (slot ${slotOf.get(profileId) ?? '?'}), civ ${civName(me.civId)}, team ${me.team}, rating ${me.oldRating} → ${me.newRating}, result: ${me.outcome === 1 ? 'WIN' : 'LOSS'}.`);
   if (division) lines.push(`League division: ${division.division.name ?? division.division.nameKey} (rating ${division.division.ratingMin}–${division.division.ratingMax ?? '∞'}), placed with rating ${division.placementRating}.`);
+  if (division && match.members.length === 2) {
+    // benchmarks medidos nas gravações da divisão (docs/TREINO.md, T1): o modelo julga por eles, não por chute
+    const bench = await benchmarksForLeague(division.leagueId);
+    const mineB = bench.get(division.divisionId);
+    const above = await divisionAbove(division.divisionId);
+    const aboveB = above ? bench.get(above.id) : undefined;
+    const q = (b: DivisionBenchmark, k: MetricKey, time = true) => {
+      const v = b.metrics[k];
+      if (!v) return 'n/a';
+      const f = (x: number) => (time ? mmss(Math.round(x)) : String(Math.round(x)));
+      return `${f(v.p50)} (middle half ${f(v.p25)}–${f(v.p75)})`;
+    };
+    const line = (label: string, b: DivisionBenchmark) =>
+      `${label} (median of ${b.samples} 1v1 games from recordings, last 90 days, in-game clock): feudal reached ${q(b, 'feudalS')}, castle reached ${q(b, 'castleS')}, villagers queued by 10:00 ${q(b, 'vils10', false)}, by 15:00 ${q(b, 'vils15', false)}, by 20:00 ${q(b, 'vils20', false)}, TC idle before Castle ${q(b, 'tcIdleS')}, first military unit ${q(b, 'firstMilitaryS')}, APM ${q(b, 'apm', false)}.`;
+    if (mineB && mineB.samples >= BENCHMARK_MIN_SAMPLES) {
+      lines.push(line(`Benchmarks of the analyzed player's division`, mineB), 'Judge the analyzed player against these division benchmarks, not against generic or pro benchmarks.');
+      if (above && aboveB && aboveB.samples >= BENCHMARK_MIN_SAMPLES) lines.push(line(`Benchmarks of the division above (${above.name ?? above.nameKey})`, aboveB));
+    }
+  }
 
   lines.push('', 'Players:');
   for (const m of match.members) {
@@ -245,6 +233,10 @@ export async function processQueuedAnalyses(limit = 3): Promise<number> {
       const ids = [a.profileId, ...members.map((m) => m.profileId).filter((p) => p !== a.profileId)];
       const parse = await parseReplay(a.matchId, ids);
       await db.update(matchAnalyses).set({ status: 'writing', parse }).where(eq(matchAnalyses.id, a.id));
+      try {  // números de treino (T1): grava mesmo que a IA falhe depois
+        const m = await db.query.matches.findFirst({ where: eq(matches.id, a.matchId) });
+        if (m && ids.length === 2) await storeMatchMetrics({ id: m.id, completedAt: m.completedAt, profileIds: ids }, parse, 'analysis', await globalDivisionOf(ids));
+      } catch (e) { console.error('métricas da análise:', (e as Error).message); }
       const ctx = await analysisContext(a.matchId, a.profileId, parse);
       if (!ctx.hasReplayData) throw new Error('jogador não identificado no replay');
       const llm = await callLlm(DEFAULT_MODEL, buildPrompt(a.locale, ctx.text));

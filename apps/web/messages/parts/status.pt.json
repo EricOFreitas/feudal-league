@@ -15,6 +15,7 @@
       "league": { "name": "Membros de liga e perfis", "desc": "Rating e partidas dos membros de liga, perfis reivindicados e perfis adicionados." },
       "detect": { "name": "Detecção de partidas", "desc": "Procura partidas de liga e de torneio já terminadas." },
       "analysis": { "name": "Análises de partida", "desc": "Fila de análises de replay feitas por IA." },
+      "metrics": { "name": "Métricas de treino", "desc": "Lê a gravação das partidas de liga e guarda os números (sem IA) pra comparar com a divisão." },
       "snapshot": { "name": "Retrato semanal da classificação", "desc": "Guarda a classificação de cada divisão uma vez por semana." },
       "notify": { "name": "Avisos no Discord", "desc": "Envia ao Discord os avisos de novos membros e de partidas." }
     },

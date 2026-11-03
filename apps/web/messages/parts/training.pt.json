@@ -1,0 +1,35 @@
+{
+  "benchmarks": {
+    "title": "Seus números e os da divisão",
+    "intro": "Medidos na gravação, sem IA. A divisão é a mediana de {n} partidas 1v1 de jogadores da mesma faixa nos últimos 90 dias.",
+    "notEnough": "Ainda não há partidas suficientes na sua divisão pra comparar ({n} de {min}). Os seus números já ficam guardados.",
+    "noDivision": "Entre numa liga pra comparar seus números com a sua divisão.",
+    "col": {
+      "metric": "Métrica",
+      "you": "Você",
+      "division": "Sua divisão",
+      "above": "Divisão acima"
+    },
+    "metric": {
+      "feudal": "Chegada à Feudal",
+      "castle": "Chegada à Castelo",
+      "imperial": "Chegada à Imperial",
+      "vils10": "Vilas até 10:00",
+      "vils15": "Vilas até 15:00",
+      "vils20": "Vilas até 20:00",
+      "tcIdle": "TC parado até a Castelo (estimado)",
+      "firstMilitary": "Primeira unidade militar",
+      "apm": "Ações por minuto"
+    },
+    "range": "metade do meio: {lo} a {hi}",
+    "never": "não chegou",
+    "none": "nenhuma",
+    "topDivision": "já é a mais alta",
+    "note": "Vilas são as produzidas pelo TC (fila simulada até a Castelo; depois, com vários TCs, é aproximado). TC parado é estimado pelos intervalos entre pedidos; Loom e subida de era contam como TC ocupado.",
+    "player": {
+      "title": "Números recentes",
+      "intro": "{n, plural, =1 {Sua última partida 1v1 com gravação lida} other {Mediana das suas últimas # partidas 1v1 com gravação lida}}, ao lado da mediana de {d} partidas da sua divisão nos últimos 90 dias. Sem IA.",
+      "empty": "Ainda não há partida sua com gravação lida. Partidas de liga são lidas sozinhas; as outras, quando você pede análise."
+    }
+  }
+}

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { analysesForMatches, badgesOf, bestMedal, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
+import { BENCHMARK_MIN_SAMPLES, analysesForMatches, badgesOf, benchmarksForLeague, bestMedal, divisionAbove, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, playerRecentMetrics, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
@@ -12,6 +12,7 @@ import { RatingCard } from '@/components/rating-card';
 import { MatchRow } from '@/components/match-row';
 import { DivisionMark } from '@/components/division-mark';
 import { BadgeList } from '@/components/badge-list';
+import { BenchmarkTable } from '@/components/benchmark-table';
 import { BestMedalIcon, MedalShelf } from '@/components/medal';
 import { EvolutionSection } from '@/components/evolution-section';
 import { Link } from '@/i18n/navigation';
@@ -92,6 +93,15 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const matches = await recentMatchesOf(profileId, 20);
   const analyses = await analysesForMatches(profileId, matches.map((m) => m.id));
   const memberships = await membershipsOf(player.id);
+  // números de treino (T1): mediana das últimas partidas com gravação lida, ao lado da divisão na Global
+  const recent = await playerRecentMetrics(profileId);
+  const tb = await getTranslations('benchmarks');
+  const benchHome = memberships.find((m) => m.league.isGlobal) ?? memberships[0] ?? null;
+  const bench = recent.samples > 0 && benchHome ? await (async () => {
+    const all = await benchmarksForLeague(benchHome.leagueId);
+    const above = await divisionAbove(benchHome.divisionId);
+    return { division: all.get(benchHome.divisionId) ?? { divisionId: benchHome.divisionId, samples: 0, metrics: {} as never }, above: above ? all.get(above.id) ?? null : null, divisionLabel: divisionName(benchHome.division, td), aboveLabel: above ? divisionName(above, td) : null };
+  })() : null;
   const badges = await badgesOf(player.id);
   const medals = await medalsOf(player.id);
   const best = bestMedal(medals);
@@ -182,6 +192,20 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           </ul>
         )}
       </section>
+
+      {(recent.samples > 0 || isMine) && (
+        <section>
+          <div className="rule mb-5"><span className="kicker">{tb('player.title')}</span></div>
+          {recent.samples === 0 ? (
+            <p className="italic text-parchment-400">{tb('player.empty')}</p>
+          ) : (
+            <div className="panel p-6">
+              <p className="text-sm text-parchment-300">{tb('player.intro', { n: recent.samples, d: bench?.division?.samples ?? 0 })}</p>
+              <BenchmarkTable mine={recent.medians} division={bench?.division ?? null} above={bench?.above ?? null} divisionLabel={bench?.divisionLabel ?? null} aboveLabel={bench?.aboveLabel ?? null} minSamples={BENCHMARK_MIN_SAMPLES} heading={false} />
+            </div>
+          )}
+        </section>
+      )}
 
       <EvolutionSection profileId={player.profileId} playerId={player.id} memberships={memberships} evo={evoLeagueId} locale={locale} />
 

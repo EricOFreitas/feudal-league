@@ -3,15 +3,17 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
 import { civName } from '@aoe2/aoe-api';
-import { db, matches, players } from '@aoe2/db';
-import { ANALYSIS_DAILY_LIMIT, analysisQuota, bestMedalsByProfile, getAnalysis } from '@aoe2/sync';
+import { db, divisions, matches, players } from '@aoe2/db';
+import { ANALYSIS_DAILY_LIMIT, BENCHMARK_MIN_SAMPLES, analysisQuota, benchmarksForLeague, bestMedalsByProfile, divisionAbove, getAnalysis, globalDivisionOf, metricsOf } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { AutoRefresh } from '@/components/auto-refresh';
+import { BenchmarkTable } from '@/components/benchmark-table';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Markdown } from '@/components/markdown';
 import { BestMedalIcon } from '@/components/medal';
 import { Link } from '@/i18n/navigation';
 import { mapLabel, matchTypeKey } from '@/lib/format';
+import { divisionName } from '@/lib/leagues';
 import { getSession } from '@/lib/session';
 import { requestAnalysisAction, retryAnalysisAction } from './actions';
 
@@ -74,6 +76,19 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
   })();
   const who = (list: typeof match.members) => list.map((m) => `${m.alias ?? `#${m.profileId}`} (${m.oldRating}, ${civName(m.civId)})`).join(', ');
 
+  // números de treino (T1): existem quando a gravação já foi lida (partida de liga ou análise pedida)
+  const metric = await metricsOf(matchId, profileId);
+  const bench = await (async () => {
+    if (!metric || metric.status !== 'ok') return null;
+    const divisionId = metric.divisionId ?? (await globalDivisionOf([profileId])).get(profileId) ?? null;
+    const division = divisionId ? await db.query.divisions.findFirst({ where: eq(divisions.id, divisionId) }) : null;
+    if (!division) return { division: null, above: null, divisionLabel: null, aboveLabel: null };
+    const all = await benchmarksForLeague(division.leagueId);
+    const above = await divisionAbove(division.id);
+    const td = await getTranslations('division');
+    return { division: all.get(division.id) ?? { divisionId: division.id, samples: 0, metrics: {} as never }, above: above ? all.get(above.id) ?? null : null, divisionLabel: divisionName(division, td), aboveLabel: above ? divisionName(above, td) : null };
+  })();
+
   return (
     <div className="space-y-8">
       <Breadcrumbs items={[{ label: name, href: `/players/${profileId}` }, { label: tn('analysis') }]} />
@@ -96,6 +111,12 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+        <div className="space-y-6">
+        {metric && metric.status === 'ok' && bench && (
+          <section className="panel p-6">
+            <BenchmarkTable mine={metric} division={bench.division} above={bench.above} divisionLabel={bench.divisionLabel} aboveLabel={bench.aboveLabel} minSamples={BENCHMARK_MIN_SAMPLES} />
+          </section>
+        )}
         <section className="panel p-6">
           {err && <p className="mb-4 rounded border border-crimson-500/60 bg-crimson-500/10 p-3 text-sm text-parchment-50">{t(`err.${err}`)}</p>}
 
@@ -164,6 +185,7 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
             </article>
           )}
         </section>
+        </div>
 
         <aside className="space-y-4">
           {quota && (

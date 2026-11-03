@@ -8,11 +8,12 @@
  * Antes de detectar, vira o mês da Liga Global. Depois de gravar partidas, detecta as de liga e de torneio,
  * apura o pódio do mês que acabou, tira o retrato semanal das posições, envia os avisos pendentes ao Discord
  * e registra cada etapa em sync_runs (página de status).
+ * Depois lê a gravação das partidas de liga novas e guarda os números de treino (sem IA; docs/TREINO.md).
  * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA).
  */
 import { db, players } from '@aoe2/db';
 import {
-  activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardMonthlyPodiums, closeIncident, detectLeagueMatches, detectTournamentGames, openIncident,
+  activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardMonthlyPodiums, closeIncident, collectLeagueMetrics, detectLeagueMatches, detectTournamentGames, openIncident,
   processNotifications, processQueuedAnalyses, recordSyncRun, rollMonthlySeasons, syncMatchHistory, syncRatingsByProfileIds, takeWeeklySnapshots,
 } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
@@ -79,6 +80,17 @@ async function cycle() {
     const auto = await autoJoinOpponents();
     if (auto) log(`${auto} adversários trazidos pra liga`);
   } catch (e) { log('erro no auto-join:', (e as Error).message); }
+  const tm = new Date();
+  try {
+    const m = await collectLeagueMetrics();
+    if (m.parsed || m.unavailable || m.failed) {
+      log(`métricas de treino: ${m.parsed} gravações lidas, ${m.unavailable} indisponíveis, ${m.failed} falhas`);
+      await recordSyncRun('metrics', tm, { matches: m.parsed });
+    }
+  } catch (e) {
+    log('erro nas métricas de treino:', (e as Error).message);
+    await recordSyncRun('metrics', tm, { ok: false, error: (e as Error).message });
+  }
   const t2 = new Date();
   const snaps = await takeWeeklySnapshots();
   if (snaps) { log(`${snaps} posições fotografadas (semana)`); await recordSyncRun('snapshot', t2, { players: snaps }); }
