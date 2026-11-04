@@ -2,7 +2,7 @@
 
 Community portal for **Age of Empires II: Definitive Edition**: rating-bracket leagues, tournaments and AI match feedback. Interface in Portuguese and English.
 
-Live (provisional domain): https://aoe2.ericofreitas.eng.br
+Live: https://feudalleague.com
 
 **Status:** early and in active use by a small community. Leagues, tournaments and match analysis work end to end; expect rough edges and schema changes. Product decisions and the roadmap are in `docs/PLANO.md` (Portuguese).
 
