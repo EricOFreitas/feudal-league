@@ -1,0 +1,2 @@
+CREATE INDEX "league_matches_season_winner_idx" ON "league_matches" USING btree ("season_id","winner_player_id");--> statement-breakpoint
+CREATE INDEX "league_matches_season_loser_idx" ON "league_matches" USING btree ("season_id","loser_player_id");

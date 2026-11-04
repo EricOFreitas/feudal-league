@@ -232,6 +232,8 @@ export const leagueMatches = pgTable(
   (t) => [
     uniqueIndex('league_matches_season_match_idx').on(t.seasonId, t.matchId),
     index('league_matches_division_idx').on(t.divisionId, t.playedAt),
+    index('league_matches_season_winner_idx').on(t.seasonId, t.winnerPlayerId),
+    index('league_matches_season_loser_idx').on(t.seasonId, t.loserPlayerId),
   ],
 );
 

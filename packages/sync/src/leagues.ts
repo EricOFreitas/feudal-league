@@ -378,18 +378,28 @@ export type StandingRow = {
 export async function standings(seasonId: number, divisionId: number): Promise<StandingRow[]> {
   const season = await db.query.seasons.findFirst({ where: eq(seasons.id, seasonId), with: { league: { columns: { pointsWin: true, pointsLoss: true } } } });
   const pts = leaguePoints(season?.league);
-  const played = await db.select({ winner: leagueMatches.winnerPlayerId, loser: leagueMatches.loserPlayerId, at: leagueMatches.playedAt }).from(leagueMatches)
-    .where(and(eq(leagueMatches.seasonId, seasonId), eq(leagueMatches.status, 'counted')));
-  const wins = sql<number>`coalesce((select count(*) from ${leagueMatches} w where w.season_id = ${seasonId} and w.status = 'counted' and w.winner_player_id = "league_members"."player_id"), 0)::int`;
-  const losses = sql<number>`coalesce((select count(*) from ${leagueMatches} l where l.season_id = ${seasonId} and l.status = 'counted' and l.loser_player_id = "league_members"."player_id"), 0)::int`;
-  const rows = await db
+  const members = await db
     .select({
       playerId: leagueMembers.playerId, profileId: players.profileId, alias: players.alias, country: players.country,
-      placementRating: leagueMembers.placementRating, joinedAt: leagueMembers.joinedAt, wins, losses,
+      placementRating: leagueMembers.placementRating, joinedAt: leagueMembers.joinedAt,
     })
     .from(leagueMembers)
     .innerJoin(players, eq(players.id, leagueMembers.playerId))
     .where(and(eq(leagueMembers.seasonId, seasonId), eq(leagueMembers.divisionId, divisionId), isNull(leagueMembers.leftAt)));
+  const ids = members.map((m) => m.playerId);
+  // partidas da temporada em que algum membro da divisão jogou: vitórias, derrotas, confronto direto e momento da pontuação
+  // saem todos daqui, em memória (uma subconsulta de contagem por membro levava segundos com a liga cheia)
+  const played = ids.length === 0 ? [] : await db
+    .select({ winner: leagueMatches.winnerPlayerId, loser: leagueMatches.loserPlayerId, at: leagueMatches.playedAt })
+    .from(leagueMatches)
+    .where(and(eq(leagueMatches.seasonId, seasonId), eq(leagueMatches.status, 'counted'), or(inArray(leagueMatches.winnerPlayerId, ids), inArray(leagueMatches.loserPlayerId, ids))));
+  const wins = new Map<number, number>();
+  const losses = new Map<number, number>();
+  for (const m of played) {
+    wins.set(m.winner, (wins.get(m.winner) ?? 0) + 1);
+    losses.set(m.loser, (losses.get(m.loser) ?? 0) + 1);
+  }
+  const rows = members.map((r) => ({ ...r, wins: wins.get(r.playerId) ?? 0, losses: losses.get(r.playerId) ?? 0 }));
   const table = rows.map((r) => ({ ...r, points: r.wins * pts.win + r.losses * pts.loss }));
 
   // confronto direto entre empatados em pontos e vitórias; momento em que cada um chegou à pontuação final
