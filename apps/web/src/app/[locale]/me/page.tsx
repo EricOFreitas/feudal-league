@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { db, players } from '@aoe2/db';
 import { findPlayerBySteamId, importPlayerBySteamId, joinGlobalLeague, syncMatchHistory } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
-import { redirect } from '@/i18n/navigation';
+import { Link, redirect } from '@/i18n/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { getSession } from '@/lib/session';
 
@@ -21,7 +21,7 @@ export default async function MePage({ params }: { params: Promise<{ locale: str
         <div className="panel mx-auto max-w-md p-8 text-center">
           <h1 className="text-2xl text-gold-300">{t('title')}</h1>
           <p className="mt-3 text-parchment-200">{t('notLogged')}</p>
-          <a href="/auth/steam" className="btn mt-6">{tn('login')}</a>
+          <Link href="/login" className="btn mt-6">{tn('login')}</Link>
         </div>
       </>
     );

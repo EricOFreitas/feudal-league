@@ -58,7 +58,7 @@ export default async function TrainingPage({ params }: { params: Promise<{ local
         ) : (
           <div className="panel flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-parchment-200">{t('focus.login')}</p>
-            <a href={`/auth/steam?next=/${locale}/training`} className="btn flex-none">{tn('login')}</a>
+            <Link href="/login" className="btn flex-none">{tn('login')}</Link>
           </div>
         )}
       </section>

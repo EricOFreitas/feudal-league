@@ -26,7 +26,7 @@ export async function Header() {
               <a href="/auth/logout" className="text-parchment-300 hover:text-gold-300">{t('logout')}</a>
             </>
           ) : (
-            <a href="/auth/steam" className="btn !py-1.5 !px-3 !text-xs">{t('login')}</a>
+            <Link href="/login" className="btn !py-1.5 !px-3 !text-xs">{t('login')}</Link>
           )}
         </nav>
       </div>

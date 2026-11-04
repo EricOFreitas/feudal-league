@@ -126,8 +126,8 @@
             "a": "Não pra ver. Qualquer pessoa adiciona qualquer jogador pelo link da Steam, SteamID64, profile_id ou nick, e vê rating, histórico e ligas. Login só é preciso pra reivindicar seu perfil, entrar em liga, criar liga ou torneio e pedir análise."
           },
           {
-            "q": "O login guarda o quê?",
-            "a": "Só pela Steam. Guardamos o seu SteamID e um cookie de sessão. Nada de senha nem e-mail."
+            "q": "É seguro entrar com a Steam? Posso perder a conta?",
+            "a": "Só pela Steam, e a senha você digita no site da própria Steam (steamcommunity.com), nunca aqui. A Steam devolve pro site só o número público do seu perfil. O site não tem acesso a inventário, amigos, compras nem trocas, não pede permissão nenhuma e não usa chave de API da Steam. Guardamos o SteamID, o nick e um cookie de sessão. Nada de senha nem e-mail. O código é aberto e dá pra conferir no GitHub."
           },
           {
             "q": "De onde vêm os dados?",

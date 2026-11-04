@@ -126,8 +126,8 @@
             "a": "Not to browse. Anyone can add any player by Steam link, SteamID64, profile id or nick, and see rating, history and leagues. Sign-in is needed only to claim your profile, join a league, create a league or tournament and request an analysis."
           },
           {
-            "q": "What does sign-in store?",
-            "a": "Steam only. We store your SteamID and a session cookie. No password, no e-mail."
+            "q": "Is it safe to sign in with Steam? Can I lose my account?",
+            "a": "Steam only, and you type your password on Steam's own site (steamcommunity.com), never here. Steam sends the site only the public number of your profile. The site has no access to inventory, friends, purchases or trades, asks for no permission and uses no Steam API key. We store the SteamID, the nickname and a session cookie. No password, no e-mail. The code is open and you can check it on GitHub."
           },
           {
             "q": "Where does the data come from?",

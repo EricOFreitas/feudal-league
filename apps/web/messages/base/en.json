@@ -100,7 +100,18 @@
     "why": "Signed in, you can claim your profile, join leagues and create your own.",
     "claimDone": "Profile claimed. It now shows as yours.",
     "claimNoProfile": "Your Steam account has no AoE2 DE profile. Play an online game and try again.",
-    "failed": "Steam sign-in failed. Please try again."
+    "failed": "Steam sign-in failed. Please try again.",
+    "safe": {
+      "title": "What sign-in does and does not do",
+      "items": [
+        "You type your password on Steam's own site. When you click, check the address bar: the page is steamcommunity.com. Feudal League never sees the password.",
+        "Steam sends the site only the public number of your profile (SteamID). It is the same number anyone sees in your profile link.",
+        "The site has no access to your inventory, friends, purchases, trades or games. It asks for no Steam permission and uses no Steam API key.",
+        "We store the SteamID, the nickname and a session cookie in this browser. No password, e-mail or card. Signing out deletes the cookie."
+      ],
+      "source": "Open source: check it on GitHub",
+      "faq": "FAQ about accounts"
+    }
   },
   "me": {
     "title": "My profile",

@@ -100,7 +100,18 @@
     "why": "Com login você reivindica seu perfil, entra em ligas e cria as suas.",
     "claimDone": "Perfil reivindicado. Ele agora aparece como seu.",
     "claimNoProfile": "Sua conta Steam não tem perfil no AoE2 DE. Jogue uma partida online e tente de novo.",
-    "failed": "O login com a Steam falhou. Tente de novo."
+    "failed": "O login com a Steam falhou. Tente de novo.",
+    "safe": {
+      "title": "O que o login faz e o que não faz",
+      "items": [
+        "A senha você digita no site da própria Steam. Ao clicar, confira na barra de endereço: a página é steamcommunity.com. O Feudal League nunca vê a senha.",
+        "A Steam devolve pro site só o número público do seu perfil (SteamID). É o mesmo número que aparece no link do seu perfil pra qualquer pessoa.",
+        "O site não tem acesso ao seu inventário, amigos, compras, trocas ou jogos. Não pede permissão nenhuma na Steam e não usa chave de API da Steam.",
+        "Guardamos o SteamID, o nick e um cookie de sessão neste navegador. Nada de senha, e-mail ou cartão. Sair apaga o cookie."
+      ],
+      "source": "Código aberto: confira no GitHub",
+      "faq": "Perguntas frequentes sobre conta"
+    }
   },
   "me": {
     "title": "Meu perfil",
