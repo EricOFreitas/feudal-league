@@ -217,7 +217,8 @@
     "focus": {
       "title": "Your training focus",
       "login": "Sign in with Steam to see your training focus: the number that fell behind your division the most in your last games.",
-      "noPlayer": "Your player is not linked to the account yet. Open your page to do it."
+      "noPlayer": "Your player is not linked to the account yet. Open your page to do it.",
+      "profile": "See my profile"
     }
   },
   "bo": {

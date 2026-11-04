@@ -43,12 +43,14 @@ export function metricsFromParse(parse: ParseOut, profileId: number): (MetricNum
   const start = p.villagers_start ?? 3;  // aldeões iniciais (Chinese 6, Mayans 4): o número mostrado é o total vivo produzido, não só os treinados
   const upTo = (minutes: number) => (parse.duration_s < minutes * 60 ? null : start + buckets.slice(0, minutes / 5).reduce((a, b) => a + b, 0));
   const age = (k: 'feudal' | 'castle' | 'imperial') => p.ages[k]?.reached_s ?? null;
+  // colunas inteiras: com bônus de civ (Persas, Malaios) os tempos do analyzer saem com fração e o insert falhava
+  const int = (v: number | null | undefined) => (v == null ? null : Math.round(v));
   return {
-    durationS: parse.duration_s,
-    feudalS: age('feudal'), castleS: age('castle'), imperialS: age('imperial'),
+    durationS: Math.round(parse.duration_s),
+    feudalS: int(age('feudal')), castleS: int(age('castle')), imperialS: int(age('imperial')),
     vils10: upTo(10), vils15: upTo(15), vils20: upTo(20),
-    tcIdleS: p.tc_idle_s ?? null, tcIdleUntilS: p.tc_idle_until_s ?? null,
-    firstMilitaryS: p.first_military?.t_s ?? null,
+    tcIdleS: int(p.tc_idle_s), tcIdleUntilS: int(p.tc_idle_until_s),
+    firstMilitaryS: int(p.first_military?.t_s),
     apm: Math.round(p.apm),
     events: p.events ?? null,
   };

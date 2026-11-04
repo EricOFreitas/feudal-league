@@ -217,7 +217,8 @@
     "focus": {
       "title": "Seu foco de treino",
       "login": "Entre com Steam pra ver o seu foco de treino: o número que mais ficou atrás da sua divisão nas últimas partidas.",
-      "noPlayer": "Seu jogador ainda não foi ligado à conta. Abra a sua página pra fazer isso."
+      "noPlayer": "Seu jogador ainda não foi ligado à conta. Abra a sua página pra fazer isso.",
+      "profile": "Ver meu perfil"
     }
   },
   "bo": {
