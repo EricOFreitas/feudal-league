@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ExternalLink } from 'lucide-react';
+import { findPlayerBySteamId, trainingFocusOf } from '@aoe2/sync';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { FocusCard } from '@/components/focus-card';
 import { Link } from '@/i18n/navigation';
+import { divisionName } from '@/lib/leagues';
+import { getSession } from '@/lib/session';
 
 type SiteItem = { name: string; what: string; href: string; link: string };
 type ExtItem = { name: string; what: string; url: string | null };
@@ -20,8 +24,13 @@ export default async function TrainingPage({ params }: { params: Promise<{ local
   setRequestLocale(locale);
   const t = await getTranslations('training');
   const tn = await getTranslations('nav');
+  const td = await getTranslations('division');
   const site = t.raw('site.items') as SiteItem[];
   const order = t.raw('order.items') as string[];
+  // foco de treino do jogador logado (T3)
+  const session = await getSession();
+  const player = session ? await findPlayerBySteamId(session.sid) : null;
+  const mine = player ? await trainingFocusOf(player) : null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-10">
@@ -36,6 +45,23 @@ export default async function TrainingPage({ params }: { params: Promise<{ local
           {EXT.map((s) => <a key={s} href={`#${s}`} className="tag no-underline hover:border-gold-500 hover:no-underline">{t(`ext.${s}.title`)}</a>)}
         </nav>
       </header>
+
+      <section id="focus" className="scroll-mt-6">
+        <div className="rule mb-5"><span className="kicker">{t('focus.title')}</span></div>
+        {mine && player ? (
+          <div className="space-y-3">
+            <FocusCard focus={mine.focus} divisionLabel={mine.division ? divisionName(mine.division, td) : null} aboveLabel={mine.above ? divisionName(mine.above, td) : null} showEmpty />
+            <p className="text-sm"><Link href={`/players/${player.profileId}`}>{t('focus.profile')} →</Link></p>
+          </div>
+        ) : session ? (
+          <p className="text-parchment-300">{t('focus.noPlayer')} <Link href="/me">{t('focus.profile')} →</Link></p>
+        ) : (
+          <div className="panel flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-parchment-200">{t('focus.login')}</p>
+            <a href={`/auth/steam?next=/${locale}/training`} className="btn flex-none">{tn('login')}</a>
+          </div>
+        )}
+      </section>
 
       <section id="site" className="scroll-mt-6">
         <div className="rule mb-5"><span className="kicker">{t('site.title')}</span></div>

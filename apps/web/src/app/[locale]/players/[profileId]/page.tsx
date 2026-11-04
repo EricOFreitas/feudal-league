@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { BENCHMARK_MIN_SAMPLES, analysesForMatches, badgesOf, benchmarksForLeague, bestMedal, divisionAbove, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, playerRecentMetrics, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf } from '@aoe2/sync';
+import { BENCHMARK_MIN_SAMPLES, analysesForMatches, badgesOf, benchmarksForLeague, bestMedal, divisionAbove, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, playerRecentMetrics, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf, trainingFocus } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
@@ -13,6 +13,7 @@ import { MatchRow } from '@/components/match-row';
 import { DivisionMark } from '@/components/division-mark';
 import { BadgeList } from '@/components/badge-list';
 import { BenchmarkTable } from '@/components/benchmark-table';
+import { FocusCard } from '@/components/focus-card';
 import { BestMedalIcon, MedalShelf } from '@/components/medal';
 import { EvolutionSection } from '@/components/evolution-section';
 import { Link } from '@/i18n/navigation';
@@ -102,6 +103,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     const above = await divisionAbove(benchHome.divisionId);
     return { division: all.get(benchHome.divisionId) ?? { divisionId: benchHome.divisionId, samples: 0, metrics: {} as never }, above: above ? all.get(above.id) ?? null : null, divisionLabel: divisionName(benchHome.division, td), aboveLabel: above ? divisionName(above, td) : null };
   })() : null;
+  // foco de treino (T3): um objetivo só, tirado das últimas partidas lidas contra a mediana da divisão
+  const focus = recent.samples > 0 ? await trainingFocus(profileId, bench?.division ?? null, bench?.above ?? null) : null;
   const badges = await badgesOf(player.id);
   const medals = await medalsOf(player.id);
   const best = bestMedal(medals);
@@ -199,9 +202,12 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           {recent.samples === 0 ? (
             <p className="italic text-parchment-400">{tb('player.empty')}</p>
           ) : (
+            <div className="space-y-4">
+            {focus && <FocusCard focus={focus} divisionLabel={bench?.divisionLabel ?? null} aboveLabel={bench?.aboveLabel ?? null} showEmpty={isMine} />}
             <div className="panel p-6">
               <p className="text-sm text-parchment-300">{tb('player.intro', { n: recent.samples, d: bench?.division?.samples ?? 0 })}</p>
               <BenchmarkTable mine={recent.medians} division={bench?.division ?? null} above={bench?.above ?? null} divisionLabel={bench?.divisionLabel ?? null} aboveLabel={bench?.aboveLabel ?? null} minSamples={BENCHMARK_MIN_SAMPLES} heading={false} />
+            </div>
             </div>
           )}
         </section>

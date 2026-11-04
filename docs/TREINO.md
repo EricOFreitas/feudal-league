@@ -1,6 +1,6 @@
 # Treino — roadmap pra ajudar o jogador a melhorar
 
-Data: 03/11/2026. Status: roadmap aprovado; T1 implementado em 03/11 (ver §2, T1).
+Data: 03/11/2026. Status: roadmap aprovado; T1, T2, T3, T5 e a página Treino feitos em 03/11 (ver §2). Falta T4 e o cenário gerado por código.
 Complementa `PLANO.md` (§1 item 4, "educativo").
 
 ## 1. Princípio
@@ -119,6 +119,19 @@ Das últimas N análises do jogador, extrair o erro mais recorrente
 objetivo no perfil. Uma coisa por vez. Recalculado a cada análise nova.
 
 Depende de T1. Toca `packages/sync` (regra) e página do jogador.
+
+**Feito em 03/11/2026.** `packages/sync/src/focus.ts`: das últimas 5 partidas
+lidas (`match_metrics`), pra cada métrica conta em quantas o jogador ficou
+pior que a mediana da divisão; vence a pior na maioria, empate pela ordem
+de treino (TC parado, aldeões aos 10, Feudal, aldeões aos 15, Castelos,
+aldeões aos 20, primeira militar, Imperial, APM). Métrica nula (não chegou
+à era) não conta; precisa de 3 comparáveis. Se nada ficou atrás da própria
+divisão, compara com a de cima; se também não, "à frente". Sem tabela:
+calculado ao vivo, muda sozinho a cada partida lida. Cartão "Foco de
+treino" (`focus-card.tsx`) no perfil (acima dos números) e na página
+Treino pro jogador logado; o prompt da IA recebe o foco e pede pra dizer
+se a partida repete ou melhora o problema. Chamei de "foco de treino", não
+"da semana": a janela é por partidas, não por data.
 
 ### T4 — Desafios semanais com badge
 

@@ -71,7 +71,7 @@
       "items": [
         {
           "name": "Your numbers against the division",
-          "what": "Every league game has its recording read by the site, no AI: age-up times, villagers at 10, 15 and 20 minutes, Town Center idle time, first military unit and actions per minute. The table on your profile and on the analysis compares you with the median of your division and the one above.",
+          "what": "Every league game has its recording read by the site, no AI: age-up times, villagers at 10, 15 and 20 minutes, Town Center idle time, first military unit and actions per minute. The table on your profile and on the analysis compares you with the median of your division and the one above. The training focus picks, out of those, the number that fell behind the most.",
           "href": "/me",
           "link": "See my profile"
         },
@@ -213,7 +213,12 @@
     },
     "open": "open",
     "inGame": "in the game",
-    "roadmap": "Coming next on the site: a build-order checker (compares your game with the build you chose), a weekly training focus, and challenges with medals."
+    "roadmap": "Coming next on the site: weekly challenges with medals and a build-order training scenario made by the site.",
+    "focus": {
+      "title": "Your training focus",
+      "login": "Sign in with Steam to see your training focus: the number that fell behind your division the most in your last games.",
+      "noPlayer": "Your player is not linked to the account yet. Open your page to do it."
+    }
   },
   "bo": {
     "title": "Check build order",
@@ -240,5 +245,41 @@
     },
     "noEvents": "This recording was read before the checker existed. New games work right away.",
     "tolerance": "Tolerance: up to 45 s late and 1 villager of difference. In-game clock. Build numbers are the generic Arabia ones."
+  },
+  "focus": {
+    "title": "Training focus",
+    "goal": {
+      "tcIdle": "Keep the Town Center idle for less time",
+      "vils10": "Have more villagers at 10:00",
+      "feudal": "Reach the Feudal Age sooner",
+      "vils15": "Have more villagers at 15:00",
+      "castle": "Reach the Castle Age sooner",
+      "vils20": "Have more villagers at 20:00",
+      "firstMilitary": "Get your first military unit out earlier",
+      "imperial": "Reach the Imperial Age sooner",
+      "apm": "Do more actions per minute"
+    },
+    "why": "{metric}: in {worse} of your last {total} games you were behind the median of {ref}, which is {target}. Your median in those games was {mine}.",
+    "refDivision": "your division ({name})",
+    "refAbove": "the division above ({name})",
+    "aboveNote": "In your own division you are already at the median or better in everything. The target now is the division above.",
+    "tip": {
+      "tcIdle": "Press the Town Center hotkey and queue a villager every time you have 50 food, without waiting to bank more. Keeping two in the queue costs little and covers the moments you forget. Before aging up, make sure the Town Center will not sit empty.",
+      "vils10": "Villagers at 10:00 means a Town Center that never stops plus Loom at the right step of the build. Keep six to eight villagers on food (sheep, then boar and deer) before sending anyone to wood, and build the house before you hit the population cap.",
+      "feudal": "An early Feudal Age is a build order on autopilot: pick one, repeat it until it runs without thinking, and check every game with the build-order checker on the analysis page.",
+      "vils15": "Between Feudal and Castle the Town Center keeps producing. Queue a villager before researching the age and build the first farms while the research runs.",
+      "castle": "An early Castle Age depends on wood and gold in Feudal: four villagers on gold before the click and a Town Center that never stops. Compare your Feudal time: if it is already on target, the delay is in the stretch between the ages.",
+      "vils20": "After Castle Age, build the second and third Town Centers and keep all three queuing villagers. Place them next to wood and gold so nobody walks.",
+      "firstMilitary": "Build the barracks, archery range or stable right after clicking up to Feudal and queue the first unit as soon as the age arrives. One early unit holds the enemy scout and gives you information.",
+      "imperial": "An early Imperial Age needs a big economy: more villagers at 20:00, reseeded farms and steady gold. Train the villager count first and the age comes on its own.",
+      "apm": "Actions per minute go up with hotkeys: Town Center, villager, barracks and the idle-villager cycle on the keyboard, not the mouse. The hotkey trainers on the How to train page are for this."
+    },
+    "ahead": "In your last {total} parsed games you were at your division's median or better in every number. Keep the build and request an analysis on the losses you did not understand.",
+    "aheadAbove": "In your last {total} parsed games you were at the median or better in every number, even against the division above. Time to move up.",
+    "few": "{total, plural, =0 {No game of yours has a parsed recording yet.} =1 {Only one parsed game so far.} other {Only # parsed games so far.}} From {min} on, the site picks a focus.",
+    "noBench": "Your division does not have enough parsed games yet to pick a focus. Your numbers are already saved.",
+    "note": "One thing at a time: the number that fell behind the most in your last {n} parsed games. It updates on its own with every new game.",
+    "login": "Sign in with Steam to see your training focus.",
+    "profile": "See my profile"
   }
 }

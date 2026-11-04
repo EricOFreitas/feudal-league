@@ -21,7 +21,7 @@ apps/worker         sync por prioridade (liga 15min, reivindicado 1h, visto 6h) 
 apps/analyzer       Python: replay → JSON (POST /parse). Dockerfile próprio; local: uvicorn main:app
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras: players/matches; ligas em leagues.ts; liga mensal e medalhas em podium.ts; dados da home em home.ts; análise em analyses.ts (cliente do analyzer em analyzer.ts); métricas de treino e benchmarks por divisão em metrics.ts e sparring/mentoria em sparring.ts (docs/TREINO.md); torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal)
+packages/sync       regras: players/matches; ligas em leagues.ts; liga mensal e medalhas em podium.ts; dados da home em home.ts; análise em analyses.ts (cliente do analyzer em analyzer.ts); métricas de treino e benchmarks por divisão em metrics.ts, foco de treino em focus.ts, build orders em build-orders.ts/bo-check.ts e sparring/mentoria em sparring.ts (docs/TREINO.md); torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal)
 docs/PLANO.md       plano, fases, decisões
 ```
 

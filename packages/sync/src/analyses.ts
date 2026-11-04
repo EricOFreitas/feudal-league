@@ -12,6 +12,7 @@ import { and, asc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { AnalyzerError, parseReplay, type ParseOut } from './analyzer';
 import { membershipsOf } from './leagues';
 import { BENCHMARK_MIN_SAMPLES, benchmarksForLeague, divisionAbove, globalDivisionOf, storeMatchMetrics, type DivisionBenchmark, type MetricKey } from './metrics';
+import { FOCUS_MATCHES, trainingFocus } from './focus';
 
 export const ANALYSIS_DAILY_LIMIT = Number(process.env.ANALYSIS_DAILY_LIMIT ?? 3);
 export const DEFAULT_MODEL = process.env.LLM_MODEL ?? 'anthropic/claude-haiku-5.5';
@@ -119,6 +120,14 @@ export async function analysisContext(matchId: number, profileId: number, parse:
     if (mineB && mineB.samples >= BENCHMARK_MIN_SAMPLES) {
       lines.push(line(`Benchmarks of the analyzed player's division`, mineB), 'Judge the analyzed player against these division benchmarks, not against generic or pro benchmarks.');
       if (above && aboveB && aboveB.samples >= BENCHMARK_MIN_SAMPLES) lines.push(line(`Benchmarks of the division above (${above.name ?? above.nameKey})`, aboveB));
+      // foco de treino (T3): o modelo liga a partida ao objetivo que o jogador já vê no perfil
+      const focus = await trainingFocus(profileId, mineB, aboveB ?? null);
+      if (focus.kind === 'focus') {
+        const time = !['vils10', 'vils15', 'vils20', 'apm'].includes(focus.key);
+        const f = (x: number) => (time ? mmss(Math.round(x)) : String(Math.round(x)));
+        const name: Record<MetricKey, string> = { feudalS: 'Feudal arrival', castleS: 'Castle arrival', imperialS: 'Imperial arrival', vils10: 'villagers by 10:00', vils15: 'villagers by 15:00', vils20: 'villagers by 20:00', tcIdleS: 'TC idle before Castle', firstMilitaryS: 'first military unit', apm: 'APM' };
+        lines.push(`Current training focus of the analyzed player (from their last ${FOCUS_MATCHES} parsed games): ${name[focus.key]} — behind the ${focus.level === 'above' ? 'division-above' : 'division'} median in ${focus.worse} of ${focus.total} games (their median ${f(focus.mine)} vs ${f(focus.target)}). Say whether this game repeats that problem or improves on it, and keep it as the first training item unless something bigger decided the game.`);
+      }
     }
   }
 

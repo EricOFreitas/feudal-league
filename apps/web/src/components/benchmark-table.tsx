@@ -1,13 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { BENCHMARK_SHOW_SAMPLES, LOWER_IS_BETTER, METRIC_KEYS, type DivisionBenchmark, type MetricKey, type MetricNumbers } from '@aoe2/sync';
-
-const TIME_KEYS = new Set<MetricKey>(['feudalS', 'castleS', 'imperialS', 'tcIdleS', 'firstMilitaryS']);
-const LABEL: Record<MetricKey, string> = {
-  feudalS: 'feudal', castleS: 'castle', imperialS: 'imperial', vils10: 'vils10', vils15: 'vils15', vils20: 'vils20', tcIdleS: 'tcIdle', firstMilitaryS: 'firstMilitary', apm: 'apm',
-};
-
-const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`;
-const fmt = (k: MetricKey, v: number) => (TIME_KEYS.has(k) ? mmss(v) : String(Math.round(v)));
+import { METRIC_LABEL as LABEL, TIME_KEYS, fmtMetric as fmt } from '@/lib/metrics-format';
 
 type Props = {
   /** Números do jogador (uma partida ou mediana das últimas). */

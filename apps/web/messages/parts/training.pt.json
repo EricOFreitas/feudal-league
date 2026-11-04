@@ -71,7 +71,7 @@
       "items": [
         {
           "name": "Seus números contra a divisão",
-          "what": "Toda partida de liga tem a gravação lida pelo site, sem IA: chegada às eras, aldeões aos 10, 15 e 20 minutos, Centro da Cidade parado, primeira unidade militar e ações por minuto. A tabela no seu perfil e na análise compara você com a mediana da sua divisão e da de cima.",
+          "what": "Toda partida de liga tem a gravação lida pelo site, sem IA: chegada às eras, aldeões aos 10, 15 e 20 minutos, Centro da Cidade parado, primeira unidade militar e ações por minuto. A tabela no seu perfil e na análise compara você com a mediana da sua divisão e da de cima. O foco de treino escolhe, dessas, o número que mais ficou atrás.",
           "href": "/me",
           "link": "Ver meu perfil"
         },
@@ -213,7 +213,12 @@
     },
     "open": "abrir",
     "inGame": "no jogo",
-    "roadmap": "O que vem a seguir no site: conferidor de build order (compara a partida com a build que você escolheu), foco de treino da semana e desafios com medalha."
+    "roadmap": "O que vem a seguir no site: desafios semanais com medalha e um cenário de treino de build order feito pelo site.",
+    "focus": {
+      "title": "Seu foco de treino",
+      "login": "Entre com Steam pra ver o seu foco de treino: o número que mais ficou atrás da sua divisão nas últimas partidas.",
+      "noPlayer": "Seu jogador ainda não foi ligado à conta. Abra a sua página pra fazer isso."
+    }
   },
   "bo": {
     "title": "Conferir build order",
@@ -240,5 +245,41 @@
     },
     "noEvents": "Esta gravação foi lida antes do conferidor existir. Em partidas novas ele funciona direto.",
     "tolerance": "Tolerância: até 45 s de atraso e 1 aldeão de diferença. Tempos no relógio do jogo. Números das builds são os genéricos de Arábia."
+  },
+  "focus": {
+    "title": "Foco de treino",
+    "goal": {
+      "tcIdle": "Deixar o Centro da Cidade parado menos tempo",
+      "vils10": "Ter mais aldeões aos 10:00",
+      "feudal": "Chegar antes à Idade Feudal",
+      "vils15": "Ter mais aldeões aos 15:00",
+      "castle": "Chegar antes à Idade dos Castelos",
+      "vils20": "Ter mais aldeões aos 20:00",
+      "firstMilitary": "Sair com a primeira unidade militar mais cedo",
+      "imperial": "Chegar antes à Idade Imperial",
+      "apm": "Fazer mais ações por minuto"
+    },
+    "why": "{metric}: em {worse} das últimas {total} partidas você ficou atrás da mediana da {ref}, que é {target}. A sua mediana nessas partidas foi {mine}.",
+    "refDivision": "sua divisão ({name})",
+    "refAbove": "divisão acima ({name})",
+    "aboveNote": "Na sua divisão você já está na mediana ou melhor em tudo. A meta agora é a divisão de cima.",
+    "tip": {
+      "tcIdle": "Aperte a hotkey do Centro da Cidade e peça um aldeão toda vez que tiver 50 de comida, sem esperar juntar. Deixar dois na fila custa pouco e cobre o esquecimento. Antes de subir de era, confira que o Centro não vai ficar vazio.",
+      "vils10": "Aldeão aos 10:00 é Centro sem parar mais Loom na hora da build. Mantenha seis a oito aldeões na comida (ovelhas, depois javali e cervos) antes de mandar gente pra madeira, e construa a casa antes de travar a população.",
+      "feudal": "Idade Feudal cedo é build order no automático: escolha uma, repita até sair sem pensar e confira cada partida com o conferidor de build order na página da análise.",
+      "vils15": "Entre a Feudal e a Castelos o Centro continua produzindo. Peça aldeão antes de pesquisar a era e faça as primeiras fazendas enquanto a pesquisa roda.",
+      "castle": "A Idade dos Castelos cedo depende de madeira e ouro na Feudal: quatro aldeões no ouro antes do clique e Centro sem parar. Compare a sua chegada à Feudal: se ela já está no alvo, o atraso está no caminho entre as eras.",
+      "vils20": "Depois da Castelos, abra o segundo e o terceiro Centro da Cidade e mantenha os três pedindo aldeão. Coloque os Centros perto de madeira e ouro pra não andar.",
+      "firstMilitary": "Faça o quartel, a arquearia ou o estábulo logo depois do clique da Feudal e peça a primeira unidade assim que a era chegar. Uma unidade cedo segura o batedor adversário e dá informação.",
+      "imperial": "A Idade Imperial cedo pede economia grande: mais aldeões aos 20:00, fazendas renovadas e ouro constante. Treine primeiro os aldeões e a era chega sozinha.",
+      "apm": "Ações por minuto sobem com hotkeys: Centro, aldeão, quartel e ciclo de aldeão parado no teclado, sem mouse. Os treinos de hotkey da página Como treinar servem pra isso."
+    },
+    "ahead": "Nas últimas {total} partidas lidas você ficou na mediana da sua divisão ou melhor em todos os números. Siga com a build e peça análise nas derrotas que não entendeu.",
+    "aheadAbove": "Nas últimas {total} partidas lidas você ficou na mediana ou melhor em todos os números, inclusive contra a divisão de cima. Hora de subir.",
+    "few": "{total, plural, =0 {Ainda não há partida sua com gravação lida.} =1 {Só uma partida lida até agora.} other {Só # partidas lidas até agora.}} A partir de {min} o site escolhe um foco.",
+    "noBench": "Sua divisão ainda não tem partidas lidas o bastante pra escolher um foco. Os seus números já ficam guardados.",
+    "note": "Uma coisa por vez: o número que mais ficou atrás nas suas últimas {n} partidas lidas. Muda sozinho a cada partida nova.",
+    "login": "Entre com Steam pra ver o seu foco de treino.",
+    "profile": "Ver meu perfil"
   }
 }
