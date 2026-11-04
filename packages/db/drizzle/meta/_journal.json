@@ -99,6 +99,13 @@
       "when": 1793735535134,
       "tag": "0013_burly_yellow_claw",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793757655189,
+      "tag": "0014_light_mister_fear",
+      "breakpoints": true
     }
   ]
 }

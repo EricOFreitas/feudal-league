@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { BENCHMARK_MIN_SAMPLES, analysesForMatches, badgesOf, benchmarksForLeague, bestMedal, divisionAbove, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, playerRecentMetrics, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf, trainingFocus } from '@aoe2/sync';
+import { BENCHMARK_MIN_SAMPLES, analysesForMatches, badgesOf, benchmarksForLeague, bestMedal, divisionAbove, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, playerRecentMetrics, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf, challengeAwardsOf, trainingFocus } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
@@ -14,6 +14,7 @@ import { DivisionMark } from '@/components/division-mark';
 import { BadgeList } from '@/components/badge-list';
 import { BenchmarkTable } from '@/components/benchmark-table';
 import { FocusCard } from '@/components/focus-card';
+import { ChallengeAwards } from '@/components/challenge-awards';
 import { BestMedalIcon, MedalShelf } from '@/components/medal';
 import { EvolutionSection } from '@/components/evolution-section';
 import { Link } from '@/i18n/navigation';
@@ -105,6 +106,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   })() : null;
   // foco de treino (T3): um objetivo só, tirado das últimas partidas lidas contra a mediana da divisão
   const focus = recent.samples > 0 ? await trainingFocus(profileId, bench?.division ?? null, bench?.above ?? null) : null;
+  const awards = await challengeAwardsOf(player.id);
   const badges = await badgesOf(player.id);
   const medals = await medalsOf(player.id);
   const best = bestMedal(medals);
@@ -196,14 +198,18 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         )}
       </section>
 
-      {(recent.samples > 0 || isMine) && (
+      {(recent.samples > 0 || isMine || awards.length > 0) && (
         <section>
           <div className="rule mb-5"><span className="kicker">{tb('player.title')}</span></div>
           {recent.samples === 0 ? (
-            <p className="italic text-parchment-400">{tb('player.empty')}</p>
+            <div className="space-y-4">
+              <p className="italic text-parchment-400">{tb('player.empty')}</p>
+              <ChallengeAwards awards={awards} locale={locale} />
+            </div>
           ) : (
             <div className="space-y-4">
             {focus && <FocusCard focus={focus} divisionLabel={bench?.divisionLabel ?? null} aboveLabel={bench?.aboveLabel ?? null} showEmpty={isMine} />}
+            <ChallengeAwards awards={awards} locale={locale} />
             <div className="panel p-6">
               <p className="text-sm text-parchment-300">{tb('player.intro', { n: recent.samples, d: bench?.division?.samples ?? 0 })}</p>
               <BenchmarkTable mine={recent.medians} division={bench?.division ?? null} above={bench?.above ?? null} divisionLabel={bench?.divisionLabel ?? null} aboveLabel={bench?.aboveLabel ?? null} minSamples={BENCHMARK_MIN_SAMPLES} heading={false} />

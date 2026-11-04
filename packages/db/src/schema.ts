@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
-  bigint, boolean, index, integer, jsonb, pgTable, primaryKey, serial, smallint, text, timestamp, uniqueIndex, varchar,
+  bigint, boolean, date, index, integer, jsonb, pgTable, primaryKey, serial, smallint, text, timestamp, uniqueIndex, varchar,
 } from 'drizzle-orm/pg-core';
 
 /** Conta no portal. Nasce no login Steam. */
@@ -575,6 +575,27 @@ export const playerBadges = pgTable(
   (t) => [uniqueIndex('player_badges_player_badge_idx').on(t.playerId, t.badge)],
 );
 
+/**
+ * Desafio semanal cumprido (treino, T4): na semana `weekStart` (segunda), o jogador bateu a mediana da divisão
+ * na métrica da semana em CHALLENGE_MATCHES partidas de liga. Uma linha por jogador e semana; vira badge "challenger".
+ */
+export const challengeAwards = pgTable(
+  'challenge_awards',
+  {
+    id: serial('id').primaryKey(),
+    playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+    leagueId: integer('league_id').notNull().references(() => leagues.id, { onDelete: 'cascade' }),
+    divisionId: integer('division_id').references(() => divisions.id, { onDelete: 'set null' }),
+    /** Segunda-feira da semana, em texto YYYY-MM-DD. */
+    weekStart: date('week_start', { mode: 'string' }).notNull(),
+    metric: varchar('metric', { length: 16 }).notNull(),
+    matches: smallint('matches').notNull(),
+    awardedAt: timestamp('awarded_at', { withTimezone: true }).notNull().defaultNow(),
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
+  },
+  (t) => [uniqueIndex('challenge_awards_player_week_idx').on(t.playerId, t.weekStart), index('challenge_awards_week_idx').on(t.weekStart)],
+);
+
 /** Medalha do pódio mensal da Liga Global: 1º, 2º ou 3º de uma divisão no mês. Uma por posição. */
 export const playerMedals = pgTable(
   'player_medals',
@@ -670,6 +691,11 @@ export const playerMedalsRelations = relations(playerMedals, ({ one }) => ({
   season: one(seasons, { fields: [playerMedals.seasonId], references: [seasons.id] }),
   division: one(divisions, { fields: [playerMedals.divisionId], references: [divisions.id] }),
 }));
+export const challengeAwardsRelations = relations(challengeAwards, ({ one }) => ({
+  player: one(players, { fields: [challengeAwards.playerId], references: [players.id] }),
+  league: one(leagues, { fields: [challengeAwards.leagueId], references: [leagues.id] }),
+  division: one(divisions, { fields: [challengeAwards.divisionId], references: [divisions.id] }),
+}));
 export const playerBadgesRelations = relations(playerBadges, ({ one }) => ({
   player: one(players, { fields: [playerBadges.playerId], references: [players.id] }),
 }));
@@ -702,6 +728,7 @@ export type TournamentTeamMember = typeof tournamentTeamMembers.$inferSelect;
 export type TournamentMatch = typeof tournamentMatches.$inferSelect;
 export type TournamentGame = typeof tournamentGames.$inferSelect;
 export type PlayerBadge = typeof playerBadges.$inferSelect;
+export type ChallengeAward = typeof challengeAwards.$inferSelect;
 export type PlayerMedal = typeof playerMedals.$inferSelect;
 export type LeagueWebhook = typeof leagueWebhooks.$inferSelect;
 export type StandingSnapshot = typeof standingSnapshots.$inferSelect;

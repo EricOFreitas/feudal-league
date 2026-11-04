@@ -1,10 +1,31 @@
 {
   "badges": {
     "aria": "Badges do jogador",
-    "supporter": { "label": "Apoiador", "how": "Fez uma doação, de qualquer valor. É o mesmo badge pra todo mundo.", "title": "Ajudou com os custos do projeto" },
-    "code": { "label": "Contribuidor", "how": "Teve um pull request aceito no repositório: código, correção de dados de civ, mapa ou ladder.", "title": "Contribuiu com código" },
-    "translator": { "label": "Tradutor", "how": "Traduziu ou revisou os textos do portal em algum idioma.", "title": "Ajudou a traduzir o portal" },
-    "organizer": { "label": "Organizador", "how": "Administra uma liga com 10 membros ou mais, ou levou um torneio até a final.", "title": "Organiza liga ou torneio" }
+    "supporter": {
+      "label": "Apoiador",
+      "how": "Fez uma doação, de qualquer valor. É o mesmo badge pra todo mundo.",
+      "title": "Ajudou com os custos do projeto"
+    },
+    "code": {
+      "label": "Contribuidor",
+      "how": "Teve um pull request aceito no repositório: código, correção de dados de civ, mapa ou ladder.",
+      "title": "Contribuiu com código"
+    },
+    "translator": {
+      "label": "Tradutor",
+      "how": "Traduziu ou revisou os textos do portal em algum idioma.",
+      "title": "Ajudou a traduzir o portal"
+    },
+    "organizer": {
+      "label": "Organizador",
+      "how": "Administra uma liga com 10 membros ou mais, ou levou um torneio até a final.",
+      "title": "Organiza liga ou torneio"
+    },
+    "challenger": {
+      "label": "Desafiante",
+      "how": "Cumpriu ao menos um desafio da semana: bateu a mediana da própria divisão na métrica da semana em 3 partidas de liga.",
+      "title": "Cumpriu desafio da semana"
+    }
   },
   "supporters": {
     "metaTitle": "Quem ajuda o projeto",

@@ -43,6 +43,10 @@
       "sparring": {
         "label": "Wants to train / offers mentoring",
         "hint": "Who became available for sparring in the division, for 2 hours."
+      },
+      "challenge": {
+        "label": "Weekly challenge completed",
+        "hint": "Who hit the week's target in the division, with a link to the profile."
       }
     },
     "divisions": {

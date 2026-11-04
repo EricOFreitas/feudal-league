@@ -1,10 +1,31 @@
 {
   "badges": {
     "aria": "Player badges",
-    "supporter": { "label": "Supporter", "how": "Made a donation, of any amount. Everyone gets the same badge.", "title": "Helped with the project's costs" },
-    "code": { "label": "Contributor", "how": "Had a pull request merged in the repository: code, or fixes to civ, map or ladder data.", "title": "Contributed code" },
-    "translator": { "label": "Translator", "how": "Translated or reviewed the portal's texts in some language.", "title": "Helped translate the portal" },
-    "organizer": { "label": "Organizer", "how": "Runs a league with 10 or more members, or took a tournament all the way to the final.", "title": "Organizes a league or tournament" }
+    "supporter": {
+      "label": "Supporter",
+      "how": "Made a donation, of any amount. Everyone gets the same badge.",
+      "title": "Helped with the project's costs"
+    },
+    "code": {
+      "label": "Contributor",
+      "how": "Had a pull request merged in the repository: code, or fixes to civ, map or ladder data.",
+      "title": "Contributed code"
+    },
+    "translator": {
+      "label": "Translator",
+      "how": "Translated or reviewed the portal's texts in some language.",
+      "title": "Helped translate the portal"
+    },
+    "organizer": {
+      "label": "Organizer",
+      "how": "Runs a league with 10 or more members, or took a tournament all the way to the final.",
+      "title": "Organizes a league or tournament"
+    },
+    "challenger": {
+      "label": "Challenger",
+      "how": "Completed at least one weekly challenge: beat their own division's median on the week's metric in 3 league games.",
+      "title": "Completed a weekly challenge"
+    }
   },
   "supporters": {
     "metaTitle": "Who helps the project",

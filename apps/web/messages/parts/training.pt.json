@@ -213,7 +213,7 @@
     },
     "open": "abrir",
     "inGame": "no jogo",
-    "roadmap": "O que vem a seguir no site: desafios semanais com medalha e um cenário de treino de build order feito pelo site.",
+    "roadmap": "O que vem a seguir no site: um cenário de treino de build order feito pelo site, pra jogar dentro do jogo.",
     "focus": {
       "title": "Seu foco de treino",
       "login": "Entre com Steam pra ver o seu foco de treino: o número que mais ficou atrás da sua divisão nas últimas partidas.",
@@ -281,5 +281,39 @@
     "note": "Uma coisa por vez: o número que mais ficou atrás nas suas últimas {n} partidas lidas. Muda sozinho a cada partida nova.",
     "login": "Entre com Steam pra ver o seu foco de treino.",
     "profile": "Ver meu perfil"
+  },
+  "challenge": {
+    "title": "Desafio da semana",
+    "goal": {
+      "tcIdle": "Centro da Cidade parado menos que a mediana da sua divisão",
+      "vils10": "Mais aldeões aos 10:00 que a mediana da sua divisão",
+      "feudal": "Idade Feudal antes da mediana da sua divisão",
+      "vils15": "Mais aldeões aos 15:00 que a mediana da sua divisão",
+      "castle": "Idade dos Castelos antes da mediana da sua divisão",
+      "firstMilitary": "Primeira unidade militar antes da mediana da sua divisão",
+      "imperial": "Idade Imperial antes da mediana da sua divisão",
+      "vils20": "Mais aldeões aos 20:00 que a mediana da sua divisão",
+      "apm": "Mais ações por minuto que a mediana da sua divisão"
+    },
+    "rule": "Em {n} partidas de liga até domingo, {end}. Conta sozinho: o site lê a gravação de toda partida de liga. Quem cumpre ganha o badge Desafiante no perfil.",
+    "target": "Alvo na {division}: {value}",
+    "targetNone": "A {division} ainda não tem partidas lidas o bastante pra ter alvo.",
+    "noDivision": "Entre numa liga pra ter um alvo: a meta é a mediana da sua divisão.",
+    "progress": "{done} de {n} partidas",
+    "completed": "Desafio cumprido. O badge Desafiante já está no seu perfil.",
+    "noMatches": "Nenhuma partida de liga lida nesta semana ainda.",
+    "login": "Entre com Steam pra acompanhar o seu progresso.",
+    "match": {
+      "ok": "bateu",
+      "miss": "não bateu",
+      "pending": "sem alvo"
+    },
+    "completers": "Cumpriram nesta semana",
+    "nobody": "Ninguém ainda.",
+    "more": "Ver o desafio",
+    "awards": {
+      "title": "Desafios cumpridos",
+      "item": "Semana de {date}"
+    }
   }
 }

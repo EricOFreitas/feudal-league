@@ -2,16 +2,17 @@
  * Badges de comunidade (perfil do jogador e página "Quem ajuda").
  *
  * - supporter, code, translator: gravados à mão em `player_badges` (script apps/worker/src/tools/grant-badge.ts).
+ * - challenger: computado: tem ao menos um desafio semanal cumprido (challenge_awards, docs/TREINO.md T4).
  * - organizer: computado na hora, nunca gravado como concessão. Ganha quem tem a conta (players.claimedByUserId)
  *   dona de uma liga não-global com 10+ membros ativos na temporada aberta, ou dona de um torneio `finished`.
  *   Uma linha `organizer` em `player_badges` só guarda a preferência de visibilidade (visible = false esconde).
  *
  * Textos (rótulo, como ganhar, título do tooltip) ficam nas mensagens do web (namespace `badges`), não aqui.
  */
-import { db, leagueMembers, leagues, playerBadges, players, seasons, tournaments } from '@aoe2/db';
+import { challengeAwards, db, leagueMembers, leagues, playerBadges, players, seasons, tournaments } from '@aoe2/db';
 import { and, eq, gte, ilike, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 
-export const BADGE_KEYS = ['supporter', 'code', 'translator', 'organizer'] as const;
+export const BADGE_KEYS = ['supporter', 'code', 'translator', 'organizer', 'challenger'] as const;
 export type BadgeKey = (typeof BADGE_KEYS)[number];
 export const GRANTABLE_BADGES = ['supporter', 'code', 'translator'] as const;
 export type GrantableBadge = (typeof GRANTABLE_BADGES)[number];
@@ -25,7 +26,10 @@ export const BADGES: Record<BadgeKey, { color: string; icon: string }> = {
   code: { color: '#3b6ea8', icon: 'm16 18 6-6-6-6 M8 6l-6 6 6 6' },
   translator: { color: '#4f7a3a', icon: 'm5 8 6 6 M4 14l6-6 2-3 M2 5h12 M7 2h1 M22 22l-5-10-5 10 M14 18h6' },
   organizer: { color: '#d4af5a', icon: 'M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.33 2q2 0 3.67-1.33a1 1 0 0 1 1.6.8v10.06a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a8 8 0 0 0-4 1' },
+  challenger: { color: '#b8702e', icon: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0 M18 12a6 6 0 1 1-12 0 6 6 0 0 1 12 0 M14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0' },
 };
+/** Badges que o site calcula (nunca são concedidos à mão); a linha em player_badges só guarda visibilidade. */
+const COMPUTED: readonly BadgeKey[] = ['organizer', 'challenger'];
 
 export function isBadgeKey(v: unknown): v is BadgeKey {
   return typeof v === 'string' && (BADGE_KEYS as readonly string[]).includes(v);
@@ -67,15 +71,29 @@ async function organizerPlayerIds(): Promise<Set<number>> {
   return new Set(rows.map((r) => r.id));
 }
 
+/** Jogadores (players.id) com ao menos um desafio semanal cumprido e sem linha `challenger` escondida. */
+async function challengerPlayerIds(): Promise<Set<number>> {
+  const rows = await db
+    .selectDistinct({ id: challengeAwards.playerId })
+    .from(challengeAwards)
+    .leftJoin(playerBadges, and(eq(playerBadges.playerId, challengeAwards.playerId), eq(playerBadges.badge, 'challenger')))
+    .where(sql`coalesce(${playerBadges.visible}, true)`);
+  return new Set(rows.map((r) => r.id));
+}
+
 /** Badges visíveis de um jogador, na ordem de BADGE_KEYS. */
 export async function badgesOf(playerId: number): Promise<BadgeKey[]> {
   const rows = await db.query.playerBadges.findMany({ where: eq(playerBadges.playerId, playerId) });
   const keys: BadgeKey[] = [];
-  for (const r of rows) if (r.visible && isBadgeKey(r.badge) && r.badge !== 'organizer') keys.push(r.badge);
-  const organizerPref = rows.find((r) => r.badge === 'organizer');
-  if (!organizerPref || organizerPref.visible) {
+  for (const r of rows) if (r.visible && isBadgeKey(r.badge) && !COMPUTED.includes(r.badge)) keys.push(r.badge);
+  const shown = (k: BadgeKey) => { const pref = rows.find((r) => r.badge === k); return !pref || pref.visible; };
+  if (shown('organizer')) {
     const player = await db.query.players.findFirst({ where: eq(players.id, playerId), columns: { claimedByUserId: true } });
     if (player?.claimedByUserId != null && (await organizerUserIds(player.claimedByUserId)).size > 0) keys.push('organizer');
+  }
+  if (shown('challenger')) {
+    const award = await db.query.challengeAwards.findFirst({ where: eq(challengeAwards.playerId, playerId), columns: { id: true } });
+    if (award) keys.push('challenger');
   }
   return sortKeys(keys);
 }
@@ -99,11 +117,11 @@ export async function revokeBadge(playerId: number, badge: BadgeKey): Promise<bo
 
 /**
  * Mostra ou esconde um badge. Pros manuais só altera linha existente (não concede).
- * Pro organizer grava a preferência numa linha própria (o badge segue computado).
+ * Pros computados (organizer, challenger) grava a preferência numa linha própria (o badge segue computado).
  * true se a preferência ficou gravada.
  */
 export async function setBadgeVisibility(playerId: number, badge: BadgeKey, visible: boolean): Promise<boolean> {
-  if (badge === 'organizer') {
+  if (COMPUTED.includes(badge)) {
     await db
       .insert(playerBadges)
       .values({ playerId, badge, visible, note: 'preferência de visibilidade (badge computado)' })
@@ -128,6 +146,7 @@ async function visibleHolders(): Promise<Map<number, BadgeKey[]>> {
   const add = (id: number, k: BadgeKey) => map.set(id, [...(map.get(id) ?? []), k]);
   for (const r of rows) if (isBadgeKey(r.badge)) add(r.playerId, r.badge);
   for (const id of await organizerPlayerIds()) add(id, 'organizer');
+  for (const id of await challengerPlayerIds()) add(id, 'challenger');
   for (const [id, keys] of map) map.set(id, sortKeys(keys));
   return map;
 }
@@ -163,7 +182,7 @@ export async function supportersList(opts: { badge?: BadgeKey | null; q?: string
 /** Quantas pessoas mostram cada badge, mais quantos apoiadores preferiram esconder o seu. */
 export async function badgeCounts(): Promise<Record<BadgeKey, number> & { hiddenSupporters: number }> {
   const holders = await visibleHolders();
-  const counts = { supporter: 0, code: 0, translator: 0, organizer: 0 } satisfies Record<BadgeKey, number>;
+  const counts = { supporter: 0, code: 0, translator: 0, organizer: 0, challenger: 0 } satisfies Record<BadgeKey, number>;
   for (const keys of holders.values()) for (const k of keys) counts[k]++;
   const [hidden] = await db
     .select({ n: sql<number>`count(*)::int` })

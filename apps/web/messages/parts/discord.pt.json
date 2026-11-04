@@ -43,6 +43,10 @@
       "sparring": {
         "label": "Quero treinar / topo mentorar",
         "hint": "Quem ficou disponível pra treino na divisão, por 2 horas."
+      },
+      "challenge": {
+        "label": "Desafio da semana cumprido",
+        "hint": "Quem bateu a meta da semana na divisão, com link pro perfil."
       }
     },
     "divisions": {

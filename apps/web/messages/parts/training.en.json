@@ -213,7 +213,7 @@
     },
     "open": "open",
     "inGame": "in the game",
-    "roadmap": "Coming next on the site: weekly challenges with medals and a build-order training scenario made by the site.",
+    "roadmap": "Coming next on the site: a build-order training scenario made by the site, to play inside the game.",
     "focus": {
       "title": "Your training focus",
       "login": "Sign in with Steam to see your training focus: the number that fell behind your division the most in your last games.",
@@ -281,5 +281,39 @@
     "note": "One thing at a time: the number that fell behind the most in your last {n} parsed games. It updates on its own with every new game.",
     "login": "Sign in with Steam to see your training focus.",
     "profile": "See my profile"
+  },
+  "challenge": {
+    "title": "Challenge of the week",
+    "goal": {
+      "tcIdle": "Town Center idle for less than your division's median",
+      "vils10": "More villagers at 10:00 than your division's median",
+      "feudal": "Feudal Age before your division's median",
+      "vils15": "More villagers at 15:00 than your division's median",
+      "castle": "Castle Age before your division's median",
+      "firstMilitary": "First military unit before your division's median",
+      "imperial": "Imperial Age before your division's median",
+      "vils20": "More villagers at 20:00 than your division's median",
+      "apm": "More actions per minute than your division's median"
+    },
+    "rule": "In {n} league games by Sunday, {end}. It counts on its own: the site reads the recording of every league game. Whoever completes it gets the Challenger badge on their profile.",
+    "target": "Target in {division}: {value}",
+    "targetNone": "{division} does not have enough parsed games yet to have a target.",
+    "noDivision": "Join a league to get a target: the goal is your division's median.",
+    "progress": "{done} of {n} games",
+    "completed": "Challenge completed. The Challenger badge is already on your profile.",
+    "noMatches": "No league game parsed this week yet.",
+    "login": "Sign in with Steam to track your progress.",
+    "match": {
+      "ok": "hit",
+      "miss": "missed",
+      "pending": "no target"
+    },
+    "completers": "Completed this week",
+    "nobody": "Nobody yet.",
+    "more": "See the challenge",
+    "awards": {
+      "title": "Challenges completed",
+      "item": "Week of {date}"
+    }
   }
 }

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ExternalLink } from 'lucide-react';
-import { findPlayerBySteamId, trainingFocusOf } from '@aoe2/sync';
+import { CHALLENGE_MATCHES, benchmarksForLeague, challengeOf, challengeProgress, challengeTarget, findPlayerBySteamId, trainingFocusOf } from '@aoe2/sync';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ChallengeCard } from '@/components/challenge-card';
 import { FocusCard } from '@/components/focus-card';
 import { Link } from '@/i18n/navigation';
 import { divisionName } from '@/lib/leagues';
@@ -25,12 +26,17 @@ export default async function TrainingPage({ params }: { params: Promise<{ local
   const t = await getTranslations('training');
   const tn = await getTranslations('nav');
   const td = await getTranslations('division');
+  const tch = await getTranslations('challenge');
   const site = t.raw('site.items') as SiteItem[];
   const order = t.raw('order.items') as string[];
   // foco de treino do jogador logado (T3)
   const session = await getSession();
   const player = session ? await findPlayerBySteamId(session.sid) : null;
   const mine = player ? await trainingFocusOf(player) : null;
+  // desafio da semana (T4): alvo = mediana da divisão do jogador; progresso só pro logado
+  const ch = challengeOf();
+  const chTarget = mine?.division ? challengeTarget((await benchmarksForLeague(mine.division.leagueId)).get(mine.division.id), ch.metric) : null;
+  const chProgress = player ? await challengeProgress(player.profileId, ch) : null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-10">
@@ -41,6 +47,7 @@ export default async function TrainingPage({ params }: { params: Promise<{ local
         <p className="mt-3 max-w-2xl text-lg text-parchment-200">{t('intro')}</p>
         <nav className="mt-4 flex flex-wrap gap-2 text-sm">
           <a href="#site" className="tag no-underline hover:border-gold-500 hover:no-underline">{t('site.title')}</a>
+          <a href="#challenge" className="tag no-underline hover:border-gold-500 hover:no-underline">{tch('title')}</a>
           <a href="#order" className="tag no-underline hover:border-gold-500 hover:no-underline">{t('order.title')}</a>
           {EXT.map((s) => <a key={s} href={`#${s}`} className="tag no-underline hover:border-gold-500 hover:no-underline">{t(`ext.${s}.title`)}</a>)}
         </nav>
@@ -61,6 +68,11 @@ export default async function TrainingPage({ params }: { params: Promise<{ local
             <Link href="/login" className="btn flex-none">{tn('login')}</Link>
           </div>
         )}
+      </section>
+
+      <section id="challenge" className="scroll-mt-6">
+        <div className="rule mb-5"><span className="kicker">{tch('title')}</span></div>
+        <ChallengeCard ch={ch} locale={locale} target={chTarget} divisionLabel={mine?.division ? divisionName(mine.division, td) : null} progress={chProgress} completed={chProgress != null && chProgress.done >= CHALLENGE_MATCHES} loggedIn={session != null} />
       </section>
 
       <section id="site" className="scroll-mt-6">

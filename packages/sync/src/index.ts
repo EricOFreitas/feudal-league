@@ -10,6 +10,7 @@ export * from './sparring';
 export * from './build-orders';
 export * from './bo-check';
 export * from './focus';
+export * from './challenges';
 export * from './tournaments';
 export * from './status';
 export * from './snapshots';

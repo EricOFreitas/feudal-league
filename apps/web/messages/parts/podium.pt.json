@@ -50,7 +50,7 @@
     "profile": {
       "title": "{count, plural, =1 {Pódio · 1} other {Pódios · #}}",
       "summary": "{gold} ouro · {silver} prata · {bronze} bronze",
-      "support": "Apoio",
+      "support": "Badges",
       "empty": "Ainda sem pódio. Termine entre os 3 primeiros da sua divisão num mês da Liga Global."
     }
   }

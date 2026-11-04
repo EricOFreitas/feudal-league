@@ -5,7 +5,7 @@ import { Crosshair, Globe, Search, ShieldCheck, Users, X } from 'lucide-react';
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, divisions, leagueMembers, leagues, players } from '@aoe2/db';
 import {
-  AUTO_JOIN_MAX_MEMBERS, MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, mySparring, placementFor, seasonMonth, sparringFor,
+  AUTO_JOIN_MAX_MEMBERS, MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, mySparring, placementFor, seasonMonth, sparringFor, benchmarksForLeague, challengeCompleters, challengeOf, challengeTarget,
   searchStandings, standingsPage, type RankedRow, type SearchRow,
 } from '@aoe2/sync';
 import { and, asc, eq, isNull } from 'drizzle-orm';
@@ -18,6 +18,7 @@ import { LeagueMatchRow } from '@/components/league-match-row';
 import { LeaguePager } from '@/components/league-pager';
 import { LeagueTable } from '@/components/league-table';
 import { SparringPanel } from '@/components/sparring-panel';
+import { ChallengePanel } from '@/components/challenge-card';
 import { AutoRefresh } from '@/components/auto-refresh';
 import { divisionName, monthTitle, sessionPlayer } from '@/lib/leagues';
 import { monthNames } from '@/lib/format';
@@ -85,6 +86,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     ?? divs.find((d) => (counts.get(d.id) ?? 0) > 0)
     ?? divs[0];
   const sparring = season && activeDiv ? await sparringFor(league.id, activeDiv.id) : null;
+  // desafio da semana (T4) na divisão: alvo e quem já cumpriu
+  const ch = challengeOf();
+  const challenge = season && activeDiv ? { target: challengeTarget((await benchmarksForLeague(league.id)).get(activeDiv.id), ch.metric), completers: (await challengeCompleters(activeDiv.id, ch)).map((a) => a.player) } : null;
   const pageParam = Number.parseInt(one(sp.page), 10);
   const askedPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : null;
   const onMyDivision = membership != null && activeDiv?.id === membership.divisionId;
@@ -332,6 +336,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                   flash={one(sp.sp) || null}
                 />
               </>
+            )}
+            {season && activeDiv && !searching && challenge && (
+              <ChallengePanel ch={ch} target={challenge.target} divisionLabel={divisionName(activeDiv, td)} completers={challenge.completers} />
             )}
             <div className="panel p-5">
               <p className="kicker">{t('rules.title')}</p>

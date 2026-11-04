@@ -8,13 +8,14 @@
  * Antes de detectar, vira o mês da Liga Global. Depois de gravar partidas, detecta as de liga e de torneio,
  * apura o pódio do mês que acabou, tira o retrato semanal das posições, envia os avisos pendentes ao Discord
  * e registra cada etapa em sync_runs (página de status).
- * Depois lê a gravação das partidas de liga novas e guarda os números de treino (sem IA; docs/TREINO.md).
+ * Depois lê a gravação das partidas de liga novas, guarda os números de treino (sem IA; docs/TREINO.md) e concede
+ * o desafio da semana a quem cumpriu.
  * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA) e, a cada 30 s, lê os lobbies
  * abertos por quem está disponível pra treinar (só chama a API se alguém estiver).
  */
 import { db, players } from '@aoe2/db';
 import {
-  activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardMonthlyPodiums, closeIncident, collectLeagueMetrics, detectLeagueMatches, detectTournamentGames, openIncident,
+  activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardChallenges, awardMonthlyPodiums, closeIncident, collectLeagueMetrics, detectLeagueMatches, detectTournamentGames, openIncident,
   processNotifications, processQueuedAnalyses, purgeExpiredSparring, recordSyncRun, rollMonthlySeasons, syncMatchHistory, syncOpenLobbies, syncRatingsByProfileIds, takeWeeklySnapshots,
 } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
@@ -89,6 +90,8 @@ async function cycle() {
       log(`métricas de treino: ${m.parsed} gravações lidas, ${m.unavailable} indisponíveis, ${m.failed} falhas`);
       await recordSyncRun('metrics', tm, { matches: m.parsed });
     }
+    const awards = await awardChallenges();
+    if (awards) log(`${awards} desafios da semana cumpridos`);
   } catch (e) {
     log('erro nas métricas de treino:', (e as Error).message);
     await recordSyncRun('metrics', tm, { ok: false, error: (e as Error).message });

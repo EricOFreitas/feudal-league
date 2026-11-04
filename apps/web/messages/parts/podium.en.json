@@ -50,7 +50,7 @@
     "profile": {
       "title": "{count, plural, =1 {Podium · 1} other {Podiums · #}}",
       "summary": "{gold} gold · {silver} silver · {bronze} bronze",
-      "support": "Support",
+      "support": "Badges",
       "empty": "No podium yet. Finish in your division's top 3 in a Global League month."
     }
   }

@@ -1,6 +1,6 @@
 # Treino — roadmap pra ajudar o jogador a melhorar
 
-Data: 03/11/2026. Status: roadmap aprovado; T1, T2, T3, T5 e a página Treino feitos em 03/11 (ver §2). Falta T4 e o cenário gerado por código.
+Data: 03/11/2026. Status: roadmap aprovado; T1 a T6 feitos em 03/11 (ver §2). Falta só o cenário gerado por código (§4 item 1).
 Complementa `PLANO.md` (§1 item 4, "educativo").
 
 ## 1. Princípio
@@ -144,6 +144,21 @@ Depende de T1 e de ter análise rodando pra partida de liga sem o
 jogador pedir (hoje a análise é sob demanda com limite diário: decidir se
 desafio conta só partidas analisadas pelo jogador ou se o worker analisa
 sozinho partidas de liga, com custo por análise).
+
+**Feito em 03/11/2026.** Decisão do Eric: só com os números do replay, sem
+IA (o worker já lê toda partida de liga). `packages/sync/src/challenges.ts`:
+uma métrica por semana, rodando TC parado → aldeões aos 10 → Feudal →
+aldeões aos 15 → Castelos → primeira militar (semana começa segunda 00:00
+de Brasília; época 02/11/2026). Meta = bater a mediana da PRÓPRIA divisão
+(benchmark de T1) em 3 partidas de liga na semana; `awardChallenges` roda
+a cada ciclo do worker, olha a semana atual e a anterior (gravação de
+domingo lida na segunda) e grava `challenge_awards` (migration 0014; uma
+por jogador e semana). Prêmio: badge computado `challenger` ("Desafiante")
+em badges.ts, lista "Desafios cumpridos" no perfil, evento Discord
+`challenge` (ligado por padrão). Telas: cartão na página Treino com alvo
+da divisão e progresso do logado (partida a partida), painel na página da
+liga com alvo e quem cumpriu na divisão. Métricas nulas e divisão sem 10
+amostras não contam.
 
 ### T5 — Sparring e mentoria na liga
 
