@@ -470,6 +470,12 @@
       "imageHint": "PNG, JPG or WebP up to 1 MB. Shown at the top of the tournament page.",
       "removeImage": "Remove image"
     },
-    "groupPlayAllNote": "Group stage with {n} games per match: all are played and each game won is worth 1 point."
+    "groupPlayAllNote": "Group stage with {n} games per match: all are played and each game won is worth 1 point.",
+    "groupStage": {
+      "bye": "bye: {names}",
+      "qualify": "qualify",
+      "report": "Record a win for {name}",
+      "bracketLater": "The bracket unlocks when every group match is over ({done} of {total})."
+    }
   }
 }

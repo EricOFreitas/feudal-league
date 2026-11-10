@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Bracket } from '@/components/bracket';
 import { Flag } from '@/components/flag';
+import { GroupStage } from '@/components/group-stage';
 import { Linkified } from '@/components/linkified';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
@@ -47,8 +48,11 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const bracketMatches = tour.matches.filter((m) => m.stage === 'bracket');
   const standings: Map<number, GroupRow[]> = tour.groupCount > 0 ? groupStandings(tour) : new Map();
   const champion = tour.status === 'finished' ? bracketMatches.find((m) => m.nextMatchId == null)?.winnerTeamId ?? null : null;
-  const openMatches = tour.matches.filter((m) => m.status === 'ready');
-  const undoable = tour.matches.filter((m) => m.games.length > 0);
+  // registrar/desfazer na lateral só pra chave; os confrontos de grupo têm os botões na própria linha
+  const openMatches = bracketMatches.filter((m) => m.status === 'ready');
+  const undoable = bracketMatches.filter((m) => m.games.length > 0);
+  const anyGame = tour.matches.some((m) => m.games.length > 0);
+  const groupsDone = groupMatches.filter((m) => m.status === 'done' || m.status === 'walkover').length;
   const ratingOf = await rm1v1RatingsOf(tour.teams.flatMap((x) => x.members.map((m) => m.playerId)));
   const teamRatings = new Map<number, number>();
   for (const x of tour.teams) {
@@ -224,32 +228,14 @@ export default async function TournamentPage({ params, searchParams }: Props) {
             <section>
               <div className="rule mb-5"><span className="kicker">{t('groupsTitle')}</span></div>
               {tour.groupPlayAll && <p className="mb-4 text-sm text-parchment-300">{t('groupPlayAllNote', { n: tour.groupBestOf })}</p>}
-              <div className="grid gap-6 md:grid-cols-2">
-                {[...standings.entries()].sort((a, b) => a[0] - b[0]).map(([groupNo, rows]) => (
-                  <div key={groupNo} className="panel p-4">
-                    <h3 className="font-display text-lg text-gold-300">{t('group', { n: groupNo })}</h3>
-                    <table className="mt-2 w-full text-sm">
-                      <thead className="text-left text-xs uppercase text-parchment-400"><tr><th>{t('col.team')}</th><th className="text-right">{t('col.p')}</th><th className="text-right">{t('col.w')}</th><th className="text-right">{t('col.l')}</th><th className="text-right">{t('col.gd')}</th><th className="text-right">{t('col.pts')}</th></tr></thead>
-                      <tbody>
-                        {rows.map((r, i) => (
-                          <tr key={r.teamId} className={i < tour.advancePerGroup ? 'text-parchment-50' : 'text-parchment-300'}>
-                            <td className="py-1">{teamName(r.teamId)}</td><td className="text-right stat-num">{r.played}</td><td className="text-right stat-num">{r.wins}</td><td className="text-right stat-num">{r.losses}</td><td className="text-right stat-num">{r.gamesWon - r.gamesLost}</td><td className="text-right stat-num font-semibold">{r.points}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <ul className="mt-3 space-y-1 text-sm">
-                      {groupMatches.filter((m) => m.groupNo === groupNo).map((m) => (
-                        <li key={m.id} className="flex items-center justify-between gap-2 text-parchment-200">
-                          <span className={m.winnerTeamId === m.teamAId ? 'text-gold-300' : ''}>{teamName(m.teamAId)}</span>
-                          <span className="stat-num text-parchment-50">{m.scoreA} – {m.scoreB}</span>
-                          <span className={`text-right ${m.winnerTeamId === m.teamBId ? 'text-gold-300' : ''}`}>{teamName(m.teamBId)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+              <GroupStage
+                standings={standings} matches={groupMatches} teams={teams} advancePerGroup={tour.advancePerGroup} isOwner={isOwner} hidden={hidden}
+                labels={{
+                  group: (n) => t('group', { n }), round: (n) => t('round', { n }), bye: (names) => t('groupStage.bye', { names }),
+                  qualify: t('groupStage.qualify'), report: (name) => t('groupStage.report', { name }), undo: t('admin.undo'),
+                  col: { rank: '#', team: t('col.team'), p: t('col.p'), w: t('col.w'), l: t('col.l'), gd: t('col.gd'), pts: t('col.pts') },
+                }}
+              />
             </section>
           )}
 
@@ -338,20 +324,20 @@ export default async function TournamentPage({ params, searchParams }: Props) {
                   <p className="text-xs text-parchment-400">{tour.groupCount > 0 ? t('admin.startGroupsHint') : t('admin.startBracketHint')}</p>
                 </form>
               )}
-              {tour.status === 'groups' && undoable.length === 0 && (
+              {tour.status === 'groups' && !anyGame && (
                 <form action={redrawGroupsAction} className="space-y-1 text-sm">
                   {hidden}
                   <button type="submit" className="btn btn-ghost w-full justify-center">{t('admin.redraw')}</button>
                   <p className="text-xs text-parchment-400">{t('admin.redrawHint')}</p>
                 </form>
               )}
-              {tour.status === 'groups' && (
+              {tour.status === 'groups' && (groupsDone === groupMatches.length ? (
                 <form action={startBracketAction} className="space-y-1 text-sm">
                   {hidden}
                   <button type="submit" className="btn btn-primary w-full">{t('admin.startBracket')}</button>
                   <p className="text-xs text-parchment-400">{t('admin.startBracketHint')}</p>
                 </form>
-              )}
+              ) : <p className="text-xs text-parchment-400">{t('groupStage.bracketLater', { done: groupsDone, total: groupMatches.length })}</p>)}
               {openMatches.length > 0 && (
                 <div className="space-y-3 text-sm">
                   <p className="font-semibold text-parchment-200">{t('admin.report')}</p>
