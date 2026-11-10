@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { AoeApiError, LEADERBOARD_ORDER } from '@aoe2/aoe-api';
 import { db, players } from '@aoe2/db';
-import { BENCHMARK_MIN_SAMPLES, analysesForMatches, badgesOf, benchmarksForLeague, bestMedal, divisionAbove, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, playerRecentMetrics, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf, challengeAwardsOf, trainingFocus } from '@aoe2/sync';
+import { BENCHMARK_MIN_SAMPLES, analysesForMatches, badgesOf, benchmarksForLeague, bestMedal, divisionAbove, findPlayerByProfileId, importPlayerByProfileId, medalsOf, membershipsOf, playerRecentMetrics, syncMatchHistory, syncRatingsByProfileIds, recentMatchesOf, challengeAwardsOf, trainingFocus, isFollowing, followCount, FOLLOW_MAX } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
@@ -15,6 +15,7 @@ import { BadgeList } from '@/components/badge-list';
 import { BenchmarkTable } from '@/components/benchmark-table';
 import { FocusCard } from '@/components/focus-card';
 import { ChallengeAwards } from '@/components/challenge-awards';
+import { FollowButton } from '@/components/follow-button';
 import { BestMedalIcon, MedalShelf } from '@/components/medal';
 import { EvolutionSection } from '@/components/evolution-section';
 import { Link } from '@/i18n/navigation';
@@ -23,7 +24,7 @@ import { getSession } from '@/lib/session';
 import { checkAdditionLimit, recordAddition } from '@/lib/additions';
 import { agoParts, isKnownLb, lbKey } from '@/lib/format';
 
-type Props = { params: Promise<{ locale: string; profileId: string }>; searchParams: Promise<{ claimed?: string; evo?: string }> };
+type Props = { params: Promise<{ locale: string; profileId: string }>; searchParams: Promise<{ claimed?: string; evo?: string; follow?: string }> };
 
 const STALE_MS = 60 * 60 * 1000;
 
@@ -68,7 +69,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   setRequestLocale(locale);
   const profileId = Number(raw);
   if (!Number.isInteger(profileId) || profileId <= 0) notFound();
-  const { claimed, evo } = await searchParams;
+  const { claimed, evo, follow } = await searchParams;
   const evoLeagueId = evo && /^\d+$/.test(evo) ? Number(evo) : null;
 
   const t = await getTranslations('player');
@@ -79,6 +80,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const td = await getTranslations('division');
   const tlg = await getTranslations('leagues');
   const tpo = await getTranslations('podium.profile');
+  const tf = await getTranslations('following');
 
   const { player, apiError } = await loadPlayer(profileId);
   if (!player) {
@@ -90,6 +92,8 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const session = await getSession();
   const isMine = session != null && player.claimedByUserId === session.uid;
   const canClaim = !player.claimedByUserId && player.steamId64 && (!session || session.sid === player.steamId64);
+  const following = session && !isMine ? await isFollowing(session.uid, player.id) : false;
+  const myFollows = isMine ? await followCount(session!.uid) : 0;
 
   const ratings = [...player.ratings].sort((a, b) => LEADERBOARD_ORDER.indexOf(a.leaderboardId as never) - LEADERBOARD_ORDER.indexOf(b.leaderboardId as never));
   const matches = await recentMatchesOf(profileId, 20);
@@ -117,6 +121,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     <div className="space-y-10">
       <Breadcrumbs items={[{ label: player.alias }]} />
       {claimed && <div className="panel border-moss-500 p-4 text-parchment-50">{ta('claimDone')}</div>}
+      {follow === 'limit' && <div className="panel border-crimson-500 p-4 text-parchment-50">{tf('limit', { max: FOLLOW_MAX })} <Link href="/following">{tf('title')} →</Link></div>}
 
       <header className="panel corners p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -139,7 +144,14 @@ export default async function PlayerPage({ params, searchParams }: Props) {
             {(apiError || player.lastSyncError) && <p className="mt-1 text-sm text-crimson-500">{t('syncError', { error: apiError ?? player.lastSyncError ?? '' })}</p>}
           </div>
         </div>
-        <div className="shrink-0">
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          {!isMine && (
+            <FollowButton
+              playerId={player.id} locale={locale} logged={session != null} following={following}
+              labels={{ follow: tf('follow'), following: tf('following'), unfollow: tf('unfollow') }}
+            />
+          )}
+          {isMine && <Link href="/following" className="btn btn-ghost !py-1.5 !px-3 !text-xs">{tf('mine', { n: myFollows })}</Link>}
           {isMine ? (
             <span className="tag border-moss-500 text-parchment-50"><ShieldCheck className="h-4 w-4 text-moss-500" />{t('yours')}</span>
           ) : player.claimedByUserId ? (

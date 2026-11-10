@@ -103,6 +103,20 @@ export const matchMembers = pgTable(
   (t) => [primaryKey({ columns: [t.matchId, t.profileId] }), index('match_members_profile_idx').on(t.profileId, t.matchId)],
 );
 
+/**
+ * Usuário segue um jogador (só ida, sem aceite). Lista privada: só o dono vê.
+ * Seguido sincroniza a cada 1 h no worker. Limite por usuário em FOLLOW_MAX (sync/follows.ts).
+ */
+export const playerFollows = pgTable(
+  'player_follows',
+  {
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    playerId: integer('player_id').notNull().references(() => players.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.playerId] }), index('player_follows_player_idx').on(t.playerId)],
+);
+
 /** Limite por IP ao adicionar jogador. */
 export const playerAdditions = pgTable(
   'player_additions',
@@ -736,3 +750,4 @@ export type LeagueWebhook = typeof leagueWebhooks.$inferSelect;
 export type StandingSnapshot = typeof standingSnapshots.$inferSelect;
 export type SyncRun = typeof syncRuns.$inferSelect;
 export type Incident = typeof incidents.$inferSelect;
+export type PlayerFollow = typeof playerFollows.$inferSelect;

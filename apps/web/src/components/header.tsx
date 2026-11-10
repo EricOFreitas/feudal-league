@@ -17,8 +17,11 @@ export async function Header() {
           <Crest className="h-9 w-9" />
           <span className="font-display text-lg font-semibold tracking-wide text-gold-300">{site('name')}</span>
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <NavLinks items={[{ href: '/leagues', label: t('leagues') }, { href: '/tournaments', label: t('tournaments') }, { href: '/training', label: t('training') }]} />
+        <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+          <NavLinks items={[
+            { href: '/leagues', label: t('leagues') }, { href: '/tournaments', label: t('tournaments') }, { href: '/training', label: t('training') },
+            ...(session ? [{ href: '/following', label: t('following') }] : []),
+          ]} />
           <LocaleSwitcher label={t('language')} />
           {session ? (
             <>

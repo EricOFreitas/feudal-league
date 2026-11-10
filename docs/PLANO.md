@@ -315,3 +315,8 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   direto, menos partidas, quem chegou primeiro à pontuação. Home passa a ser a liga do mês.
 - 03/11/2026 — Auto-join para em 5.000 membros por liga; depois só entra quem pedir. Motivo: depois da
   recolocação a Global ganhava cerca de 4 mil membros por dia, e o worker atende uns 18 mil a cada 6 h.
+- 10/11/2026 — Seguir jogador, só ida, sem aceite (não "amizade"): funciona com qualquer perfil, mesmo
+  sem dono no portal. Lista privada em `/following`, com rating RM 1v1, pontos dos últimos 7 dias,
+  divisão na Global e últimas partidas dos seguidos. Até 50 por usuário; seguido sincroniza a cada 1 h.
+  Não importar a lista de amigos da Steam: o `/login` promete que o site não acessa amigos.
+- 10/11/2026 — Busca por trecho do nick no aoe2companion quando o nick exato não acha ninguém (seção 4).

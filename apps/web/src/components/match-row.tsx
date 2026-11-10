@@ -14,9 +14,11 @@ type Props = {
   analysis?: string | null;
   /** Visitante é o dono do perfil e pode pedir análise. */
   canAnalyze?: boolean;
+  /** Mostra o nome de `me` no começo da linha (lista com partidas de vários jogadores). */
+  showSelf?: boolean;
 };
 
-export function MatchRow({ match, me, locale, labels, analysis = null, canAnalyze = false }: Props) {
+export function MatchRow({ match, me, locale, labels, analysis = null, canAnalyze = false, showSelf = false }: Props) {
   const mine = match.members.find((m) => m.profileId === me);
   const won = mine?.outcome === 1;
   const delta = mine ? mine.newRating - mine.oldRating : 0;
@@ -36,6 +38,7 @@ export function MatchRow({ match, me, locale, labels, analysis = null, canAnalyz
     <li className={`panel flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between ${mine ? (won ? 'row-win' : 'row-loss') : ''}`}>
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2 text-sm">
+          {showSelf && mine && <Link href={`/players/${me}`} className="font-display font-semibold !text-parchment-50">{mine.alias ?? `#${me}`}</Link>}
           <span className={`font-display font-semibold ${won ? 'text-moss-500' : 'text-crimson-500'}`}>{mine ? (won ? labels.win : labels.loss) : '–'}</span>
           {mine && delta !== 0 && <span className={`stat-num ${delta > 0 ? 'text-moss-500' : 'text-crimson-500'}`}>{delta > 0 ? `+${delta}` : delta}</span>}
           <span className="tag">{labels.type(matchTypeKey(match.matchtypeId))}</span>

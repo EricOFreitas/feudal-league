@@ -2,7 +2,7 @@
  * Worker de sincronização. Roda em loop; cada ciclo escolhe quem sincronizar por prioridade:
  *   - inscrito em liga com temporada aberta ou em torneio em andamento: a cada 15 min
  *   - trazido automaticamente pra liga (adversário) e não reivindicado: a cada 6 h
- *   - reivindicado (tem dono): a cada 60 min
+ *   - reivindicado (tem dono) ou seguido por alguém: a cada 60 min
  *   - só adicionado, visto nos últimos 30 dias: a cada 6 h
  * Jogador sem dono e sem visita recente não entra no ciclo; a página dele sincroniza sob demanda.
  * Antes de detectar, vira o mês da Liga Global. Depois de gravar partidas, detecta as de liga e de torneio,
@@ -13,7 +13,7 @@
  * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA) e, a cada 30 s, lê os lobbies
  * abertos por quem está disponível pra treinar (só chama a API se alguém estiver).
  */
-import { db, players } from '@aoe2/db';
+import { db, playerFollows, players } from '@aoe2/db';
 import {
   activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardChallenges, awardMonthlyPodiums, closeIncident, collectLeagueMetrics, detectLeagueMatches, detectTournamentGames, openIncident,
   processNotifications, processQueuedAnalyses, purgeExpiredSparring, recordSyncRun, rollMonthlySeasons, syncMatchHistory, syncOpenLobbies, syncRatingsByProfileIds, takeWeeklySnapshots,
@@ -41,6 +41,7 @@ async function pickDue(): Promise<number[]> {
       or(
         inLeague.length ? and(inArray(players.profileId, inLeague), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, m15))) : undefined,
         and(isNotNull(players.claimedByUserId), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, h1))),
+        and(inArray(players.id, db.select({ id: playerFollows.playerId }).from(playerFollows)), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, h1))),
         and(isNull(players.claimedByUserId), gt(players.lastViewedAt, d30), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, h6))),
         autoIds.length ? and(inArray(players.profileId, autoIds), or(isNull(players.lastSyncedAt), lt(players.lastSyncedAt, h6))) : undefined,
       ),

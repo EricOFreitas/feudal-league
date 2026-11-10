@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "following": "Seguindo"
+  },
+  "following": {
+    "title": "Seguindo",
+    "kicker": "Quem você acompanha",
+    "count": "{n} de {max} jogadores. Só você vê esta lista.",
+    "notLogged": "Entre com a Steam pra seguir jogadores e ver as partidas deles aqui.",
+    "empty": "Você ainda não segue ninguém. Abra o perfil de um jogador e clique em Seguir.",
+    "emptyLink": "Buscar jogador",
+    "col": {
+      "player": "Jogador",
+      "rating": "RM 1v1",
+      "week": "7 dias",
+      "last": "Última partida"
+    },
+    "weekHint": "7 dias: pontos ganhos e perdidos na ranqueada 1v1 na última semana.",
+    "follow": "Seguir",
+    "following": "Seguindo",
+    "unfollow": "Deixar de seguir",
+    "mine": "Seguindo · {n}",
+    "limit": "Você já segue {max} jogadores, o máximo. Deixe de seguir alguém pra abrir espaço.",
+    "feed": "Últimas partidas",
+    "feedEmpty": "Nenhuma partida registrada ainda. As partidas chegam na próxima sincronização, em até 1 hora."
+  }
+}

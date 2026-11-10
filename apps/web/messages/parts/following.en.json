@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "following": "Following"
+  },
+  "following": {
+    "title": "Following",
+    "kicker": "Players you keep an eye on",
+    "count": "{n} of {max} players. Only you can see this list.",
+    "notLogged": "Sign in with Steam to follow players and see their matches here.",
+    "empty": "You don't follow anyone yet. Open a player's profile and click Follow.",
+    "emptyLink": "Find a player",
+    "col": {
+      "player": "Player",
+      "rating": "RM 1v1",
+      "week": "7 days",
+      "last": "Last match"
+    },
+    "weekHint": "7 days: rating points won and lost in ranked 1v1 over the last week.",
+    "follow": "Follow",
+    "following": "Following",
+    "unfollow": "Unfollow",
+    "mine": "Following · {n}",
+    "limit": "You already follow {max} players, the maximum. Unfollow someone to make room.",
+    "feed": "Latest matches",
+    "feedEmpty": "No matches recorded yet. They arrive with the next sync, within an hour."
+  }
+}
