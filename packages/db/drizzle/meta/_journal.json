@@ -134,6 +134,13 @@
       "when": 1794336452002,
       "tag": "0018_funny_namor",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794336883879,
+      "tag": "0019_overrated_wallop",
+      "breakpoints": true
     }
   ]
 }

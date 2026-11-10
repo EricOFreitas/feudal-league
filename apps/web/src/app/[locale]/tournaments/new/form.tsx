@@ -8,7 +8,7 @@ const SIZES = [1, 2, 3, 4];
 const BEST = [1, 3, 5];
 
 export type TournamentFormInitial = {
-  name: string; description: string; organizerName: string; registrationClosed: boolean; teamSize: number; maxTeams: number | null; bestOf: number; finalBestOf: number | null;
+  name: string; description: string; organizerName: string; organizerUrl: string; registrationClosed: boolean; teamSize: number; maxTeams: number | null; bestOf: number; finalBestOf: number | null;
   startsAt: string; prize: string; groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean;
   maxPeakRating: number | null; minGames: number | null; minRecentGames: number | null;
 };
@@ -24,7 +24,7 @@ type Props =
   };
 
 const EMPTY: TournamentFormInitial = {
-  name: '', description: '', organizerName: '', registrationClosed: false, teamSize: 2, maxTeams: null, bestOf: 1, finalBestOf: null, startsAt: '', prize: '',
+  name: '', description: '', organizerName: '', organizerUrl: '', registrationClosed: false, teamSize: 2, maxTeams: null, bestOf: 1, finalBestOf: null, startsAt: '', prize: '',
   groupCount: 2, advancePerGroup: 2, groupBestOf: 1, groupPlayAll: false, maxPeakRating: null, minGames: null, minRecentGames: null,
 };
 
@@ -64,6 +64,7 @@ export function TournamentForm(props: Props) {
         <label><span className={label}>{t('startsAt')}</span><input name="startsAt" type="datetime-local" defaultValue={init.startsAt} className={field} /></label>
         <label><span className={label}>{t('prize')}</span><input name="prize" maxLength={300} defaultValue={init.prize} className={field} /></label>
         <label><span className={label}>{t('organizerName')}</span><input name="organizerName" maxLength={60} defaultValue={init.organizerName} className={field} /></label>
+        <label><span className={label}>{t('organizerUrl')}</span><input name="organizerUrl" type="url" maxLength={200} placeholder="https://" defaultValue={init.organizerUrl} className={field} /></label>
         {edit && (
           <label className="flex items-start gap-2 self-end text-sm text-parchment-200">
             <input type="checkbox" name="registrationClosed" defaultChecked={init.registrationClosed} disabled={formatLocked} className="mt-1" />

@@ -42,7 +42,7 @@ export default async function EditTournamentPage({ params }: Props) {
           mode="edit" tournamentId={tour.id} slug={slug}
           formatLocked={tour.status !== 'open'} sizeLocked={activeTeams > 0}
           initial={{
-            name: tour.name, description: tour.description ?? '', organizerName: tour.organizerName ?? '', registrationClosed: tour.registrationClosed, teamSize: tour.teamSize, maxTeams: tour.maxTeams, bestOf: tour.bestOf, finalBestOf: tour.finalBestOf,
+            name: tour.name, description: tour.description ?? '', organizerName: tour.organizerName ?? '', organizerUrl: tour.organizerUrl ?? '', registrationClosed: tour.registrationClosed, teamSize: tour.teamSize, maxTeams: tour.maxTeams, bestOf: tour.bestOf, finalBestOf: tour.finalBestOf,
             startsAt: localInput(tour.startsAt), prize: tour.prize ?? '', groupCount: tour.groupCount, advancePerGroup: tour.advancePerGroup,
             groupBestOf: tour.groupBestOf, groupPlayAll: tour.groupPlayAll, maxPeakRating: tour.maxPeakRating, minGames: tour.minGames, minRecentGames: tour.minRecentGames,
           }}

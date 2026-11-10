@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { ShieldCheck, Trophy, Users } from 'lucide-react';
+import { ExternalLink, ShieldCheck, Trophy, Users } from 'lucide-react';
 import { db, leagues, players } from '@aoe2/db';
 import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Bracket } from '@/components/bracket';
 import { Flag } from '@/components/flag';
+import { Linkified } from '@/components/linkified';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
 import { addTeamAction, cancelAction, registerTeamAction, reportGameAction, startBracketAction, startGroupsAction, teamStatusAction, undoGameAction } from '../actions';
@@ -129,7 +130,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
           <div className="min-w-0">
             <p className="kicker">{leagueOf ? <><Link href={`/leagues/${leagueOf.slug}`} className="text-gold-500">{leagueOf.name}</Link> · {t('kickerPlain')}</> : t('kickerPlain')}</p>
             <h1 className="text-3xl font-semibold text-gold-300 sm:text-4xl">{tour.name}</h1>
-            {tour.description && <p className="mt-2 max-w-2xl whitespace-pre-line text-parchment-200">{tour.description}</p>}
+            {tour.description && <p className="mt-2 max-w-2xl whitespace-pre-line text-parchment-200"><Linkified text={tour.description} /></p>}
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-parchment-300">
               <span className="tag"><Trophy className="h-3.5 w-3.5" />{t(`status.${statusKey as Status}`)}</span>
               <span className="tag"><Users className="h-3.5 w-3.5" />{t('format.size', { n: tour.teamSize })}</span>
@@ -141,7 +142,14 @@ export default async function TournamentPage({ params, searchParams }: Props) {
             </p>
             <p className="mt-2 flex flex-wrap gap-x-4 text-sm text-parchment-400">
               {tour.startsAt && <span>{t('startsAt', { date: dt.format(tour.startsAt) })}</span>}
-              {(tour.organizerName || owner) && <span>{t('by', { name: tour.organizerName ?? owner!.alias })}</span>}
+              {(tour.organizerName || owner) && (
+                <span>{t.rich('byRich', {
+                  name: tour.organizerName ?? owner!.alias,
+                  who: (chunks) => tour.organizerUrl
+                    ? <a href={tour.organizerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-gold-300">{chunks}<ExternalLink className="h-3 w-3" /></a>
+                    : <>{chunks}</>,
+                })}</span>
+              )}
             </p>
             {tour.prize && <p className="mt-2 text-sm text-parchment-200"><span className="kicker">{t('prize')}</span> {tour.prize}</p>}
             {champion && <p className="mt-3 font-display text-xl text-gold-300">🏆 {t('champion', { name: teamName(champion) })}</p>}

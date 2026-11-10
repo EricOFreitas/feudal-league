@@ -455,6 +455,8 @@ export const tournaments = pgTable(
     registrationClosed: boolean('registration_closed').notNull().default(false),
     /** Quem organiza, em texto livre (ex.: comunidade ou pessoa sem conta no portal). Vazio = nick do dono. */
     organizerName: text('organizer_name'),
+    /** Link de quem organiza (canal, Discord…), só http(s). O nome na página vira link. */
+    organizerUrl: text('organizer_url'),
     /**
      * Requisitos de inscrição (anti-smurf), checados por jogador na ladder RM 1v1:
      * pico de rating ≤ max_peak_rating; partidas totais ≥ min_games; partidas nos últimos 30 dias

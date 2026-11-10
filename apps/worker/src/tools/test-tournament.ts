@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 const user = await db.query.users.findFirst();
 if (!user) throw new Error('sem usuário local');
 const slug = `teste-2v2-${Date.now().toString(36)}`;
-const id = (await createTournament({ slug, name: 'Teste 2v2', description: null, organizerName: null, registrationClosed: false, ownerUserId: user.id, teamSize: 2, bestOf: 1, finalBestOf: 3, groupCount: 0, advancePerGroup: 2, groupBestOf: 1, groupPlayAll: false, maxTeams: null, startsAt: null, maxPeakRating: 1100, minGames: 50, minRecentGames: null, prize: null }))!;
+const id = (await createTournament({ slug, name: 'Teste 2v2', description: null, organizerName: null, organizerUrl: null, registrationClosed: false, ownerUserId: user.id, teamSize: 2, bestOf: 1, finalBestOf: 3, groupCount: 0, advancePerGroup: 2, groupBestOf: 1, groupPlayAll: false, maxTeams: null, startsAt: null, maxPeakRating: 1100, minGames: 50, minRecentGames: null, prize: null }))!;
 const show = async (label: string) => {
   const t = (await tournamentBySlug(slug))!;
   console.log(`\n== ${label}: status=${t.status}`);

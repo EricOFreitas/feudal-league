@@ -1,0 +1,1 @@
+ALTER TABLE "tournaments" ADD COLUMN "organizer_url" text;

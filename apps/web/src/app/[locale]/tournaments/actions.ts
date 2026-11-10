@@ -125,6 +125,13 @@ export async function undoGameAction(fd: FormData) {
 
 export type CreateState = { error?: 'name' | 'groups' | 'slug' | 'max_teams' | 'status' } | null;
 
+/** Só aceita link http(s) de até 200 caracteres; o resto vira vazio. */
+const httpUrl = (v: FormDataEntryValue | null) => {
+  const s = String(v ?? '').trim();
+  if (!s || s.length > 200) return null;
+  try { const u = new URL(s); return u.protocol === 'https:' || u.protocol === 'http:' ? u.toString() : null; } catch { return null; }
+};
+
 const bestOfOr = <T,>(v: FormDataEntryValue | null, fallback: T) => ((BEST_OFS as readonly number[]).includes(Number(v)) ? Number(v) : fallback);
 
 /** Lê as configurações do formulário (criar e editar). Sem a caixa de grupos marcada, grupos = 0. */
@@ -138,7 +145,8 @@ function settingsFrom(fd: FormData): TournamentSettings | { error: 'name' | 'gro
   const startsAt = startsRaw ? new Date(startsRaw) : null;
   return {
     name, description: String(fd.get('description') ?? '').trim().slice(0, 4000) || null,
-    organizerName: String(fd.get('organizerName') ?? '').trim().slice(0, 60) || null, registrationClosed: fd.get('registrationClosed') === 'on',
+    organizerName: String(fd.get('organizerName') ?? '').trim().slice(0, 60) || null, organizerUrl: httpUrl(fd.get('organizerUrl')),
+    registrationClosed: fd.get('registrationClosed') === 'on',
     teamSize: (TEAM_SIZES as readonly number[]).includes(Number(fd.get('teamSize'))) ? Number(fd.get('teamSize')) : 2,
     bestOf: bestOfOr(fd.get('bestOf'), 1), finalBestOf: bestOfOr(fd.get('finalBestOf'), null),
     groupCount, advancePerGroup, groupBestOf: bestOfOr(fd.get('groupBestOf'), 1), groupPlayAll: groupCount > 0 && fd.get('groupPlayAll') === 'on',

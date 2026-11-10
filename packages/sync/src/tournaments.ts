@@ -13,7 +13,7 @@ export const BEST_OFS = [1, 3, 5] as const;
 
 /** Configurações que o organizador escolhe (criar e editar). */
 export type TournamentSettings = {
-  name: string; description: string | null; organizerName: string | null; registrationClosed: boolean;
+  name: string; description: string | null; organizerName: string | null; organizerUrl: string | null; registrationClosed: boolean;
   teamSize: number; bestOf: number; finalBestOf: number | null; groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean;
   maxTeams: number | null; startsAt: Date | null;
   maxPeakRating: number | null; minGames: number | null; minRecentGames: number | null; prize: string | null;
@@ -24,7 +24,7 @@ export type NewTournamentInput = TournamentSettings & { slug: string; ownerUserI
 export async function createTournament(input: NewTournamentInput): Promise<number | null> {
   const [row] = await db.insert(tournaments).values({
     slug: input.slug, name: input.name, description: input.description, ownerUserId: input.ownerUserId, leagueId: input.leagueId ?? null,
-    organizerName: input.organizerName, registrationClosed: input.registrationClosed,
+    organizerName: input.organizerName, organizerUrl: input.organizerUrl, registrationClosed: input.registrationClosed,
     teamSize: input.teamSize, format: input.groupCount > 0 ? 'groups_elim' : 'single_elim', bestOf: input.bestOf, finalBestOf: input.finalBestOf,
     groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, groupPlayAll: input.groupPlayAll,
     maxTeams: input.maxTeams, startsAt: input.startsAt,
@@ -42,7 +42,7 @@ export type UpdateTournamentResult = { ok: true } | { ok: false; reason: 'status
 export async function updateTournament(tournamentId: number, input: TournamentSettings): Promise<UpdateTournamentResult> {
   const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), with: { teams: { columns: { id: true, status: true } } } });
   if (!t || t.status === 'finished' || t.status === 'cancelled') return { ok: false, reason: 'status' };
-  const text = { name: input.name, description: input.description, organizerName: input.organizerName, prize: input.prize, startsAt: input.startsAt };
+  const text = { name: input.name, description: input.description, organizerName: input.organizerName, organizerUrl: input.organizerUrl, prize: input.prize, startsAt: input.startsAt };
   if (t.status !== 'open') {
     await db.update(tournaments).set(text).where(eq(tournaments.id, tournamentId));
     return { ok: true };
