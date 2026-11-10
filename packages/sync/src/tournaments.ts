@@ -234,19 +234,33 @@ export function roundRobin<T>(items: T[]): [T, T][][] {
   return rounds;
 }
 
-export async function startGroups(tournamentId: number): Promise<{ ok: true } | { ok: false; reason: 'status' | 'few_teams' | 'no_groups' }> {
+/**
+ * Sorteia os grupos e cria os confrontos (todos contra todos). Com `assignment` (ids dos times por grupo, na ordem
+ * dos grupos), usa exatamente essa divisão, ex.: sorteio feito fora do site; precisa conter cada time confirmado uma vez.
+ */
+export async function startGroups(tournamentId: number, assignment?: number[][]): Promise<{ ok: true } | { ok: false; reason: 'status' | 'few_teams' | 'no_groups' | 'assignment' }> {
   const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), with: { teams: true } });
   if (!t || t.status !== 'open') return { ok: false, reason: 'status' };
   if (t.groupCount < 1) return { ok: false, reason: 'no_groups' };
-  const teams = orderedTeams(t.teams.filter((x) => x.status === 'confirmed'));
-  if (teams.length < t.groupCount * 2) return { ok: false, reason: 'few_teams' };
-  // distribuição em serpentina: 1→A, 2→B, 3→C, 4→C, 5→B, 6→A…
-  const groups: TournamentTeam[][] = Array.from({ length: t.groupCount }, () => []);
-  teams.forEach((team, i) => {
-    const lap = Math.floor(i / t.groupCount);
-    const idx = lap % 2 === 0 ? i % t.groupCount : t.groupCount - 1 - (i % t.groupCount);
-    groups[idx]!.push(team);
-  });
+  const confirmed = t.teams.filter((x) => x.status === 'confirmed');
+  if (confirmed.length < t.groupCount * 2) return { ok: false, reason: 'few_teams' };
+  let groups: TournamentTeam[][];
+  if (assignment) {
+    const ids = assignment.flat();
+    const valid = assignment.length === t.groupCount && assignment.every((g) => g.length >= 2)
+      && new Set(ids).size === ids.length && ids.length === confirmed.length && ids.every((id) => confirmed.some((x) => x.id === id));
+    if (!valid) return { ok: false, reason: 'assignment' };
+    groups = assignment.map((g) => g.map((id) => confirmed.find((x) => x.id === id)!));
+  } else {
+    // distribuição em serpentina: 1→A, 2→B, 3→C, 4→C, 5→B, 6→A…
+    const teams = orderedTeams(confirmed);
+    groups = Array.from({ length: t.groupCount }, () => []);
+    teams.forEach((team, i) => {
+      const lap = Math.floor(i / t.groupCount);
+      const idx = lap % 2 === 0 ? i % t.groupCount : t.groupCount - 1 - (i % t.groupCount);
+      groups[idx]!.push(team);
+    });
+  }
   await db.transaction(async (tx) => {
     // posição única no torneio inteiro: o índice (torneio, stage, rodada, posição) não inclui o grupo
     let pos = 0;
@@ -269,7 +283,7 @@ export async function startGroups(tournamentId: number): Promise<{ ok: true } | 
  * Refaz o sorteio dos grupos: só na fase de grupos e enquanto nenhum jogo foi registrado (detectado ou manual).
  * Apaga os confrontos de grupo, tira os times dos grupos e sorteia de novo com a mesma regra de startGroups.
  */
-export async function redrawGroups(tournamentId: number): Promise<{ ok: true } | { ok: false; reason: 'status' | 'has_games' | 'few_teams' | 'no_groups' }> {
+export async function redrawGroups(tournamentId: number, assignment?: number[][]): Promise<{ ok: true } | { ok: false; reason: 'status' | 'has_games' | 'few_teams' | 'no_groups' | 'assignment' }> {
   const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId) });
   if (!t || t.status !== 'groups') return { ok: false, reason: 'status' };
   const [played] = await db.select({ n: sql<number>`count(*)::int` }).from(tournamentGames)
@@ -281,7 +295,7 @@ export async function redrawGroups(tournamentId: number): Promise<{ ok: true } |
     await tx.update(tournamentTeams).set({ groupNo: null }).where(eq(tournamentTeams.tournamentId, tournamentId));
     await tx.update(tournaments).set({ status: 'open', bracketAt: null }).where(eq(tournaments.id, tournamentId));
   });
-  return startGroups(tournamentId);
+  return startGroups(tournamentId, assignment);
 }
 
 export type GroupRow = { teamId: number; played: number; wins: number; losses: number; gamesWon: number; gamesLost: number; points: number };
@@ -485,7 +499,9 @@ export async function detectTournamentGames(): Promise<number> {
   const running = await db.query.tournaments.findMany({ where: inArray(tournaments.status, ['groups', 'running']), with: { teams: { with: { members: { with: { player: { columns: { profileId: true } } } } } } } });
   let found = 0;
   for (const t of running) {
-    const since = t.bracketAt ?? t.startsAt ?? t.createdAt;
+    // conta a partir do mais tarde entre o sorteio/chave e o início do torneio (sorteio antes do início não vale jogo)
+    const marks = [t.bracketAt, t.startsAt].filter((d): d is Date => d != null).map((d) => d.getTime());
+    const since = new Date(marks.length > 0 ? Math.max(...marks) : t.createdAt.getTime());
     const profilesOfTeam = new Map(t.teams.map((team) => [team.id, team.members.map((m) => m.player.profileId)]));
     const all = [...new Set([...profilesOfTeam.values()].flat())];
     if (all.length === 0) continue;
