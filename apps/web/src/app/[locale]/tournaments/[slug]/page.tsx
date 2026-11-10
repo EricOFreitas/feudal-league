@@ -53,6 +53,9 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const undoable = bracketMatches.filter((m) => m.games.length > 0);
   const anyGame = tour.matches.some((m) => m.games.length > 0);
   const groupsDone = groupMatches.filter((m) => m.status === 'done' || m.status === 'walkover').length;
+  // lateral: requisitos e inscrição só com inscrições abertas; organização só pro dono. Sem nada, o conteúdo ocupa a largura toda.
+  const registrationOpen = tour.status === 'open' && !tour.registrationClosed;
+  const showAside = registrationOpen || isOwner;
   const ratingOf = await rm1v1RatingsOf(tour.teams.flatMap((x) => x.members.map((m) => m.playerId)));
   const teamRatings = new Map<number, number>();
   for (const x of tour.teams) {
@@ -171,7 +174,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
         </div>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className={`grid gap-8 ${showAside ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
         <div className="space-y-10">
           {myMatch && myTeam && oppTeam && (
             <section className="flex flex-wrap items-start gap-4">
@@ -264,8 +267,8 @@ export default async function TournamentPage({ params, searchParams }: Props) {
           </section>
         </div>
 
-        <aside className="space-y-4">
-          <div className="panel p-4">
+        {showAside && <aside className="space-y-4">
+          {registrationOpen && <div className="panel p-4">
             <h3 className="font-display text-gold-300">{t('requirements.title')}</h3>
             {hasReqs ? (
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-parchment-200">
@@ -279,9 +282,9 @@ export default async function TournamentPage({ params, searchParams }: Props) {
                 {t('requirements.you', { peak: eligibility.peak ?? '–', games: eligibility.games, recent: eligibility.recent })} {eligibility.ok ? t('requirements.youOk') : t('requirements.youFail', { rules: eligibility.fails.map((r) => t(`requirements.rule.${r}`)).join(', ') })}
               </p>
             )}
-          </div>
+          </div>}
 
-          {tour.status === 'open' && !tour.registrationClosed && (
+          {registrationOpen && (
             <div className="panel p-4">
               <h3 className="font-display text-gold-300">{t('register.title')}</h3>
               {!session ? <a href={`/auth/steam?next=/${locale}/tournaments/${tour.slug}`} className="btn btn-ghost mt-3">{t('register.login')}</a>
@@ -374,16 +377,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
               )}
             </div>
           )}
-
-          <div className="panel p-4 text-sm text-parchment-300">
-            <p className="font-display text-gold-300">{t('games')}</p>
-            <ul className="mt-2 space-y-1">
-              {tour.matches.filter((m) => m.games.length > 0).slice(-8).reverse().map((m) => (
-                <li key={m.id}>{teamName(m.teamAId)} <span className="stat-num text-parchment-50">{m.scoreA}–{m.scoreB}</span> {teamName(m.teamBId)}{m.games.at(-1)?.playedAt && <span className="text-parchment-500"> · {dts.format(m.games.at(-1)!.playedAt)}</span>}</li>
-              ))}
-            </ul>
-          </div>
-        </aside>
+        </aside>}
       </div>
     </div>
   );
