@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ShieldCheck, Trophy, Users } from 'lucide-react';
 import { db, leagues, players } from '@aoe2/db';
-import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
+import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Bracket } from '@/components/bracket';
@@ -13,7 +13,7 @@ import { sessionPlayer } from '@/lib/leagues';
 import { addTeamAction, cancelAction, registerTeamAction, reportGameAction, startBracketAction, startGroupsAction, teamStatusAction, undoGameAction } from '../actions';
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ ok?: string; err?: string; id?: string; rules?: string }> };
-type Status = 'open' | 'groups' | 'running' | 'finished' | 'cancelled';
+type Status = 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled';
 const ERRS = ['closed', 'full', 'size', 'player_taken', 'player_missing', 'duplicate', 'ineligible', 'few_teams', 'groups_open', 'status', 'no_groups'] as const;
 type Err = (typeof ERRS)[number];
 const RULES = ['peak', 'games', 'recent', 'no_rating'] as const;
@@ -69,7 +69,8 @@ export default async function TournamentPage({ params, searchParams }: Props) {
     return t(`err.${k}`, { n: tour.teamSize, id: flash.id ?? '', rules: ruleNames(flash.rules) });
   };
   const roundName = (round: number, rounds: number) => (round === rounds ? t('final') : round === rounds - 1 ? t('semis') : round === rounds - 2 ? t('quarters') : t('round', { n: round }));
-  const currentLabel = tour.status === 'open' ? t('status.open') : tour.status === 'finished' ? t('status.finished')
+  const statusKey = tournamentStatusKey(tour);
+  const currentLabel = tour.status === 'open' ? t(`status.${statusKey as 'open' | 'closed'}`) : tour.status === 'finished' ? t('status.finished')
     : tour.status === 'groups' || !Number.isFinite(currentBracketRound) ? t('status.groups') : roundName(currentBracketRound, bracketRounds);
   const teamName = (id: number | null) => (id == null ? t('tbd') : teams.get(id)?.name ?? '?');
   const hidden = (
@@ -130,7 +131,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
             <h1 className="text-3xl font-semibold text-gold-300 sm:text-4xl">{tour.name}</h1>
             {tour.description && <p className="mt-2 max-w-2xl whitespace-pre-line text-parchment-200">{tour.description}</p>}
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-parchment-300">
-              <span className="tag"><Trophy className="h-3.5 w-3.5" />{t(`status.${tour.status as Status}`)}</span>
+              <span className="tag"><Trophy className="h-3.5 w-3.5" />{t(`status.${statusKey as Status}`)}</span>
               <span className="tag"><Users className="h-3.5 w-3.5" />{t('format.size', { n: tour.teamSize })}</span>
               <span>{t('formatLine', {
                 format: tour.groupCount > 0 ? t('formatGroups') : t('formatKnockout'),
@@ -140,7 +141,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
             </p>
             <p className="mt-2 flex flex-wrap gap-x-4 text-sm text-parchment-400">
               {tour.startsAt && <span>{t('startsAt', { date: dt.format(tour.startsAt) })}</span>}
-              {owner && <span>{t('by', { name: owner.alias })}</span>}
+              {(tour.organizerName || owner) && <span>{t('by', { name: tour.organizerName ?? owner!.alias })}</span>}
             </p>
             {tour.prize && <p className="mt-2 text-sm text-parchment-200"><span className="kicker">{t('prize')}</span> {tour.prize}</p>}
             {champion && <p className="mt-3 font-display text-xl text-gold-300">🏆 {t('champion', { name: teamName(champion) })}</p>}
@@ -282,7 +283,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
             )}
           </div>
 
-          {tour.status === 'open' && (
+          {tour.status === 'open' && !tour.registrationClosed && (
             <div className="panel p-4">
               <h3 className="font-display text-gold-300">{t('register.title')}</h3>
               {!session ? <a href={`/auth/steam?next=/${locale}/tournaments/${tour.slug}`} className="btn btn-ghost mt-3">{t('register.login')}</a>

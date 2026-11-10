@@ -316,6 +316,7 @@
     },
     "status": {
       "open": "Registration open",
+      "closed": "Registration closed",
       "groups": "Group stage",
       "running": "Knockout",
       "finished": "Finished",
@@ -454,7 +455,10 @@
       "groupPlayAll": "Play all games (each game won is worth 1 point)",
       "groupPlayAllHint": "The match only closes after every game, even if a team already has the majority. The table adds 1 point per game won.",
       "lockedStarted": "The tournament has started. You can change the name, description, prize and start; the format and requirements stay as they are.",
-      "lockedSize": "With teams registered, the team size can't change."
+      "lockedSize": "With teams registered, the team size can't change.",
+      "organizerName": "Organized by (optional; empty = your nickname)",
+      "registrationClosed": "Registration closed",
+      "registrationClosedHint": "Hides the sign-up form. You can still add teams from the organizer panel."
     },
     "groupPlayAllNote": "Group stage with {n} games per match: all are played and each game won is worth 1 point."
   }

@@ -325,3 +325,6 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   vencidos, saldo e jogos ganhos. O organizador edita o torneio em `/tournaments/<slug>/edit`: formato, tamanho e
   requisitos só com inscrições abertas (tamanho só sem times inscritos); nome, descrição, premiação e início até o fim.
   Fora do site, por enquanto: capitão que não joga, draft de mapas/civs e prazo por rodada.
+- 10/11/2026 — Torneio ganha "inscrições encerradas" (`registration_closed`: some o formulário, só o organizador
+  adiciona) e "organizado por" em texto livre (`organizer_name`), pra quem acompanha um torneio de outra pessoa
+  pela própria conta. Time cadastrado pelo organizador fica sem capitão.

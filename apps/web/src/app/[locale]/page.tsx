@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { PODIUM_MIN_GAMES, globalHome, lastPodium, monthProgress, seasonMonth, type HomePeriod } from '@aoe2/sync';
+import { PODIUM_MIN_GAMES, globalHome, lastPodium, monthProgress, seasonMonth, tournamentStatusKey, type HomePeriod } from '@aoe2/sync';
 import { Link } from '@/i18n/navigation';
 import { Flag } from '@/components/flag';
 import { MEDAL_COLORS } from '@/components/medal';
@@ -300,7 +300,7 @@ export default async function Home({ params, searchParams }: Props) {
               {home.tournaments.map((x) => (
                 <li key={x.id}>
                   <Link href={`/tournaments/${x.slug}`} className={`${card} flex flex-col gap-[0.15rem] px-4 py-3 hover:border-gold-600 hover:no-underline`}>
-                    <span className="flex justify-between gap-2"><span className="font-display text-parchment-50">{x.name}</span><span className="whitespace-nowrap text-[0.8rem]" style={{ color: x.status === 'open' ? UP : '#e9cf8a' }}>{tt(`status.${x.status as 'open'}`)}</span></span>
+                    <span className="flex justify-between gap-2"><span className="font-display text-parchment-50">{x.name}</span><span className="whitespace-nowrap text-[0.8rem]" style={{ color: tournamentStatusKey(x) === 'open' ? UP : '#e9cf8a' }}>{tt(`status.${tournamentStatusKey(x) as 'open'}`)}</span></span>
                     <span className="text-[0.9rem] text-parchment-400">{tt('format.size', { n: x.teamSize })} · {tt('format.bestOf', { n: x.bestOf })}</span>
                   </Link>
                 </li>

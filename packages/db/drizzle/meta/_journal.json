@@ -127,6 +127,13 @@
       "when": 1794334956948,
       "tag": "0017_last_santa_claus",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794336452002,
+      "tag": "0018_funny_namor",
+      "breakpoints": true
     }
   ]
 }

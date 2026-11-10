@@ -13,7 +13,7 @@ export const BEST_OFS = [1, 3, 5] as const;
 
 /** Configurações que o organizador escolhe (criar e editar). */
 export type TournamentSettings = {
-  name: string; description: string | null;
+  name: string; description: string | null; organizerName: string | null; registrationClosed: boolean;
   teamSize: number; bestOf: number; finalBestOf: number | null; groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean;
   maxTeams: number | null; startsAt: Date | null;
   maxPeakRating: number | null; minGames: number | null; minRecentGames: number | null; prize: string | null;
@@ -24,6 +24,7 @@ export type NewTournamentInput = TournamentSettings & { slug: string; ownerUserI
 export async function createTournament(input: NewTournamentInput): Promise<number | null> {
   const [row] = await db.insert(tournaments).values({
     slug: input.slug, name: input.name, description: input.description, ownerUserId: input.ownerUserId, leagueId: input.leagueId ?? null,
+    organizerName: input.organizerName, registrationClosed: input.registrationClosed,
     teamSize: input.teamSize, format: input.groupCount > 0 ? 'groups_elim' : 'single_elim', bestOf: input.bestOf, finalBestOf: input.finalBestOf,
     groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, groupPlayAll: input.groupPlayAll,
     maxTeams: input.maxTeams, startsAt: input.startsAt,
@@ -41,7 +42,7 @@ export type UpdateTournamentResult = { ok: true } | { ok: false; reason: 'status
 export async function updateTournament(tournamentId: number, input: TournamentSettings): Promise<UpdateTournamentResult> {
   const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), with: { teams: { columns: { id: true, status: true } } } });
   if (!t || t.status === 'finished' || t.status === 'cancelled') return { ok: false, reason: 'status' };
-  const text = { name: input.name, description: input.description, prize: input.prize, startsAt: input.startsAt };
+  const text = { name: input.name, description: input.description, organizerName: input.organizerName, prize: input.prize, startsAt: input.startsAt };
   if (t.status !== 'open') {
     await db.update(tournaments).set(text).where(eq(tournaments.id, tournamentId));
     return { ok: true };
@@ -50,12 +51,19 @@ export async function updateTournament(tournamentId: number, input: TournamentSe
   if (input.maxTeams != null && input.maxTeams < active) return { ok: false, reason: 'max_teams' };
   await db.update(tournaments).set({
     ...text,
+    registrationClosed: input.registrationClosed,
     teamSize: active > 0 ? t.teamSize : input.teamSize,
     format: input.groupCount > 0 ? 'groups_elim' : 'single_elim', bestOf: input.bestOf, finalBestOf: input.finalBestOf,
     groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, groupPlayAll: input.groupPlayAll,
     maxTeams: input.maxTeams, maxPeakRating: input.maxPeakRating, minGames: input.minGames, minRecentGames: input.minRecentGames,
   }).where(eq(tournaments.id, tournamentId));
   return { ok: true };
+}
+
+/** Status pra exibir: inscrições encerradas antes de começar viram 'closed'. */
+export function tournamentStatusKey(t: Pick<Tournament, 'status' | 'registrationClosed'>): 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled' {
+  if (t.status === 'open' && t.registrationClosed) return 'closed';
+  return t.status as 'open' | 'groups' | 'running' | 'finished' | 'cancelled';
 }
 
 export async function listTournaments() {
@@ -113,6 +121,8 @@ export type AddTeamResult = { ok: true; teamId: number } | { ok: false; reason: 
 export async function addTeam(tournamentId: number, input: { name?: string | null; profileIds: number[]; byUserId?: number | null; status: 'pending' | 'confirmed'; captainProfileId?: number | null; skipEligibility?: boolean }): Promise<AddTeamResult> {
   const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), with: { teams: { columns: { id: true, status: true } } } });
   if (!t || t.status !== 'open') return { ok: false, reason: 'closed' };
+  // inscrições encerradas: só o organizador (times já confirmados) ainda adiciona
+  if (t.registrationClosed && input.status === 'pending') return { ok: false, reason: 'closed' };
   const ids = [...new Set(input.profileIds.filter((n) => Number.isInteger(n) && n > 0))];
   if (ids.length !== input.profileIds.length) return { ok: false, reason: 'duplicate' };
   if (ids.length !== t.teamSize) return { ok: false, reason: 'size' };

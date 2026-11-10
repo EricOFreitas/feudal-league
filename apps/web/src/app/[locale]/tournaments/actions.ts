@@ -138,6 +138,7 @@ function settingsFrom(fd: FormData): TournamentSettings | { error: 'name' | 'gro
   const startsAt = startsRaw ? new Date(startsRaw) : null;
   return {
     name, description: String(fd.get('description') ?? '').trim().slice(0, 4000) || null,
+    organizerName: String(fd.get('organizerName') ?? '').trim().slice(0, 60) || null, registrationClosed: fd.get('registrationClosed') === 'on',
     teamSize: (TEAM_SIZES as readonly number[]).includes(Number(fd.get('teamSize'))) ? Number(fd.get('teamSize')) : 2,
     bestOf: bestOfOr(fd.get('bestOf'), 1), finalBestOf: bestOfOr(fd.get('finalBestOf'), null),
     groupCount, advancePerGroup, groupBestOf: bestOfOr(fd.get('groupBestOf'), 1), groupPlayAll: groupCount > 0 && fd.get('groupPlayAll') === 'on',
