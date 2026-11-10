@@ -1,6 +1,7 @@
 /**
  * Torneios (fase 3): times de 1 a 4, fase de grupos opcional, mata-mata por eliminação simples,
  * melhor de 1/3/5. Resultado confirmado pelo histórico ou reportado pelo organizador.
+ * Grupos podem ser "jogar todos" (group_play_all): o confronto só fecha depois dos N jogos e cada jogo vale 1 ponto.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, matches, matchMembers, playerRatings, players, tournamentGames, tournamentMatches, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
@@ -10,21 +11,51 @@ import { findPlayerByProfileId, importPlayerByProfileId } from './players';
 export const TEAM_SIZES = [1, 2, 3, 4] as const;
 export const BEST_OFS = [1, 3, 5] as const;
 
-export type NewTournamentInput = {
-  slug: string; name: string; description: string | null; ownerUserId: number; leagueId?: number | null;
-  teamSize: number; bestOf: number; finalBestOf: number | null; groupCount: number; advancePerGroup: number; groupBestOf: number;
+/** Configurações que o organizador escolhe (criar e editar). */
+export type TournamentSettings = {
+  name: string; description: string | null;
+  teamSize: number; bestOf: number; finalBestOf: number | null; groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean;
   maxTeams: number | null; startsAt: Date | null;
   maxPeakRating: number | null; minGames: number | null; minRecentGames: number | null; prize: string | null;
 };
+
+export type NewTournamentInput = TournamentSettings & { slug: string; ownerUserId: number; leagueId?: number | null };
 
 export async function createTournament(input: NewTournamentInput): Promise<number | null> {
   const [row] = await db.insert(tournaments).values({
     slug: input.slug, name: input.name, description: input.description, ownerUserId: input.ownerUserId, leagueId: input.leagueId ?? null,
     teamSize: input.teamSize, format: input.groupCount > 0 ? 'groups_elim' : 'single_elim', bestOf: input.bestOf, finalBestOf: input.finalBestOf,
-    groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, maxTeams: input.maxTeams, startsAt: input.startsAt,
+    groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, groupPlayAll: input.groupPlayAll,
+    maxTeams: input.maxTeams, startsAt: input.startsAt,
     maxPeakRating: input.maxPeakRating, minGames: input.minGames, minRecentGames: input.minRecentGames, prize: input.prize,
   }).onConflictDoNothing().returning({ id: tournaments.id });
   return row?.id ?? null;
+}
+
+export type UpdateTournamentResult = { ok: true } | { ok: false; reason: 'status' | 'max_teams' };
+
+/**
+ * Edita o torneio. Nome, descrição, premiação e início mudam até o fim. O resto (formato, tamanho, requisitos)
+ * só com inscrições abertas; o tamanho do time só enquanto não há time inscrito.
+ */
+export async function updateTournament(tournamentId: number, input: TournamentSettings): Promise<UpdateTournamentResult> {
+  const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), with: { teams: { columns: { id: true, status: true } } } });
+  if (!t || t.status === 'finished' || t.status === 'cancelled') return { ok: false, reason: 'status' };
+  const text = { name: input.name, description: input.description, prize: input.prize, startsAt: input.startsAt };
+  if (t.status !== 'open') {
+    await db.update(tournaments).set(text).where(eq(tournaments.id, tournamentId));
+    return { ok: true };
+  }
+  const active = t.teams.filter((x) => x.status !== 'withdrawn').length;
+  if (input.maxTeams != null && input.maxTeams < active) return { ok: false, reason: 'max_teams' };
+  await db.update(tournaments).set({
+    ...text,
+    teamSize: active > 0 ? t.teamSize : input.teamSize,
+    format: input.groupCount > 0 ? 'groups_elim' : 'single_elim', bestOf: input.bestOf, finalBestOf: input.finalBestOf,
+    groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, groupPlayAll: input.groupPlayAll,
+    maxTeams: input.maxTeams, maxPeakRating: input.maxPeakRating, minGames: input.minGames, minRecentGames: input.minRecentGames,
+  }).where(eq(tournaments.id, tournamentId));
+  return { ok: true };
 }
 
 export async function listTournaments() {
@@ -189,7 +220,10 @@ export async function startGroups(tournamentId: number): Promise<{ ok: true } | 
 
 export type GroupRow = { teamId: number; played: number; wins: number; losses: number; gamesWon: number; gamesLost: number; points: number };
 
-/** Classificação de cada grupo a partir dos confrontos encerrados. Vitória 3 pts; desempate: saldo de jogos, jogos ganhos. */
+/**
+ * Classificação de cada grupo. Normal: vitória no confronto vale 3 pts. "Jogar todos": cada jogo vencido vale 1 pt,
+ * contado já durante o confronto. Desempate: confrontos vencidos, saldo de jogos, jogos ganhos.
+ */
 export function groupStandings(t: TournamentFull): Map<number, GroupRow[]> {
   const out = new Map<number, GroupRow[]>();
   for (const team of t.teams) {
@@ -208,7 +242,8 @@ export function groupStandings(t: TournamentFull): Map<number, GroupRow[]> {
       if (m.winnerTeamId === a.teamId) { a.wins++; a.points += 3; b.losses++; } else if (m.winnerTeamId === b.teamId) { b.wins++; b.points += 3; a.losses++; }
     }
   }
-  for (const rows of out.values()) rows.sort((x, y) => y.points - x.points || (y.gamesWon - y.gamesLost) - (x.gamesWon - x.gamesLost) || y.gamesWon - x.gamesWon);
+  if (t.groupPlayAll) for (const rows of out.values()) for (const r of rows) r.points = r.gamesWon;
+  for (const rows of out.values()) rows.sort((x, y) => y.points - x.points || y.wins - x.wins || (y.gamesWon - y.gamesLost) - (x.gamesWon - x.gamesLost) || y.gamesWon - x.gamesWon);
   return out;
 }
 
@@ -298,7 +333,7 @@ async function finishMatch(m: TournamentMatch, winnerTeamId: number, status: 'do
   }
 }
 
-/** Registra um jogo e fecha o confronto se alguém alcançou a maioria. */
+/** Registra um jogo e fecha o confronto se alguém alcançou a maioria (ou, nos grupos "jogar todos", depois dos N jogos). */
 export async function recordGame(tournamentMatchId: number, winnerTeamId: number, opts: { matchId?: number | null; source: 'auto' | 'manual'; byUserId?: number | null; playedAt?: Date }) {
   const m = await db.query.tournamentMatches.findFirst({ where: eq(tournamentMatches.id, tournamentMatchId) });
   if (!m || m.status !== 'ready' || (winnerTeamId !== m.teamAId && winnerTeamId !== m.teamBId)) return false;
@@ -308,6 +343,12 @@ export async function recordGame(tournamentMatchId: number, winnerTeamId: number
   const scoreA = m.scoreA + (winnerTeamId === m.teamAId ? 1 : 0);
   const scoreB = m.scoreB + (winnerTeamId === m.teamBId ? 1 : 0);
   await db.update(tournamentMatches).set({ scoreA, scoreB }).where(eq(tournamentMatches.id, m.id));
+  const playAll = m.stage === 'group' && (await db.query.tournaments.findFirst({ where: eq(tournaments.id, m.tournamentId), columns: { groupPlayAll: true } }))?.groupPlayAll === true;
+  if (playAll) {
+    // melhor de N é sempre ímpar (BEST_OFS), então depois dos N jogos sempre há vencedor
+    if (scoreA + scoreB >= m.bestOf) await finishMatch({ ...m, scoreA, scoreB }, scoreA > scoreB ? m.teamAId! : m.teamBId!);
+    return true;
+  }
   const need = Math.floor(m.bestOf / 2) + 1;
   if (scoreA >= need || scoreB >= need) await finishMatch({ ...m, scoreA, scoreB }, scoreA >= need ? m.teamAId! : m.teamBId!);
   return true;

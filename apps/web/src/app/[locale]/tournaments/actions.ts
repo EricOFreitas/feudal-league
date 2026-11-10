@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, tournamentMatches, tournamentTeams, tournaments } from '@aoe2/db';
-import { BEST_OFS, TEAM_SIZES, addTeam, createTournament, deleteTeam, recordGame, setTeamStatus, startBracket, startGroups, undoLastGame, type AddTeamResult } from '@aoe2/sync';
+import { BEST_OFS, TEAM_SIZES, addTeam, createTournament, deleteTeam, recordGame, setTeamStatus, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { sessionPlayer, slugify } from '@/lib/leagues';
@@ -123,36 +123,55 @@ export async function undoGameAction(fd: FormData) {
   return back(fd);
 }
 
-export type CreateState = { error?: 'name' | 'groups' | 'slug' } | null;
+export type CreateState = { error?: 'name' | 'groups' | 'slug' | 'max_teams' | 'status' } | null;
+
+const bestOfOr = <T,>(v: FormDataEntryValue | null, fallback: T) => ((BEST_OFS as readonly number[]).includes(Number(v)) ? Number(v) : fallback);
+
+/** Lê as configurações do formulário (criar e editar). Sem a caixa de grupos marcada, grupos = 0. */
+function settingsFrom(fd: FormData): TournamentSettings | { error: 'name' | 'groups' } {
+  const name = String(fd.get('name') ?? '').trim();
+  if (name.length < 3 || name.length > 60) return { error: 'name' };
+  const groupCount = fd.get('hasGroups') === 'on' ? intOrNull(fd.get('groupCount'), 1, 16) ?? 0 : 0;
+  const advancePerGroup = intOrNull(fd.get('advancePerGroup'), 1, 8) ?? 2;
+  if (fd.get('hasGroups') === 'on' && groupCount < 1) return { error: 'groups' };
+  const startsRaw = String(fd.get('startsAt') ?? '').trim();
+  const startsAt = startsRaw ? new Date(startsRaw) : null;
+  return {
+    name, description: String(fd.get('description') ?? '').trim().slice(0, 4000) || null,
+    teamSize: (TEAM_SIZES as readonly number[]).includes(Number(fd.get('teamSize'))) ? Number(fd.get('teamSize')) : 2,
+    bestOf: bestOfOr(fd.get('bestOf'), 1), finalBestOf: bestOfOr(fd.get('finalBestOf'), null),
+    groupCount, advancePerGroup, groupBestOf: bestOfOr(fd.get('groupBestOf'), 1), groupPlayAll: groupCount > 0 && fd.get('groupPlayAll') === 'on',
+    maxTeams: intOrNull(fd.get('maxTeams'), 2, 256), startsAt: startsAt && !Number.isNaN(startsAt.getTime()) ? startsAt : null,
+    maxPeakRating: intOrNull(fd.get('maxPeakRating'), 0, 5000), minGames: intOrNull(fd.get('minGames'), 0, 10000), minRecentGames: intOrNull(fd.get('minRecentGames'), 0, 1000),
+    prize: String(fd.get('prize') ?? '').trim().slice(0, 300) || null,
+  };
+}
 
 export async function createTournamentAction(_prev: CreateState, fd: FormData): Promise<CreateState> {
   const locale = localeOf(fd);
   const session = await getSession();
   if (!session) redirect({ href: '/login', locale });
+  const settings = settingsFrom(fd);
+  if ('error' in settings) return { error: settings.error };
 
-  const name = String(fd.get('name') ?? '').trim();
-  if (name.length < 3 || name.length > 60) return { error: 'name' };
-  const teamSize = (TEAM_SIZES as readonly number[]).includes(Number(fd.get('teamSize'))) ? Number(fd.get('teamSize')) : 2;
-  const bestOf = (BEST_OFS as readonly number[]).includes(Number(fd.get('bestOf'))) ? Number(fd.get('bestOf')) : 1;
-  const finalBestOf = (BEST_OFS as readonly number[]).includes(Number(fd.get('finalBestOf'))) ? Number(fd.get('finalBestOf')) : null;
-  const groupCount = intOrNull(fd.get('groupCount'), 0, 16) ?? 0;
-  const advancePerGroup = intOrNull(fd.get('advancePerGroup'), 1, 8) ?? 2;
-  const groupBestOf = (BEST_OFS as readonly number[]).includes(Number(fd.get('groupBestOf'))) ? Number(fd.get('groupBestOf')) : 1;
-  if (groupCount > 0 && advancePerGroup < 1) return { error: 'groups' };
-  const startsRaw = String(fd.get('startsAt') ?? '').trim();
-  const startsAt = startsRaw ? new Date(startsRaw) : null;
-
-  let slug = slugify(name);
+  let slug = slugify(settings.name);
   if (await db.query.tournaments.findFirst({ where: eq(tournaments.slug, slug) })) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
-  const id = await createTournament({
-    slug, name, description: String(fd.get('description') ?? '').trim().slice(0, 4000) || null, ownerUserId: session!.uid,
-    teamSize, bestOf, finalBestOf, groupCount, advancePerGroup, groupBestOf,
-    maxTeams: intOrNull(fd.get('maxTeams'), 2, 256), startsAt: startsAt && !Number.isNaN(startsAt.getTime()) ? startsAt : null,
-    maxPeakRating: intOrNull(fd.get('maxPeakRating'), 0, 5000), minGames: intOrNull(fd.get('minGames'), 0, 10000), minRecentGames: intOrNull(fd.get('minRecentGames'), 0, 1000),
-    prize: String(fd.get('prize') ?? '').trim().slice(0, 300) || null,
-  });
+  const id = await createTournament({ ...settings, slug, ownerUserId: session!.uid });
   if (!id) return { error: 'slug' };
   revalidatePath(`/${locale}/tournaments`);
   redirect({ href: `/tournaments/${slug}`, locale });
+  return null;
+}
+
+/** Edita o torneio (só o dono). Campos travados chegam desabilitados no formulário e o servidor mantém o valor atual. */
+export async function updateTournamentAction(_prev: CreateState, fd: FormData): Promise<CreateState> {
+  const t = await owned(fd);
+  if (!t) return { error: 'status' };
+  const settings = settingsFrom(fd);
+  if ('error' in settings) return { error: settings.error };
+  // updateTournament ignora o formato fora das inscrições e o tamanho com times inscritos
+  const r = await updateTournament(t.id, settings);
+  if (!r.ok) return { error: r.reason };
+  back(fd, 'ok=edited');
   return null;
 }

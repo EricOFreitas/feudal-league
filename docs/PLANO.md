@@ -320,3 +320,8 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   divisão na Global e últimas partidas dos seguidos. Até 50 por usuário; seguido sincroniza a cada 1 h.
   Não importar a lista de amigos da Steam: o `/login` promete que o site não acessa amigos.
 - 10/11/2026 — Busca por trecho do nick no aoe2companion quando o nick exato não acha ninguém (seção 4).
+- 10/11/2026 — Torneio: grupos "jogar todos" (`group_play_all`, pedido pela PG Cup): o confronto de grupo só fecha
+  depois dos N jogos e cada jogo vencido vale 1 ponto, contado já durante o confronto; desempate por confrontos
+  vencidos, saldo e jogos ganhos. O organizador edita o torneio em `/tournaments/<slug>/edit`: formato, tamanho e
+  requisitos só com inscrições abertas (tamanho só sem times inscritos); nome, descrição, premiação e início até o fim.
+  Fora do site, por enquanto: capitão que não joga, draft de mapas/civs e prazo por rodada.

@@ -120,6 +120,13 @@
       "when": 1794319713119,
       "tag": "0016_kind_triathlon",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794334956948,
+      "tag": "0017_last_santa_claus",
+      "breakpoints": true
     }
   ]
 }

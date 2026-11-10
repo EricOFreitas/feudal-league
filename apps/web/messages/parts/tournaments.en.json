@@ -34,7 +34,8 @@
       "bestOf": "Best of {n}",
       "step1": "Agree on a time with your opponent and create a {size} lobby in the game.",
       "step2": "Just play. No screenshot or report needed.",
-      "step3": "The result shows up here on the next sync."
+      "step3": "The result shows up here on the next sync.",
+      "playAll": "{n} games, all worth points"
     },
     "more": "Show more tournaments",
     "showing": "Showing {n} of {total}",

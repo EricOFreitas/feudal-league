@@ -311,7 +311,8 @@
       "finalBestOf": "final best of {n}",
       "groups": "{n, plural, =1 {1 group} other {# groups}}, top {adv} advance",
       "groupBestOf": "groups best of {n}",
-      "knockout": "knockout"
+      "knockout": "knockout",
+      "groupPlayAll": "groups with {n} games, all worth points"
     },
     "status": {
       "open": "Registration open",
@@ -394,7 +395,9 @@
       "winner": "Winner",
       "undo": "Undo last game",
       "manual": "manual",
-      "auto": "detected"
+      "auto": "detected",
+      "edit": "Edit tournament",
+      "edited": "Changes saved."
     },
     "groupsTitle": "Group stage",
     "bracketTitle": "Bracket",
@@ -442,8 +445,17 @@
       "errors": {
         "name": "Name must have 3 to 60 characters.",
         "groups": "With groups you need at least 1 group and 1 team advancing.",
-        "slug": "Could not create. Try another name."
-      }
-    }
+        "slug": "Could not create. Try another name.",
+        "max_teams": "The team limit can't be below the teams already registered.",
+        "status": "This tournament can no longer be edited."
+      },
+      "editTitle": "Edit tournament",
+      "save": "Save changes",
+      "groupPlayAll": "Play all games (each game won is worth 1 point)",
+      "groupPlayAllHint": "The match only closes after every game, even if a team already has the majority. The table adds 1 point per game won.",
+      "lockedStarted": "The tournament has started. You can change the name, description, prize and start; the format and requirements stay as they are.",
+      "lockedSize": "With teams registered, the team size can't change."
+    },
+    "groupPlayAllNote": "Group stage with {n} games per match: all are played and each game won is worth 1 point."
   }
 }

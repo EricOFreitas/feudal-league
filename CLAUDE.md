@@ -48,7 +48,7 @@ pnpm typecheck
 - Global é mensal (`seasons.ends_at`): worker vira o mês em `rollMonthlySeasons` e apura em `awardMonthlyPodiums`; ligas próprias fecham à mão. Medalha só na Global.
 - Liga global é semeada em `packages/db/src/migrate.ts`; divisões padrão em `DEFAULT_DIVISIONS` (sync). Nomes de divisão neutros.
 - Ações de servidor das ligas em `apps/web/src/app/[locale]/leagues/actions.ts` e dos torneios em `tournaments/actions.ts`; página checa dono por `ownerUserId === session.uid`.
-- Torneio: `stage` group|bracket em `tournament_matches`; chave criada da final pra trás (`nextMatchId/nextSlot`); só partidas depois de `bracketAt` contam. Teste local: `apps/worker/src/tools/test-tournament.ts`.
+- Torneio: `stage` group|bracket em `tournament_matches`; chave criada da final pra trás (`nextMatchId/nextSlot`); só partidas depois de `bracketAt` contam. Grupos com `group_play_all` jogam os N jogos (1 ponto por jogo). Edição em `tournaments/[slug]/edit` (`updateTournament`). Teste local: `apps/worker/src/tools/test-tournament.ts`.
 - Commits em português, sem Co-Authored-By. Formato: "verbo no presente + o que".
 - Sem console.log no web em produção; `console.error` só pra falha da API do jogo (diagnóstico). No worker o log é proposital.
 - `globals.css`: regras de elemento em `@layer base`, classes do tema (`panel`, `btn`, `tag`…) em `@layer components`; utilitários do Tailwind vencem, não use `!important` novo.

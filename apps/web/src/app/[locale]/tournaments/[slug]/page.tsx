@@ -120,6 +120,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
     <div className="space-y-10">
       <Breadcrumbs items={[{ label: tn('tournaments'), href: '/tournaments' }, { label: tour.name }]} />
       {flash.ok === 'registered' && <div className="panel border-moss-500 p-4 text-parchment-50">{t('register.done')}</div>}
+      {flash.ok === 'edited' && isOwner && <div className="panel border-moss-500 p-4 text-parchment-50">{t('admin.edited')}</div>}
       {flash.err && <div className="panel border-crimson-500 p-4 text-parchment-50">{errText(flash.err)}</div>}
 
       <header className="panel corners p-6">
@@ -134,7 +135,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
               <span>{t('formatLine', {
                 format: tour.groupCount > 0 ? t('formatGroups') : t('formatKnockout'),
                 teams: tour.maxTeams ? t('teamsOf', { count: activeTeamCount, max: tour.maxTeams }) : t('teams', { count: activeTeamCount }),
-                bestOf: [t('bestOfLine', { n: tour.bestOf }), tour.finalBestOf && tour.finalBestOf !== tour.bestOf ? t('finalBestOfLine', { n: tour.finalBestOf }) : null, tour.groupCount > 0 && tour.groupBestOf !== tour.bestOf ? t('format.groupBestOf', { n: tour.groupBestOf }) : null].filter(Boolean).join(', '),
+                bestOf: [t('bestOfLine', { n: tour.bestOf }), tour.finalBestOf && tour.finalBestOf !== tour.bestOf ? t('finalBestOfLine', { n: tour.finalBestOf }) : null, tour.groupCount > 0 && tour.groupPlayAll ? t('format.groupPlayAll', { n: tour.groupBestOf }) : tour.groupCount > 0 && tour.groupBestOf !== tour.bestOf ? t('format.groupBestOf', { n: tour.groupBestOf }) : null].filter(Boolean).join(', '),
               })}</span>
             </p>
             <p className="mt-2 flex flex-wrap gap-x-4 text-sm text-parchment-400">
@@ -171,7 +172,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
               </div>
               <dl className="mt-4 grid grid-cols-2 gap-2 border-t border-gold-700/50 pt-3 text-sm">
                 <div><dt className="text-parchment-400">{t('next.when')}</dt><dd className="text-parchment-50">{myMatch.scheduledAt ? dt.format(myMatch.scheduledAt) : t('next.tba')}</dd></div>
-                <div><dt className="text-parchment-400">{t('next.format')}</dt><dd className="text-parchment-50">{t('next.bestOf', { n: myMatch.bestOf })}</dd></div>
+                <div><dt className="text-parchment-400">{t('next.format')}</dt><dd className="text-parchment-50">{myMatch.stage === 'group' && tour.groupPlayAll ? t('next.playAll', { n: myMatch.bestOf }) : t('next.bestOf', { n: myMatch.bestOf })}</dd></div>
               </dl>
               <ol className="mt-4 space-y-1.5 text-sm text-parchment-200">
                 <li><span className="font-display text-gold-300">I.</span> {t('next.step1', { size: t('format.size', { n: tour.teamSize }) })}</li>
@@ -209,6 +210,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
           {tour.groupCount > 0 && groupMatches.length > 0 && (
             <section>
               <div className="rule mb-5"><span className="kicker">{t('groupsTitle')}</span></div>
+              {tour.groupPlayAll && <p className="mb-4 text-sm text-parchment-300">{t('groupPlayAllNote', { n: tour.groupBestOf })}</p>}
               <div className="grid gap-6 md:grid-cols-2">
                 {[...standings.entries()].sort((a, b) => a[0] - b[0]).map(([groupNo, rows]) => (
                   <div key={groupNo} className="panel p-4">
@@ -303,6 +305,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
           {isOwner && (
             <div className="panel space-y-4 border-moss-500/50 p-4">
               <h3 className="font-display text-gold-300">{t('admin.title')}</h3>
+              {tour.status !== 'finished' && <Link href={`/tournaments/${tour.slug}/edit`} className="btn btn-ghost w-full justify-center">{t('admin.edit')}</Link>}
               {tour.status === 'open' && (
                 <form action={addTeamAction} className="space-y-2 text-sm">
                   {hidden}

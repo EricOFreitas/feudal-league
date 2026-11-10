@@ -34,7 +34,8 @@
       "bestOf": "Melhor de {n}",
       "step1": "Combine com o adversário e crie um lobby {size} no jogo.",
       "step2": "Jogue normalmente. Não precisa de print nem de reporte.",
-      "step3": "O resultado aparece aqui na próxima sincronização."
+      "step3": "O resultado aparece aqui na próxima sincronização.",
+      "playAll": "{n} jogos, todos valem ponto"
     },
     "more": "Ver mais torneios",
     "showing": "Mostrando {n} de {total}",

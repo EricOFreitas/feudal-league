@@ -448,6 +448,8 @@ export const tournaments = pgTable(
     groupCount: smallint('group_count').notNull().default(0),
     advancePerGroup: smallint('advance_per_group').notNull().default(2),
     groupBestOf: smallint('group_best_of').notNull().default(1),
+    /** Grupos "jogar todos": o confronto só fecha depois dos N jogos e cada jogo vencido vale 1 ponto na tabela. */
+    groupPlayAll: boolean('group_play_all').notNull().default(false),
     maxTeams: smallint('max_teams'),
     /**
      * Requisitos de inscrição (anti-smurf), checados por jogador na ladder RM 1v1:

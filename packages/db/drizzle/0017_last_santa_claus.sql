@@ -1,0 +1,1 @@
+ALTER TABLE "tournaments" ADD COLUMN "group_play_all" boolean DEFAULT false NOT NULL;
