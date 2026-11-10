@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, tournamentMatches, tournamentTeams, tournaments } from '@aoe2/db';
-import { BEST_OFS, TEAM_SIZES, addTeam, createTournament, deleteTeam, recordGame, setTeamStatus, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
+import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, createTournament, deleteTeam, deleteTournamentImage, recordGame, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { sessionPlayer, slugify } from '@/lib/leagues';
@@ -123,7 +123,7 @@ export async function undoGameAction(fd: FormData) {
   return back(fd);
 }
 
-export type CreateState = { error?: 'name' | 'groups' | 'slug' | 'max_teams' | 'status' } | null;
+export type CreateState = { error?: 'name' | 'groups' | 'slug' | 'max_teams' | 'status' | 'image' } | null;
 
 /** Só aceita link http(s) de até 200 caracteres; o resto vira vazio. */
 const httpUrl = (v: FormDataEntryValue | null) => {
@@ -178,6 +178,14 @@ export async function updateTournamentAction(_prev: CreateState, fd: FormData): 
   if (!t) return { error: 'status' };
   const settings = settingsFrom(fd);
   if ('error' in settings) return { error: settings.error };
+  // imagem: PNG/JPEG/WebP até 1 MB (conferido pelos bytes); a marca "remover" vence o arquivo
+  const file = fd.get('image');
+  if (fd.get('removeImage') === 'on') await deleteTournamentImage(t.id);
+  else if (file instanceof File && file.size > 0) {
+    if (file.size > TOURNAMENT_IMAGE_MAX_BYTES) return { error: 'image' };
+    const img = await setTournamentImage(t.id, Buffer.from(await file.arrayBuffer()));
+    if (!img.ok) return { error: 'image' };
+  }
   // updateTournament ignora o formato fora das inscrições e o tamanho com times inscritos
   const r = await updateTournament(t.id, settings);
   if (!r.ok) return { error: r.reason };

@@ -16,6 +16,8 @@ const config: NextConfig = {
   output: 'standalone',
   transpilePackages: ['@aoe2/aoe-api', '@aoe2/db', '@aoe2/sync'],
   serverExternalPackages: ['postgres'],
+  // imagem do torneio vai pelo formulário de edição (até 1 MB + o resto do formulário)
+  experimental: { serverActions: { bodySizeLimit: '2mb' } },
 };
 
 export default withNextIntl(config);

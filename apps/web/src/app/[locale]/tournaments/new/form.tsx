@@ -21,6 +21,8 @@ type Props =
     formatLocked: boolean;
     /** Há times inscritos: o tamanho do time não muda. */
     sizeLocked: boolean;
+    /** URL da imagem atual do torneio (null = sem imagem). */
+    imageUrl: string | null;
   };
 
 const EMPTY: TournamentFormInitial = {
@@ -65,6 +67,17 @@ export function TournamentForm(props: Props) {
         <label><span className={label}>{t('prize')}</span><input name="prize" maxLength={300} defaultValue={init.prize} className={field} /></label>
         <label><span className={label}>{t('organizerName')}</span><input name="organizerName" maxLength={60} defaultValue={init.organizerName} className={field} /></label>
         <label><span className={label}>{t('organizerUrl')}</span><input name="organizerUrl" type="url" maxLength={200} placeholder="https://" defaultValue={init.organizerUrl} className={field} /></label>
+        {edit && (
+          <div className="sm:col-span-2 flex flex-wrap items-center gap-4 rounded border border-gold-700/40 p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element -- prévia da imagem atual, servida pela própria rota */}
+            {props.imageUrl && <img src={props.imageUrl} alt="" className="h-20 w-20 rounded object-contain" />}
+            <label className="min-w-0 flex-1"><span className={label}>{t('image')}</span>
+              <input name="image" type="file" accept="image/png,image/jpeg,image/webp" className="mt-1 block w-full text-sm text-parchment-200" />
+              <span className="mt-1 block text-xs text-parchment-400">{t('imageHint')}</span>
+            </label>
+            {props.imageUrl && <label className="flex items-center gap-2 text-sm text-parchment-200"><input type="checkbox" name="removeImage" /> {t('removeImage')}</label>}
+          </div>
+        )}
         {edit && (
           <label className="flex items-start gap-2 self-end text-sm text-parchment-200">
             <input type="checkbox" name="registrationClosed" defaultChecked={init.registrationClosed} disabled={formatLocked} className="mt-1" />

@@ -4,7 +4,7 @@
  * Grupos podem ser "jogar todos" (group_play_all): o confronto só fecha depois dos N jogos e cada jogo vale 1 ponto.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
-import { db, matches, matchMembers, playerRatings, players, tournamentGames, tournamentMatches, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
+import { db, matches, matchMembers, playerRatings, players, tournamentGames, tournamentImages, tournamentMatches, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
 import { and, asc, desc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { findPlayerByProfileId, importPlayerByProfileId } from './players';
 
@@ -58,6 +58,41 @@ export async function updateTournament(tournamentId: number, input: TournamentSe
     maxTeams: input.maxTeams, maxPeakRating: input.maxPeakRating, minGames: input.minGames, minRecentGames: input.minRecentGames,
   }).where(eq(tournaments.id, tournamentId));
   return { ok: true };
+}
+
+/* ───────────────────────────── imagem ───────────────────────────── */
+
+export const TOURNAMENT_IMAGE_MAX_BYTES = 1024 * 1024;
+
+/** Tipo da imagem pelos primeiros bytes (não pela extensão). Só PNG, JPEG e WebP; SVG fica de fora. */
+export function imageTypeOf(buf: Uint8Array): 'image/png' | 'image/jpeg' | 'image/webp' | null {
+  if (buf.length > 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png';
+  if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
+  if (buf.length > 12 && String.fromCharCode(...buf.slice(0, 4)) === 'RIFF' && String.fromCharCode(...buf.slice(8, 12)) === 'WEBP') return 'image/webp';
+  return null;
+}
+
+export async function setTournamentImage(tournamentId: number, data: Buffer): Promise<{ ok: true } | { ok: false; reason: 'image' }> {
+  const contentType = imageTypeOf(data);
+  if (!contentType || data.length > TOURNAMENT_IMAGE_MAX_BYTES) return { ok: false, reason: 'image' };
+  const updatedAt = new Date();
+  await db.insert(tournamentImages).values({ tournamentId, contentType, data, updatedAt })
+    .onConflictDoUpdate({ target: tournamentImages.tournamentId, set: { contentType, data, updatedAt } });
+  return { ok: true };
+}
+
+export async function deleteTournamentImage(tournamentId: number) {
+  await db.delete(tournamentImages).where(eq(tournamentImages.tournamentId, tournamentId));
+}
+
+/** Só a data da imagem (sem os bytes): serve pra saber se existe e pra versionar a URL. */
+export async function tournamentImageVersion(tournamentId: number): Promise<number | null> {
+  const [r] = await db.select({ updatedAt: tournamentImages.updatedAt }).from(tournamentImages).where(eq(tournamentImages.tournamentId, tournamentId));
+  return r ? r.updatedAt.getTime() : null;
+}
+
+export async function tournamentImage(tournamentId: number) {
+  return (await db.query.tournamentImages.findFirst({ where: eq(tournamentImages.tournamentId, tournamentId) })) ?? null;
 }
 
 /** Status pra exibir: inscrições encerradas antes de começar viram 'closed'. */

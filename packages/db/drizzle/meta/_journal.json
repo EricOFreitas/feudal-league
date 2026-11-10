@@ -141,6 +141,13 @@
       "when": 1794336883879,
       "tag": "0019_overrated_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794337300605,
+      "tag": "0020_tiny_silverclaw",
+      "breakpoints": true
     }
   ]
 }

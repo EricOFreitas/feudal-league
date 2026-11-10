@@ -1,7 +1,9 @@
 import { relations } from 'drizzle-orm';
 import {
-  bigint, boolean, date, index, integer, jsonb, pgTable, primaryKey, serial, smallint, text, timestamp, uniqueIndex, varchar,
+  bigint, boolean, customType, date, index, integer, jsonb, pgTable, primaryKey, serial, smallint, text, timestamp, uniqueIndex, varchar,
 } from 'drizzle-orm/pg-core';
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => 'bytea' });
 
 /** Conta no portal. Nasce no login Steam. */
 export const users = pgTable('users', {
@@ -476,6 +478,17 @@ export const tournaments = pgTable(
   },
   (t) => [index('tournaments_owner_idx').on(t.ownerUserId), index('tournaments_status_idx').on(t.status)],
 );
+
+/**
+ * Imagem do torneio (escudo/logo enviado pelo organizador; responsabilidade dele). Tabela à parte pra não pesar
+ * nas consultas do torneio. Só PNG, JPEG ou WebP, até 1 MB; servida por /api/tournaments/<id>/image.
+ */
+export const tournamentImages = pgTable('tournament_images', {
+  tournamentId: integer('tournament_id').primaryKey().references(() => tournaments.id, { onDelete: 'cascade' }),
+  contentType: varchar('content_type', { length: 16 }).notNull(),
+  data: bytea('data').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
 
 /** Time inscrito. pending = inscrito pela dupla, aguardando o organizador; confirmed = entra na chave. */
 export const tournamentTeams = pgTable(

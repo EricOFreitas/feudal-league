@@ -328,3 +328,6 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
 - 10/11/2026 — Torneio ganha "inscrições encerradas" (`registration_closed`: some o formulário, só o organizador
   adiciona) e "organizado por" em texto livre (`organizer_name`), pra quem acompanha um torneio de outra pessoa
   pela própria conta. Time cadastrado pelo organizador fica sem capitão.
+- 10/11/2026 — Torneio ganha link do organizador (`organizer_url`, o nome vira link), links clicáveis na descrição e
+  imagem própria enviada pelo organizador (`tournament_images`, PNG/JPEG/WebP até 1 MB, servida por
+  `/api/tournaments/<id>/image`). Exceção à regra de não usar asset do jogo: a imagem é responsabilidade do organizador.

@@ -449,7 +449,8 @@
         "groups": "Com grupos, precisa de pelo menos 1 grupo e 1 time avançando.",
         "slug": "Não deu pra criar. Tente outro nome.",
         "max_teams": "O máximo de times não pode ficar abaixo dos times já inscritos.",
-        "status": "Este torneio não pode mais ser editado."
+        "status": "Este torneio não pode mais ser editado.",
+        "image": "A imagem precisa ser PNG, JPG ou WebP de até 1 MB."
       },
       "editTitle": "Editar torneio",
       "save": "Salvar alterações",
@@ -460,7 +461,10 @@
       "organizerName": "Organizado por (opcional; vazio = seu nick)",
       "registrationClosed": "Inscrições encerradas",
       "registrationClosedHint": "Some o formulário de inscrição. Você ainda adiciona times pelo painel de organização.",
-      "organizerUrl": "Link do organizador (canal, Discord…; opcional)"
+      "organizerUrl": "Link do organizador (canal, Discord…; opcional)",
+      "image": "Imagem do torneio (escudo ou logo)",
+      "imageHint": "PNG, JPG ou WebP até 1 MB. Aparece no topo da página do torneio.",
+      "removeImage": "Remover imagem"
     },
     "groupPlayAllNote": "Fase de grupos com {n} jogos por confronto: todos são jogados e cada jogo vencido vale 1 ponto."
   }

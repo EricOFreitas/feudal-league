@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck, Trophy, Users } from 'lucide-react';
 import { db, leagues, players } from '@aoe2/db';
-import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
+import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, tournamentImageVersion, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Bracket } from '@/components/bracket';
@@ -61,6 +61,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const currentBracketRound = Math.min(Infinity, ...bracketMatches.filter((m) => m.status !== 'done' && m.status !== 'walkover').map((m) => m.round));
   const leagueOf = tour.leagueId ? await db.query.leagues.findFirst({ where: eq(leagues.id, tour.leagueId), columns: { slug: true, name: true } }) : null;
   const activeTeamCount = visibleTeams.filter((x) => x.status !== 'withdrawn').length;
+  const imageV = await tournamentImageVersion(tour.id);
   const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
   const dts = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
 
@@ -155,6 +156,8 @@ export default async function TournamentPage({ params, searchParams }: Props) {
             {champion && <p className="mt-3 font-display text-xl text-gold-300">🏆 {t('champion', { name: teamName(champion) })}</p>}
           </div>
           <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end sm:text-right">
+            {/* eslint-disable-next-line @next/next/no-img-element -- imagem servida pela própria rota, já pequena */}
+            {imageV && <img src={`/api/tournaments/${tour.id}/image?v=${imageV}`} alt={tour.name} width={160} height={160} className="h-32 w-32 object-contain mix-blend-lighten sm:h-40 sm:w-40" />}
             {isOwner && <span className="tag border-moss-500 text-parchment-50"><ShieldCheck className="h-4 w-4 text-moss-500" />{t('admin.youOwn')}</span>}
             {tour.status !== 'cancelled' && (
               <p className="text-sm text-parchment-300">{t('currentRound')}<br /><span className="stat-num text-2xl">{currentLabel}</span></p>
