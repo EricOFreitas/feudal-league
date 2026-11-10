@@ -11,11 +11,11 @@ import { Flag } from '@/components/flag';
 import { Linkified } from '@/components/linkified';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
-import { addTeamAction, cancelAction, registerTeamAction, reportGameAction, startBracketAction, startGroupsAction, teamStatusAction, undoGameAction } from '../actions';
+import { addTeamAction, cancelAction, redrawGroupsAction, registerTeamAction, reportGameAction, startBracketAction, startGroupsAction, teamStatusAction, undoGameAction } from '../actions';
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ ok?: string; err?: string; id?: string; rules?: string }> };
 type Status = 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled';
-const ERRS = ['closed', 'full', 'size', 'player_taken', 'player_missing', 'duplicate', 'ineligible', 'few_teams', 'groups_open', 'status', 'no_groups'] as const;
+const ERRS = ['closed', 'full', 'size', 'player_taken', 'player_missing', 'duplicate', 'ineligible', 'few_teams', 'groups_open', 'status', 'no_groups', 'has_games'] as const;
 type Err = (typeof ERRS)[number];
 const RULES = ['peak', 'games', 'recent', 'no_rating'] as const;
 type Rule = (typeof RULES)[number];
@@ -124,6 +124,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
       <Breadcrumbs items={[{ label: tn('tournaments'), href: '/tournaments' }, { label: tour.name }]} />
       {flash.ok === 'registered' && <div className="panel border-moss-500 p-4 text-parchment-50">{t('register.done')}</div>}
       {flash.ok === 'edited' && isOwner && <div className="panel border-moss-500 p-4 text-parchment-50">{t('admin.edited')}</div>}
+      {flash.ok === 'redrawn' && isOwner && <div className="panel border-moss-500 p-4 text-parchment-50">{t('admin.redrawn')}</div>}
       {flash.err && <div className="panel border-crimson-500 p-4 text-parchment-50">{errText(flash.err)}</div>}
 
       <header className="panel corners p-6">
@@ -335,6 +336,13 @@ export default async function TournamentPage({ params, searchParams }: Props) {
                   {hidden}
                   <button type="submit" className="btn btn-primary w-full">{tour.groupCount > 0 ? t('admin.startGroups') : t('admin.startBracket')}</button>
                   <p className="text-xs text-parchment-400">{tour.groupCount > 0 ? t('admin.startGroupsHint') : t('admin.startBracketHint')}</p>
+                </form>
+              )}
+              {tour.status === 'groups' && undoable.length === 0 && (
+                <form action={redrawGroupsAction} className="space-y-1 text-sm">
+                  {hidden}
+                  <button type="submit" className="btn btn-ghost w-full justify-center">{t('admin.redraw')}</button>
+                  <p className="text-xs text-parchment-400">{t('admin.redrawHint')}</p>
                 </form>
               )}
               {tour.status === 'groups' && (

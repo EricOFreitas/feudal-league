@@ -248,11 +248,12 @@ export async function startGroups(tournamentId: number): Promise<{ ok: true } | 
     groups[idx]!.push(team);
   });
   await db.transaction(async (tx) => {
+    // posição única no torneio inteiro: o índice (torneio, stage, rodada, posição) não inclui o grupo
+    let pos = 0;
     for (const [gi, g] of groups.entries()) {
       const groupNo = gi + 1;
       for (const team of g) await tx.update(tournamentTeams).set({ groupNo }).where(eq(tournamentTeams.id, team.id));
       const rounds = roundRobin(g);
-      let pos = 0;
       for (const [ri, round] of rounds.entries()) {
         for (const [a, b] of round) {
           await tx.insert(tournamentMatches).values({ tournamentId, stage: 'group', groupNo, round: ri + 1, position: pos++, teamAId: a.id, teamBId: b.id, bestOf: t.groupBestOf, status: 'ready' });
@@ -262,6 +263,25 @@ export async function startGroups(tournamentId: number): Promise<{ ok: true } | 
     await tx.update(tournaments).set({ status: 'groups', bracketAt: new Date() }).where(eq(tournaments.id, tournamentId));
   });
   return { ok: true };
+}
+
+/**
+ * Refaz o sorteio dos grupos: só na fase de grupos e enquanto nenhum jogo foi registrado (detectado ou manual).
+ * Apaga os confrontos de grupo, tira os times dos grupos e sorteia de novo com a mesma regra de startGroups.
+ */
+export async function redrawGroups(tournamentId: number): Promise<{ ok: true } | { ok: false; reason: 'status' | 'has_games' | 'few_teams' | 'no_groups' }> {
+  const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId) });
+  if (!t || t.status !== 'groups') return { ok: false, reason: 'status' };
+  const [played] = await db.select({ n: sql<number>`count(*)::int` }).from(tournamentGames)
+    .innerJoin(tournamentMatches, eq(tournamentMatches.id, tournamentGames.tournamentMatchId))
+    .where(eq(tournamentMatches.tournamentId, tournamentId));
+  if ((played?.n ?? 0) > 0) return { ok: false, reason: 'has_games' };
+  await db.transaction(async (tx) => {
+    await tx.delete(tournamentMatches).where(and(eq(tournamentMatches.tournamentId, tournamentId), eq(tournamentMatches.stage, 'group')));
+    await tx.update(tournamentTeams).set({ groupNo: null }).where(eq(tournamentTeams.tournamentId, tournamentId));
+    await tx.update(tournaments).set({ status: 'open', bracketAt: null }).where(eq(tournaments.id, tournamentId));
+  });
+  return startGroups(tournamentId);
 }
 
 export type GroupRow = { teamId: number; played: number; wins: number; losses: number; gamesWon: number; gamesLost: number; points: number };
@@ -295,6 +315,34 @@ export function groupStandings(t: TournamentFull): Map<number, GroupRow[]> {
 
 /* ───────────────────────────── chave ───────────────────────────── */
 
+/** Confrontos da 1ª rodada entre times do mesmo grupo, na chave montada a partir de `ordered` (seeds 1..n). */
+function sameGroupClashes(ordered: TournamentTeam[]): number {
+  const size = 2 ** Math.ceil(Math.log2(Math.max(ordered.length, 2)));
+  const order = seedOrder(size).map((seed) => ordered[seed - 1] ?? null);
+  let n = 0;
+  for (let p = 0; p < order.length; p += 2) {
+    const a = order[p], b = order[p + 1];
+    if (a && b && a.groupNo != null && a.groupNo === b.groupNo) n++;
+  }
+  return n;
+}
+
+/**
+ * Seeds da chave depois dos grupos: primeiros colocados no topo, depois os segundos, e assim por diante.
+ * Cada colocação (a partir da 2ª) pode entrar na ordem dos grupos ou invertida; fica a combinação com menos
+ * confrontos entre times do mesmo grupo na 1ª rodada. Com 2 grupos, 1º A × 2º B e 1º B × 2º A; com 3, a inversão.
+ */
+export function crossGroupsOrder(byPlace: TournamentTeam[][]): TournamentTeam[] {
+  let best: TournamentTeam[] | null = null, bestScore = Infinity;
+  const combos = 2 ** Math.max(0, byPlace.length - 1);
+  for (let mask = 0; mask < combos; mask++) {
+    const cand = byPlace.flatMap((teams, place) => (place > 0 && (mask >> (place - 1)) & 1 ? [...teams].reverse() : teams));
+    const score = sameGroupClashes(cand);
+    if (score < bestScore) { best = cand; bestScore = score; }
+  }
+  return best ?? [];
+}
+
 /** Ordem padrão de seeds numa chave de n posições: [1, n, n/2, n/2+1, …]. */
 export function seedOrder(n: number): number[] {
   let arr = [1];
@@ -320,8 +368,7 @@ export async function startBracket(tournamentId: number): Promise<{ ok: true } |
       });
       void groupNo;
     }
-    // primeiros colocados são os seeds altos; segundos colocados em ordem inversa pra cruzar grupos
-    ordered = byPlace.flatMap((teams, place) => (place % 2 === 1 ? [...teams].reverse() : teams));
+    ordered = crossGroupsOrder(byPlace);
   } else return { ok: false, reason: 'status' };
   if (ordered.length < 2) return { ok: false, reason: 'few_teams' };
 

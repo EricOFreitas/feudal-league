@@ -375,7 +375,8 @@
       "few_teams": "Not enough confirmed teams.",
       "groups_open": "Some group matches are still open.",
       "status": "Action not allowed in this state.",
-      "no_groups": "This tournament has no group stage."
+      "no_groups": "This tournament has no group stage.",
+      "has_games": "A game has already been recorded; the draw can no longer be redone."
     },
     "admin": {
       "title": "Organizer",
@@ -399,7 +400,10 @@
       "manual": "manual",
       "auto": "detected",
       "edit": "Edit tournament",
-      "edited": "Changes saved."
+      "edited": "Changes saved.",
+      "redraw": "Redo the draw",
+      "redrawHint": "Draws the groups again and recreates the matches. Only shown while no game has been recorded.",
+      "redrawn": "Groups drawn again."
     },
     "groupsTitle": "Group stage",
     "bracketTitle": "Bracket",

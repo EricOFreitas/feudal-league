@@ -331,3 +331,6 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
 - 10/11/2026 — Torneio ganha link do organizador (`organizer_url`, o nome vira link), links clicáveis na descrição e
   imagem própria enviada pelo organizador (`tournament_images`, PNG/JPEG/WebP até 1 MB, servida por
   `/api/tournaments/<id>/image`). Exceção à regra de não usar asset do jogo: a imagem é responsabilidade do organizador.
+- 10/11/2026 — "Refazer sorteio" dos grupos enquanto nenhum jogo foi registrado. Corrigidos dois bugs achados na
+  simulação da PG Cup: sortear com 2+ grupos falhava (posição repetida no índice único) e a chave cruzava 1º e 2º do
+  mesmo grupo com 2 grupos (agora testa a ordem dos colocados e fica com a que evita confronto do mesmo grupo).

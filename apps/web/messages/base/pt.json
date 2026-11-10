@@ -375,7 +375,8 @@
       "few_teams": "Faltam times confirmados.",
       "groups_open": "Ainda há confrontos de grupo em aberto.",
       "status": "Ação não permitida neste estado.",
-      "no_groups": "Este torneio não tem fase de grupos."
+      "no_groups": "Este torneio não tem fase de grupos.",
+      "has_games": "Já há jogo registrado; o sorteio não pode mais ser refeito."
     },
     "admin": {
       "title": "Organização",
@@ -399,7 +400,10 @@
       "manual": "manual",
       "auto": "detectado",
       "edit": "Editar torneio",
-      "edited": "Alterações salvas."
+      "edited": "Alterações salvas.",
+      "redraw": "Refazer sorteio",
+      "redrawHint": "Sorteia os grupos de novo e recria os confrontos. Só aparece enquanto nenhum jogo foi registrado.",
+      "redrawn": "Grupos sorteados de novo."
     },
     "groupsTitle": "Fase de grupos",
     "bracketTitle": "Chave",

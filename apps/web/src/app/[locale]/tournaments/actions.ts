@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, tournamentMatches, tournamentTeams, tournaments } from '@aoe2/db';
-import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, createTournament, deleteTeam, deleteTournamentImage, recordGame, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
+import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, createTournament, deleteTeam, deleteTournamentImage, recordGame, redrawGroups, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { sessionPlayer, slugify } from '@/lib/leagues';
@@ -85,6 +85,13 @@ export async function startGroupsAction(fd: FormData) {
   if (!t) return;
   const r = await startGroups(t.id);
   return back(fd, r.ok ? '' : `err=${r.reason}`);
+}
+
+export async function redrawGroupsAction(fd: FormData) {
+  const t = await owned(fd);
+  if (!t) return;
+  const r = await redrawGroups(t.id);
+  return back(fd, r.ok ? 'ok=redrawn' : `err=${r.reason}`);
 }
 
 export async function startBracketAction(fd: FormData) {
