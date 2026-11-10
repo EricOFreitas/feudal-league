@@ -3,6 +3,8 @@
  * Variação de rating e V/D do período vêm das ranqueadas gravadas (match_members), não de retratos: valem desde
  * a primeira sincronização do jogador. A posição anterior no ranking é o rating de hoje menos a variação.
  * Troca de divisão só existe na virada do mês, porque a divisão fica congelada dentro dele.
+ * A parte igual pra todos fica em cache por 5 min (o worker sincroniza nesse ritmo): com ~5 mil membros e ~1 milhão
+ * de partidas, as consultas de ranqueadas e zebra levavam ~2 s cada (medido em 10/11/2026). "Você" e torneios ficam fora.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, divisions, leagueMembers, leagues, playerRatings, players, seasons, standingSnapshots, tournaments, type Division } from '@aoe2/db';
@@ -14,7 +16,63 @@ export type HomePeriod = 'week' | 'month';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PERIOD_DAYS: Record<HomePeriod, number> = { week: 7, month: 30 };
 
+const CACHE_MS = 5 * 60 * 1000;
+type Shared = NonNullable<Awaited<ReturnType<typeof computeShared>>>;
+const cache = new Map<HomePeriod, { at: number; value: Shared | null }>();
+const pending = new Map<HomePeriod, Promise<Shared | null>>();
+
+/** Uma consulta por vez por período; quem chega durante o cálculo espera o mesmo resultado. */
+function refresh(period: HomePeriod): Promise<Shared | null> {
+  let p = pending.get(period);
+  if (!p) {
+    p = computeShared(period)
+      .then((value) => { cache.set(period, { at: Date.now(), value }); return value; })
+      .finally(() => pending.delete(period));
+    pending.set(period, p);
+  }
+  return p;
+}
+
+/** Cache com "serve o velho enquanto atualiza": só a primeira visita (ou depois de reiniciar) espera o cálculo. */
+async function sharedHome(period: HomePeriod): Promise<Shared | null> {
+  const hit = cache.get(period);
+  if (!hit) return refresh(period);
+  if (Date.now() - hit.at >= CACHE_MS) refresh(period).catch(() => undefined);
+  return hit.value;
+}
+
 export async function globalHome(period: HomePeriod, playerId: number | null) {
+  const shared = await sharedHome(period);
+  if (!shared) return null;
+  const { members, rankOf, divs, ...rest } = shared;
+
+  const running = await db.query.tournaments.findMany({
+    where: inArray(tournaments.status, ['open', 'groups', 'running']),
+    orderBy: [desc(tournaments.createdAt)],
+    limit: 3,
+  });
+
+  /* ── o jogador logado ── */
+  const mine = playerId != null ? members.find((m) => m.playerId === playerId) : undefined;
+  let me = null;
+  if (mine) {
+    const table = await standings(rest.season.id, mine.divisionId);
+    const divisionPos = table.findIndex((r) => r.playerId === mine.playerId) + 1;
+    const snap = await db.query.standingSnapshots.findFirst({
+      where: and(eq(standingSnapshots.seasonId, rest.season.id), eq(standingSnapshots.playerId, mine.playerId)),
+      orderBy: [period === 'week' ? desc(standingSnapshots.capturedAt) : asc(standingSnapshots.capturedAt)],
+    });
+    const division = rest.divById.get(mine.divisionId)!;
+    me = {
+      ...mine, division, divisionPos, divisionDelta: snap ? snap.position - divisionPos : null,
+      globalPos: rankOf.get(mine.profileId)!, next: divs.find((d) => d.sort === division.sort + 1) ?? null,
+    };
+  }
+  return { ...rest, tournaments: running, me };
+}
+
+/** Tudo que é igual pra qualquer visitante (vai pro cache). */
+async function computeShared(period: HomePeriod) {
   const league = await db.query.leagues.findFirst({ where: eq(leagues.slug, GLOBAL_SLUG) });
   const season = league && await activeSeason(league.id);
   if (!league || !season) return null;
@@ -105,30 +163,8 @@ export async function globalHome(period: HomePeriod, playerId: number | null) {
     group by x.player_id order by n desc limit 1
   `);
 
-  const running = await db.query.tournaments.findMany({
-    where: inArray(tournaments.status, ['open', 'groups', 'running']),
-    orderBy: [desc(tournaments.createdAt)],
-    limit: 3,
-  });
-
-  /* ── o jogador logado ── */
-  const mine = playerId != null ? members.find((m) => m.playerId === playerId) : undefined;
-  let me = null;
-  if (mine) {
-    const table = await standings(season.id, mine.divisionId);
-    const divisionPos = table.findIndex((r) => r.playerId === mine.playerId) + 1;
-    const snap = await db.query.standingSnapshots.findFirst({
-      where: and(eq(standingSnapshots.seasonId, season.id), eq(standingSnapshots.playerId, mine.playerId)),
-      orderBy: [period === 'week' ? desc(standingSnapshots.capturedAt) : asc(standingSnapshots.capturedAt)],
-    });
-    const division = divById.get(mine.divisionId)!;
-    me = {
-      ...mine, division, divisionPos, divisionDelta: snap ? snap.position - divisionPos : null,
-      globalPos: rankOf.get(mine.profileId)!, next: divs.find((d) => d.sort === division.sort + 1) ?? null,
-    };
-  }
-
   return {
+    members, rankOf, divs,
     league, season, month, total: members.length,
     divisions: divs.map((division) => ({ division, members: members.filter((m) => m.divisionId === division.id).length, ...left.get(division.id)! })),
     divById, ranking, risers, fallers,
@@ -139,6 +175,5 @@ export async function globalHome(period: HomePeriod, playerId: number | null) {
       upset: upset ? { player: byProfile.get(Number(upset.profile_id))!, opponent: upset.opponent, gap: Number(upset.gap) } : null,
       busiest: busiest ? { player: members.find((m) => m.playerId === Number(busiest.player_id))!, n: Number(busiest.n) } : null,
     },
-    tournaments: running, me,
   };
 }
