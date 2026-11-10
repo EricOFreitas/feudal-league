@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
-  AoeApiError, RM_1V1, getPersonalStatByAliases, joinStats, parsePlayerInput, resolveSteamVanity,
-  type LeaderboardStat, type Member,
+  AoeApiError, RM_1V1, getPersonalStatByAliases, getPersonalStatByProfileIds, joinStats, parsePlayerInput,
+  resolveSteamVanity, searchProfileIdsByName, type LeaderboardStat, type Member,
 } from '@aoe2/aoe-api';
 import { importPlayerByProfileId, importPlayerBySteamId, syncMatchHistory } from '@aoe2/sync';
 import { redirect } from '@/i18n/navigation';
@@ -12,11 +12,12 @@ import { checkAdditionLimit, recordAddition } from '@/lib/additions';
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ q?: string }> };
 
-type MsgKey = 'invalid' | 'rateLimited' | 'vanityFail' | 'noneSteam' | 'noneId' | 'none' | 'apiDown';
+type MsgKey = 'invalid' | 'rateLimited' | 'vanityFail' | 'noneSteam' | 'noneId' | 'none' | 'noneAny' | 'apiDown';
 type Outcome =
   | { kind: 'msg'; key: MsgKey; alias?: string }
   | { kind: 'go'; profileId: number }
-  | { kind: 'list'; alias: string; list: { member: Member; stats: LeaderboardStat[] }[] };
+  /** partial: achou por trecho do nick (aoe2companion), não pelo nick exato. */
+  | { kind: 'list'; alias: string; list: { member: Member; stats: LeaderboardStat[] }[]; partial?: { hasMore: boolean } };
 
 async function imported(profileId: number) {
   await recordAddition(profileId);
@@ -46,7 +47,7 @@ async function resolve(q: string): Promise<Outcome> {
     // nick exato: pode vir 0, 1 ou vários
     const alias = String(input.value);
     const list = [...joinStats(await getPersonalStatByAliases([alias])).values()];
-    if (list.length === 0) return { kind: 'msg', key: 'none', alias };
+    if (list.length === 0) return await byPartialName(alias);
     if (list.length === 1) {
       const r = await importPlayerByProfileId(list[0]!.member.profile_id);
       if (r) { await imported(r.profileId); return { kind: 'go', profileId: r.profileId }; }
@@ -60,6 +61,24 @@ async function resolve(q: string): Promise<Outcome> {
     }
     throw e;
   }
+}
+
+/**
+ * Nick exato não achou: busca por trecho no aoe2companion e traz rating e partidas da API do jogo.
+ * Nunca importa sozinho (pode ser outra pessoa). Se o aoe2companion falhar, fica a mensagem do nick exato.
+ */
+async function byPartialName(alias: string): Promise<Outcome> {
+  let found;
+  try {
+    found = await searchProfileIdsByName(alias);
+  } catch (e) {
+    console.error(`[search] aoe2companion falhou para "${alias}": ${(e as Error).message}`);
+    return { kind: 'msg', key: 'none', alias };
+  }
+  if (found.profileIds.length === 0) return { kind: 'msg', key: 'noneAny', alias };
+  const list = [...joinStats(await getPersonalStatByProfileIds(found.profileIds)).values()];
+  if (list.length === 0) return { kind: 'msg', key: 'noneAny', alias };
+  return { kind: 'list', alias, list, partial: { hasMore: found.hasMore } };
 }
 
 function Msg({ back, children }: { back: string; children: React.ReactNode }) {
@@ -85,7 +104,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
   if (out.kind === 'msg') return <>{crumbs}<Msg back={tc('back')}>{t(out.key, { alias: out.alias ?? '' })}</Msg></>;
   if (out.kind !== 'list') return null;
 
-  const { alias, list } = out;
+  const { alias, list, partial } = out;
   const fmtDate = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
   const sorted = list
     .map(({ member, stats }) => {
@@ -101,7 +120,8 @@ export default async function SearchPage({ params, searchParams }: Props) {
       {crumbs}
       <header className="text-center">
         <p className="kicker">{t('title')}</p>
-        <p className="mt-2 text-parchment-200">{t('homonyms', { count: list.length, alias })}</p>
+        <p className="mt-2 text-parchment-200">{t(partial ? 'partial' : 'homonyms', { count: list.length, alias })}</p>
+        {partial?.hasMore && <p className="mt-1 text-sm text-parchment-400">{t('partialMore', { count: list.length })}</p>}
       </header>
       <ul className="space-y-2">
         {sorted.map(({ member, rm, last, games }) => (

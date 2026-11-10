@@ -26,6 +26,9 @@
     "vanityFail": "Couldn't resolve that Steam link. Try the /profiles/ link or the SteamID64.",
     "rateLimited": "Too many additions from your network in the last hour. Try again later.",
     "apiDown": "The game server didn't respond. Try again in a few minutes.",
+    "noneAny": "No profile with \"{alias}\" in the nickname.",
+    "partial": "No profile with the exact nickname \"{alias}\", but {count, plural, one {# profile has} other {# profiles have}} it in the nickname. Pick the right one by flag, rating and last match.",
+    "partialMore": "Showing the first {count}. Type more of the nickname to narrow it down.",
     "pick": "That's the one",
     "lastMatch": "Last match",
     "noRanked": "no ranked games"

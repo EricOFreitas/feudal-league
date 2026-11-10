@@ -26,6 +26,9 @@
     "vanityFail": "Não consegui resolver esse link da Steam. Tente colar o link com /profiles/ ou o SteamID64.",
     "rateLimited": "Muitas adições vindas da sua rede na última hora. Tente de novo mais tarde.",
     "apiDown": "O servidor do jogo não respondeu. Tente de novo em alguns minutos.",
+    "noneAny": "Nenhum perfil com \"{alias}\" no nick.",
+    "partial": "Nenhum perfil com o nick exato \"{alias}\", mas {count, plural, one {# perfil tem} other {# perfis têm}} esse trecho no nick. Escolha o certo pela bandeira, rating e última partida.",
+    "partialMore": "Mostrando os {count} primeiros. Digite mais do nick pra refinar.",
     "pick": "É este",
     "lastMatch": "Última partida",
     "noRanked": "sem partida ranqueada"

@@ -86,6 +86,10 @@ Entrada aceita no "adicionar jogador":
   ("hera" não acha "Hera"). Devolve todos os homônimos; o portal mostra a lista
   com país, rating e última partida pra pessoa escolher. Nunca cadastra pelo nick
   sem essa escolha.
+- Trecho do nick (10/11/2026): se o exato não achar ninguém, a busca pergunta ao
+  aoe2companion (`data.aoe2companion.com/api/profiles?search=`, aberto, sem auth,
+  20 por página) só pelos `profile_id`s; rating e partidas vêm da API do jogo.
+  Mostra a lista e nunca importa sozinho. Se o aoe2companion cair, volta ao exato.
 
 Abuso: adicionar jogador é limitado por IP (ex.: 20 por hora) e jogador sem
 reivindicação nem liga sincroniza com frequência menor (§7). Jogador Xbox
