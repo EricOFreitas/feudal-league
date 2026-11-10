@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, tournamentMatches, tournamentTeams, tournaments } from '@aoe2/db';
-import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, createTournament, deleteTeam, deleteTournamentImage, recordGame, redrawGroups, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
+import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, addTournamentOrganizer, canManageTournament, removeTournamentOrganizer, createTournament, deleteTeam, deleteTournamentImage, recordGame, redrawGroups, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { sessionPlayer, slugify } from '@/lib/leagues';
@@ -17,12 +17,41 @@ const intOrNull = (v: FormDataEntryValue | null, min: number, max: number) => {
   return Number.isInteger(n) && n >= min && n <= max ? n : null;
 };
 
+/** Torneio que a sessão pode gerenciar (dono ou co-organizador). */
 async function owned(fd: FormData) {
   const session = await getSession();
   const id = idOf(fd, 'tournamentId');
   if (!session || !Number.isInteger(id)) return null;
   const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, id) });
+  return t && (await canManageTournament(t, session)) ? t : null;
+}
+
+/** Só o dono: co-organizadores e cancelamento. */
+async function ownedByOwner(fd: FormData) {
+  const session = await getSession();
+  const id = idOf(fd, 'tournamentId');
+  if (!session || !Number.isInteger(id)) return null;
+  const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, id) });
   return t && t.ownerUserId === session.uid ? t : null;
+}
+
+export async function addOrganizerAction(fd: FormData) {
+  const t = await ownedByOwner(fd);
+  if (!t) return;
+  const pid = idOf(fd, 'profileId');
+  const r = Number.isInteger(pid) && pid > 0 ? await addTournamentOrganizer(t.id, pid) : { ok: false as const };
+  const locale = localeOf(fd);
+  revalidatePath(`/${locale}/tournaments/${t.slug}/edit`);
+  redirect({ href: `/tournaments/${t.slug}/edit?${r.ok ? 'org=added' : `org=missing&id=${Number.isInteger(pid) ? pid : ''}`}`, locale });
+}
+
+export async function removeOrganizerAction(fd: FormData) {
+  const t = await ownedByOwner(fd);
+  if (!t) return;
+  await removeTournamentOrganizer(t.id, idOf(fd, 'profileId'));
+  const locale = localeOf(fd);
+  revalidatePath(`/${locale}/tournaments/${t.slug}/edit`);
+  redirect({ href: `/tournaments/${t.slug}/edit`, locale });
 }
 
 function back(fd: FormData, query = '') {
@@ -102,7 +131,7 @@ export async function startBracketAction(fd: FormData) {
 }
 
 export async function cancelAction(fd: FormData) {
-  const t = await owned(fd);
+  const t = await ownedByOwner(fd);
   if (!t) return;
   await db.update(tournaments).set({ status: 'cancelled' }).where(eq(tournaments.id, t.id));
   const locale = localeOf(fd);

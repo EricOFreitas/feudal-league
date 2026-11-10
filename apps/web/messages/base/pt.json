@@ -476,6 +476,15 @@
       "qualify": "classificam",
       "report": "Registrar vitória de {name}",
       "bracketLater": "A chave fica disponível quando todos os confrontos de grupo terminarem ({done} de {total})."
+    },
+    "organizers": {
+      "title": "Co-organizadores",
+      "hint": "Quem você colocar aqui gerencia o torneio como você (times, sorteio, jogos, edição) ao entrar com a Steam desse perfil. Não precisa ter reivindicado o perfil. Só você adiciona, remove ou cancela o torneio.",
+      "profileId": "Id de perfil do jogador",
+      "add": "Adicionar",
+      "remove": "Remover",
+      "added": "Co-organizador adicionado.",
+      "missing": "Não achei o perfil #{id} com conta Steam."
     }
   }
 }

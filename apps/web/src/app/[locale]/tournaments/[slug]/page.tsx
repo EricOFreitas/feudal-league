@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck, Trophy, Users } from 'lucide-react';
 import { db, leagues, players } from '@aoe2/db';
-import { eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, tournamentImageVersion, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
+import { canManageTournament, eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, tournamentImageVersion, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Bracket } from '@/components/bracket';
@@ -37,7 +37,9 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const tour = await tournamentBySlug(slug);
   if (!tour || tour.status === 'cancelled') notFound();
   const { session, player } = await sessionPlayer();
-  const isOwner = session != null && tour.ownerUserId === session.uid;
+  // isOwner = pode gerenciar (dono ou co-organizador); cancelar é só do dono
+  const isOwner = await canManageTournament(tour, session);
+  const isMainOwner = session != null && tour.ownerUserId === session.uid;
   const owner = tour.ownerUserId ? await db.query.players.findFirst({ where: eq(players.claimedByUserId, tour.ownerUserId) }) : null;
   const teams = new Map<number, TeamFull>(tour.teams.map((x) => [x.id, x]));
   const visibleTeams = tour.teams.filter((x) => x.status !== 'withdrawn' || isOwner);
@@ -372,7 +374,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
                   ))}
                 </div>
               )}
-              {tour.status !== 'finished' && (
+              {tour.status !== 'finished' && isMainOwner && (
                 <form action={cancelAction}>{hidden}<button type="submit" className="text-xs text-crimson-500">{t('admin.cancel')}</button></form>
               )}
             </div>

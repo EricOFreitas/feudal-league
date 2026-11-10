@@ -490,6 +490,20 @@ export const tournamentImages = pgTable('tournament_images', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Co-organizador do torneio, por profile_id do jogo. Vale quando alguém entra com a Steam cujo SteamID é desse perfil
+ * (não precisa ter reivindicado). Gerencia o torneio como o dono, menos co-organizadores e cancelamento.
+ */
+export const tournamentOrganizers = pgTable(
+  'tournament_organizers',
+  {
+    tournamentId: integer('tournament_id').notNull().references(() => tournaments.id, { onDelete: 'cascade' }),
+    profileId: integer('profile_id').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.tournamentId, t.profileId] })],
+);
+
 /** Time inscrito. pending = inscrito pela dupla, aguardando o organizador; confirmed = entra na chave. */
 export const tournamentTeams = pgTable(
   'tournament_teams',

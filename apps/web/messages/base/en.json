@@ -476,6 +476,15 @@
       "qualify": "qualify",
       "report": "Record a win for {name}",
       "bracketLater": "The bracket unlocks when every group match is over ({done} of {total})."
+    },
+    "organizers": {
+      "title": "Co-organizers",
+      "hint": "Whoever you add here manages the tournament like you do (teams, draw, games, editing) after signing in with that profile's Steam account. They don't need to have claimed the profile. Only you can add, remove or cancel the tournament.",
+      "profileId": "Player profile id",
+      "add": "Add",
+      "remove": "Remove",
+      "added": "Co-organizer added.",
+      "missing": "Couldn't find profile #{id} with a Steam account."
     }
   }
 }

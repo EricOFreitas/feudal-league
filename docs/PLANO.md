@@ -334,3 +334,5 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
 - 10/11/2026 — "Refazer sorteio" dos grupos enquanto nenhum jogo foi registrado. Corrigidos dois bugs achados na
   simulação da PG Cup: sortear com 2+ grupos falhava (posição repetida no índice único) e a chave cruzava 1º e 2º do
   mesmo grupo com 2 grupos (agora testa a ordem dos colocados e fica com a que evita confronto do mesmo grupo).
+- 10/11/2026 — Co-organizadores de torneio por profile_id (`tournament_organizers`): valem quando alguém entra com a
+  Steam daquele perfil, sem precisar reivindicar. O site não valida conta por terceiros: login é sempre pela Steam.

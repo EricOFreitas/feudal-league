@@ -4,7 +4,7 @@
  * Grupos podem ser "jogar todos" (group_play_all): o confronto só fecha depois dos N jogos e cada jogo vale 1 ponto.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
-import { db, matches, matchMembers, playerRatings, players, tournamentGames, tournamentImages, tournamentMatches, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
+import { db, matches, matchMembers, playerRatings, players, tournamentGames, tournamentImages, tournamentMatches, tournamentOrganizers, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
 import { and, asc, desc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { findPlayerByProfileId, importPlayerByProfileId } from './players';
 
@@ -58,6 +58,42 @@ export async function updateTournament(tournamentId: number, input: TournamentSe
     maxTeams: input.maxTeams, maxPeakRating: input.maxPeakRating, minGames: input.minGames, minRecentGames: input.minRecentGames,
   }).where(eq(tournaments.id, tournamentId));
   return { ok: true };
+}
+
+/* ───────────────────────────── organização ───────────────────────────── */
+
+/** Pode gerenciar: o dono, ou quem entrou com a Steam de um perfil listado como co-organizador. */
+export async function canManageTournament(t: Pick<Tournament, 'id' | 'ownerUserId'>, session: { uid: number; sid: string } | null): Promise<boolean> {
+  if (!session) return false;
+  if (t.ownerUserId === session.uid) return true;
+  const rows = await db.select({ profileId: tournamentOrganizers.profileId }).from(tournamentOrganizers)
+    .innerJoin(players, eq(players.profileId, tournamentOrganizers.profileId))
+    .where(and(eq(tournamentOrganizers.tournamentId, t.id), eq(players.steamId64, session.sid)));
+  return rows.length > 0;
+}
+
+/** Co-organizadores com nick (quem ainda não está no portal aparece como #id). */
+export async function tournamentOrganizersOf(tournamentId: number) {
+  const rows = await db.select({ profileId: tournamentOrganizers.profileId, alias: players.alias }).from(tournamentOrganizers)
+    .leftJoin(players, eq(players.profileId, tournamentOrganizers.profileId))
+    .where(eq(tournamentOrganizers.tournamentId, tournamentId));
+  return rows.map((r) => ({ profileId: r.profileId, alias: r.alias ?? `#${r.profileId}` }));
+}
+
+/** Adiciona co-organizador pelo profile_id; importa o jogador se ainda não estiver no portal (precisa do SteamID dele). */
+export async function addTournamentOrganizer(tournamentId: number, profileId: number): Promise<{ ok: true } | { ok: false; reason: 'player_missing' }> {
+  let p = await findPlayerByProfileId(profileId);
+  if (!p) {
+    try { await importPlayerByProfileId(profileId); } catch { /* API fora: trata como ausente */ }
+    p = await findPlayerByProfileId(profileId);
+  }
+  if (!p?.steamId64) return { ok: false, reason: 'player_missing' };
+  await db.insert(tournamentOrganizers).values({ tournamentId, profileId }).onConflictDoNothing();
+  return { ok: true };
+}
+
+export async function removeTournamentOrganizer(tournamentId: number, profileId: number) {
+  await db.delete(tournamentOrganizers).where(and(eq(tournamentOrganizers.tournamentId, tournamentId), eq(tournamentOrganizers.profileId, profileId)));
 }
 
 /* ───────────────────────────── imagem ───────────────────────────── */
