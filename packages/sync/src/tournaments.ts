@@ -142,7 +142,8 @@ export async function addTeam(tournamentId: number, input: { name?: string | nul
   }
   const name = (input.name ?? '').trim().slice(0, 60) || aliases.join(' & ');
   const [team] = await db.insert(tournamentTeams).values({ tournamentId, name, status: input.status, createdByUserId: input.byUserId ?? null }).returning({ id: tournamentTeams.id });
-  await db.insert(tournamentTeamMembers).values(playerIds.map((playerId, i) => ({ teamId: team!.id, tournamentId, playerId, isCaptain: ids[i] === (input.captainProfileId ?? ids[0]) })));
+  // capitão só quando indicado (inscrição pela própria dupla); o organizador cadastra sem capitão
+  await db.insert(tournamentTeamMembers).values(playerIds.map((playerId, i) => ({ teamId: team!.id, tournamentId, playerId, isCaptain: input.captainProfileId != null && ids[i] === input.captainProfileId })));
   return { ok: true, teamId: team!.id };
 }
 
