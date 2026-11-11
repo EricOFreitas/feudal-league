@@ -7,6 +7,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/session';
 import { TournamentForm } from '../../new/form';
+import { toBrasiliaLocalInput } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ org?: string; id?: string }> };
 
@@ -14,13 +15,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'tournaments.new' });
   return { title: t('editTitle') };
-}
-
-/** Data no formato do <input type="datetime-local">, no mesmo fuso em que a ação de criar interpreta o valor. */
-function localInput(d: Date | null) {
-  if (!d) return '';
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 export default async function EditTournamentPage({ params, searchParams }: Props) {
@@ -50,7 +44,7 @@ export default async function EditTournamentPage({ params, searchParams }: Props
           imageUrl={imageV ? `/api/tournaments/${tour.id}/image?v=${imageV}` : null}
           initial={{
             name: tour.name, description: tour.description ?? '', organizerName: tour.organizerName ?? '', organizerUrl: tour.organizerUrl ?? '', registrationClosed: tour.registrationClosed, teamSize: tour.teamSize, maxTeams: tour.maxTeams, bestOf: tour.bestOf, finalBestOf: tour.finalBestOf,
-            startsAt: localInput(tour.startsAt), prize: tour.prize ?? '', groupCount: tour.groupCount, advancePerGroup: tour.advancePerGroup,
+            startsAt: toBrasiliaLocalInput(tour.startsAt), prize: tour.prize ?? '', groupCount: tour.groupCount, advancePerGroup: tour.advancePerGroup,
             groupBestOf: tour.groupBestOf, groupPlayAll: tour.groupPlayAll, maxPeakRating: tour.maxPeakRating, minGames: tour.minGames, minRecentGames: tour.minRecentGames,
           }}
         />

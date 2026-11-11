@@ -338,3 +338,5 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   Steam daquele perfil, sem precisar reivindicar. O site não valida conta por terceiros: login é sempre pela Steam.
 - 10/11/2026 — Capitão de apoio por time (`tournament_teams.captain_name`, texto livre): quem não joga e ajuda a dupla
   (PG Cup: sorteado pela organização). O organizador edita no card do time; não confunde com `is_captain` dos membros.
+- 11/11/2026 — Horário sempre de Brasília, para qualquer visitante (decisão do Eric). Antes as páginas mostravam o fuso
+  do servidor (UTC) e o início do torneio digitado era lido como UTC (15:15 virava 12:15 de Brasília).

@@ -13,7 +13,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Markdown } from '@/components/markdown';
 import { BestMedalIcon } from '@/components/medal';
 import { Link } from '@/i18n/navigation';
-import { mapLabel, matchTypeKey } from '@/lib/format';
+import { SITE_TZ, mapLabel, matchTypeKey } from '@/lib/format';
 import { divisionName } from '@/lib/leagues';
 import { getSession } from '@/lib/session';
 import { requestAnalysisAction, retryAnalysisAction } from './actions';
@@ -68,7 +68,7 @@ export default async function AnalysisPage({ params, searchParams }: Props) {
   const foes = match.members.filter((m) => m.team !== me.team);
   const foeMedals = await bestMedalsByProfile(foes.map((m) => m.profileId));
   const mins = Math.round((match.completedAt.getTime() - match.startedAt.getTime()) / 60000);
-  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
+  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: SITE_TZ });
   const inProgress = analysis && ['queued', 'parsing', 'writing'].includes(analysis.status);
   const STEPS = ['queued', 'parsing', 'writing'] as const;
   const stepIdx = analysis ? STEPS.indexOf(analysis.status as (typeof STEPS)[number]) : -1;

@@ -3,6 +3,7 @@ import { membershipsOf, snapshotSeries } from '@aoe2/sync';
 import { Link } from '@/i18n/navigation';
 import { divisionName } from '@/lib/leagues';
 import { EvolutionChart } from './evolution-chart';
+import { SITE_TZ } from '@/lib/format';
 
 type Membership = Awaited<ReturnType<typeof membershipsOf>>[number];
 
@@ -30,7 +31,7 @@ export async function EvolutionSection({ profileId, playerId, memberships, evo, 
   const n = positions.length;
 
   const since = active.joinedAt > active.season.startedAt ? active.joinedAt : active.season.startedAt;
-  const date = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(since);
+  const date = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', timeZone: SITE_TZ }).format(since);
   const pos = (p: number) => t('pos', { pos: p });
   const signed = (d: number) => `${d > 0 ? '+' : ''}${d}`;
   const tone = (d: number | null) => (d == null || d === 0 ? 'text-gold-300' : d > 0 ? 'text-moss-500' : 'text-crimson-500');

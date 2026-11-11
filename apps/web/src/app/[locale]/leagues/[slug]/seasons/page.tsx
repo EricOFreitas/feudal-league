@@ -8,6 +8,7 @@ import { asc, eq } from 'drizzle-orm';
 import { Link } from '@/i18n/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { divisionName, monthTitle } from '@/lib/leagues';
+import { SITE_TZ } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -35,7 +36,7 @@ export default async function SeasonsPage({ params }: Props) {
   const champs = new Map(await Promise.all(
     list.filter((s) => s.season.endedAt).map(async (s) => [s.season.id, await seasonChampions(s.season.id)] as const),
   ));
-  const dshort = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'numeric', year: 'numeric' });
+  const dshort = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: SITE_TZ });
 
   return (
     <div>

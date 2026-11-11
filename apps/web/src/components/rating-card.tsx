@@ -1,5 +1,5 @@
 import type { PlayerRating } from '@aoe2/db';
-import { winrate } from '@/lib/format';
+import { SITE_TZ, winrate } from '@/lib/format';
 
 type Labels = { rank: string; of: (total: string) => string; winrate: string; peak: string; streak: string; w: string; l: string };
 
@@ -33,7 +33,7 @@ export function RatingCard({ r, title, labels, locale }: { r: PlayerRating; titl
       </dl>
       <p className="mt-2 text-xs text-parchment-400">
         {labels.streak}: <span className={r.streak >= 0 ? 'text-moss-500' : 'text-crimson-500'}>{r.streak > 0 ? `+${r.streak}` : r.streak}</span>
-        {r.lastMatchAt && <> · {new Intl.DateTimeFormat(locale, { dateStyle: 'short' }).format(r.lastMatchAt)}</>}
+        {r.lastMatchAt && <> · {new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeZone: SITE_TZ }).format(r.lastMatchAt)}</>}
       </p>
     </article>
   );

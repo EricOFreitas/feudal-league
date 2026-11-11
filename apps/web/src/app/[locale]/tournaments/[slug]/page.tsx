@@ -13,6 +13,7 @@ import { Linkified } from '@/components/linkified';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
 import { addTeamAction, cancelAction, redrawGroupsAction, registerTeamAction, reportGameAction, startBracketAction, startGroupsAction, teamCaptainAction, teamStatusAction, undoGameAction } from '../actions';
+import { SITE_TZ } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ ok?: string; err?: string; id?: string; rules?: string }> };
 type Status = 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled';
@@ -71,8 +72,8 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const leagueOf = tour.leagueId ? await db.query.leagues.findFirst({ where: eq(leagues.id, tour.leagueId), columns: { slug: true, name: true } }) : null;
   const activeTeamCount = visibleTeams.filter((x) => x.status !== 'withdrawn').length;
   const imageV = await tournamentImageVersion(tour.id);
-  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
-  const dts = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
+  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: SITE_TZ });
+  const dts = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short', timeZone: SITE_TZ });
 
   const ruleNames = (rules?: string) => (rules ?? '').split(',').filter((r): r is Rule => (RULES as readonly string[]).includes(r)).map((r) => t(`requirements.rule.${r}`)).join(', ');
   const errText = (e: string) => {

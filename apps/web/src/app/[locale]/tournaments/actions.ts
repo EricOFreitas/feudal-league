@@ -6,6 +6,7 @@ import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, addTournamen
 import { and, eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { sessionPlayer, slugify } from '@/lib/leagues';
+import { parseBrasiliaLocal } from '@/lib/format';
 import { getSession } from '@/lib/session';
 
 const idOf = (fd: FormData, k: string) => Number(fd.get(k));
@@ -189,7 +190,7 @@ function settingsFrom(fd: FormData): TournamentSettings | { error: 'name' | 'gro
   const advancePerGroup = intOrNull(fd.get('advancePerGroup'), 1, 8) ?? 2;
   if (fd.get('hasGroups') === 'on' && groupCount < 1) return { error: 'groups' };
   const startsRaw = String(fd.get('startsAt') ?? '').trim();
-  const startsAt = startsRaw ? new Date(startsRaw) : null;
+  const startsAt = startsRaw ? parseBrasiliaLocal(startsRaw) : null;
   return {
     name, description: String(fd.get('description') ?? '').trim().slice(0, 4000) || null,
     organizerName: String(fd.get('organizerName') ?? '').trim().slice(0, 60) || null, organizerUrl: httpUrl(fd.get('organizerUrl')),

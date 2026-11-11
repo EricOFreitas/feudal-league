@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { PODIUM_MIN_GAMES, POINTS_LOSS, POINTS_WIN, type LeagueMatchItem } from '@aoe2/sync';
 import { Link } from '@/i18n/navigation';
 import { divisionName } from '@/lib/leagues';
-import { mapLabel, matchTypeKey } from '@/lib/format';
+import { SITE_TZ, mapLabel, matchTypeKey } from '@/lib/format';
 import { DivisionMark } from './division-mark';
 
 /**
@@ -29,7 +29,7 @@ export async function LeagueMatchRow({ lm, locale, admin, points, memberProfileI
   const td = await getTranslations('division');
   const tp = await getTranslations('player');
   const tpo = await getTranslations('podium.why');
-  const dtm = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
+  const dtm = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short', timeZone: SITE_TZ });
 
   const voided = lm.status === 'voided';
   const wm = lm.match.members.find((m) => m.profileId === lm.winner.profileId);

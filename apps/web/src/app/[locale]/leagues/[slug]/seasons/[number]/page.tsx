@@ -9,6 +9,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { DivisionMark } from '@/components/division-mark';
 import { Flag } from '@/components/flag';
 import { divisionName, monthTitle, sessionPlayer } from '@/lib/leagues';
+import { SITE_TZ } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string; slug: string; number: string }> };
 
@@ -53,7 +54,7 @@ export default async function SeasonPage({ params }: Props) {
   const ended = season.endedAt != null;
   const summary = (await seasonSummary(season.id))!;
   const nf = new Intl.NumberFormat(locale);
-  const dshort = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'numeric', year: 'numeric' });
+  const dshort = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: SITE_TZ });
   const fmtRange = (d: { ratingMin: number; ratingMax: number | null }) => (d.ratingMax == null ? tl('rangeOpen', { min: d.ratingMin }) : tl('range', { min: d.ratingMin, max: d.ratingMax }));
 
   /* ── "Sua temporada" ── */

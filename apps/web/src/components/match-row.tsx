@@ -1,7 +1,7 @@
 import type { Match, MatchMember } from '@aoe2/db';
 import { civName } from '@aoe2/aoe-api';
 import { Link } from '@/i18n/navigation';
-import { mapLabel, matchTypeKey } from '@/lib/format';
+import { SITE_TZ, mapLabel, matchTypeKey } from '@/lib/format';
 
 type Labels = {
   win: string; loss: string; vs: string; team: string; unknownMap: string; type: (k: ReturnType<typeof matchTypeKey>) => string;
@@ -24,7 +24,7 @@ export function MatchRow({ match, me, locale, labels, analysis = null, canAnalyz
   const delta = mine ? mine.newRating - mine.oldRating : 0;
   const allies = match.members.filter((m) => m.profileId !== me && mine && m.team === mine.team);
   const foes = match.members.filter((m) => !mine || m.team !== mine.team);
-  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
+  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short', timeZone: SITE_TZ });
   const mins = Math.round((match.completedAt.getTime() - match.startedAt.getTime()) / 60000);
 
   const Who = ({ m }: { m: MatchMember }) => (

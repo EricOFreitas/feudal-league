@@ -21,7 +21,7 @@ import { SparringPanel } from '@/components/sparring-panel';
 import { ChallengePanel } from '@/components/challenge-card';
 import { AutoRefresh } from '@/components/auto-refresh';
 import { divisionName, monthTitle, sessionPlayer } from '@/lib/leagues';
-import { monthNames } from '@/lib/format';
+import { SITE_TZ, monthNames } from '@/lib/format';
 import { joinAction, leaveAction, newSeasonAction, setMatchScopeAction, toggleStatusAction, voidMatchAction } from '../actions';
 
 type SP = Partial<Record<'joined' | 'left' | 'err' | 'div' | 'q' | 'page' | 'me' | 'mf' | 'more' | 'sp', string | string[]>>;
@@ -73,8 +73,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     : []);
   const totalMembers = [...counts.values()].reduce((n, c) => n + c, 0);
   const nf = new Intl.NumberFormat(locale);
-  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
-  const dshort = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'numeric', year: 'numeric' });
+  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: SITE_TZ });
+  const dshort = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: SITE_TZ });
   const leagueTitle = league.isGlobal ? t('global') : league.name;
 
   /* ── estado da tabela (na URL) ── */

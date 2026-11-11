@@ -443,7 +443,7 @@
       "advance": "Advance per group",
       "groupBestOf": "Groups best of",
       "maxTeams": "Max teams (empty = no limit)",
-      "startsAt": "Start (date and time)",
+      "startsAt": "Start (date and time, Brasília)",
       "prize": "Prize (optional)",
       "reqTitle": "Registration requirements (anti-smurf)",
       "maxPeak": "Max peak rating (RM 1v1)",

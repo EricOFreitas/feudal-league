@@ -4,6 +4,7 @@ import { SPARRING_HOURS, type SparringEntry } from '@aoe2/sync';
 import { Flag } from '@/components/flag';
 import { Link } from '@/i18n/navigation';
 import { clearSparringAction, setSparringAction } from '@/app/[locale]/leagues/actions';
+import { SITE_TZ } from '@/lib/format';
 
 type Me = {
   /** O jogador logado pode se marcar nesta divisão (é membro dela) e/ou como mentor (é da divisão de cima). */
@@ -29,7 +30,7 @@ type Props = {
 /** Painel "Treino" da divisão: quem está disponível, botão de entrar no lobby e o formulário de ficar disponível. */
 export async function SparringPanel({ locale, league, division, aboveLabel, trainers, mentors, me, myPlayerId, flash }: Props) {
   const t = await getTranslations('sparring');
-  const hm = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' });
+  const hm = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', timeZone: SITE_TZ });
   const hidden = (
     <>
       <input type="hidden" name="locale" value={locale} />

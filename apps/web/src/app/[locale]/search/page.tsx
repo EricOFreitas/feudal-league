@@ -9,6 +9,7 @@ import { Link } from '@/i18n/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Flag } from '@/components/flag';
 import { checkAdditionLimit, recordAddition } from '@/lib/additions';
+import { SITE_TZ } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ q?: string }> };
 
@@ -105,7 +106,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
   if (out.kind !== 'list') return null;
 
   const { alias, list, partial } = out;
-  const fmtDate = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+  const fmtDate = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: SITE_TZ });
   const sorted = list
     .map(({ member, stats }) => {
       const rm = stats.find((s) => s.leaderboard_id === RM_1V1);

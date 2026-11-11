@@ -1,5 +1,23 @@
 import { LEADERBOARDS, leaderboardOfMatchType, type LeaderboardId } from '@aoe2/aoe-api';
 
+/** Fuso do site: datas e horas aparecem sempre no horário de Brasília, para qualquer visitante (decisão do Eric, 11/11/2026). */
+export const SITE_TZ = 'America/Sao_Paulo';
+/** Brasília não tem horário de verão desde 2019: UTC−3 fixo, o mesmo de BRT_OFFSET_MS no sync. */
+const BRT_OFFSET = '-03:00';
+const BRT_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+/** Valor de <input type="datetime-local"> ("2026-11-16T15:15"), lido como horário de Brasília. */
+export function parseBrasiliaLocal(s: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(s)) return null;
+  const d = new Date(`${s.length === 16 ? `${s}:00` : s}${BRT_OFFSET}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Data no formato do <input type="datetime-local">, em horário de Brasília (inverso de parseBrasiliaLocal). */
+export function toBrasiliaLocalInput(d: Date | null): string {
+  return d ? new Date(d.getTime() - BRT_OFFSET_MS).toISOString().slice(0, 16) : '';
+}
+
 export function lbKey(id: number): string {
   return (LEADERBOARDS as Record<number, { key: string }>)[id]?.key ?? `lb_${id}`;
 }

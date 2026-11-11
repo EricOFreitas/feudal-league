@@ -43,6 +43,7 @@ pnpm typecheck
 - Strings de interface em `apps/web/messages/base/{pt,en}.json` + um arquivo por área em `messages/parts/<area>.{pt,en}.json`; `scripts/merge-messages.mjs` gera `messages/{pt,en}.json` (gitignored) e falha se as chaves divergirem. Roda sozinho em dev/build/lint/typecheck.
 - Nada que seja asset do jogo (logo, ícone, arte). Identidade visual própria em `globals.css` e `crest.tsx`. Exceção decidida pelo Eric (10/11/2026): a imagem que o organizador sobe no próprio torneio (`tournament_images`) é responsabilidade dele, mesmo com arte do jogo.
 - Sem monetização (Game Content Usage Rules). Aviso no rodapé fica. Análise com IA é grátis com limite diário (`ANALYSIS_DAILY_LIMIT`) e doação opcional (`DONATION_URL`); cobrar só com autorização da World's Edge.
+- Fuso: datas e horas sempre em horário de Brasília (`SITE_TZ` em `apps/web/src/lib/format.ts`; todo `Intl.DateTimeFormat` leva `timeZone`). Campo datetime-local entra por `parseBrasiliaLocal` e sai por `toBrasiliaLocalInput`. Servidor roda em UTC.
 - Relógio do replay = relógio do jogo (o que o jogador vê), não tempo real. O prompt diz ao modelo que replay guarda comandos, não estado.
 - Jogador é independente de usuário: qualquer visitante adiciona; dono reivindica via Steam.
 - Global é mensal (`seasons.ends_at`): worker vira o mês em `rollMonthlySeasons` e apura em `awardMonthlyPodiums`; ligas próprias fecham à mão. Medalha só na Global.

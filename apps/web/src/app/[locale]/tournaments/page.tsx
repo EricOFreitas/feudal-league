@@ -7,6 +7,7 @@ import { listTournaments, myTournaments, tournamentStatusKey } from '@aoe2/sync'
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
+import { SITE_TZ } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ q?: string; f?: string; more?: string }> };
 type Status = 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled';
@@ -44,7 +45,7 @@ export default async function TournamentsPage({ params, searchParams }: Props) {
   const all = await listTournaments();
   const q = (sp.q ?? '').trim().slice(0, 60);
   const f: Filter = (FILTERS as readonly string[]).includes(sp.f ?? '') ? (sp.f as Filter) : 'active';
-  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
+  const dt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: SITE_TZ });
 
   const leagueIds = [...new Set(all.map((x) => x.leagueId).filter((id): id is number => id != null))];
   const leagueNames = new Map((leagueIds.length ? await db.select({ id: leagues.id, name: leagues.name }).from(leagues).where(inArray(leagues.id, leagueIds)) : []).map((l) => [l.id, l.name]));

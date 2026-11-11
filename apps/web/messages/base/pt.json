@@ -443,7 +443,7 @@
       "advance": "Avançam por grupo",
       "groupBestOf": "Grupos melhor de",
       "maxTeams": "Máximo de times (vazio = sem limite)",
-      "startsAt": "Início (data e hora)",
+      "startsAt": "Início (data e hora de Brasília)",
       "prize": "Premiação (opcional)",
       "reqTitle": "Requisitos de inscrição (anti-smurf)",
       "maxPeak": "Pico de rating máximo (RM 1v1)",
