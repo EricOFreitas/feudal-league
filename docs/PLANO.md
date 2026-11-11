@@ -340,3 +340,10 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   (PG Cup: sorteado pela organização). O organizador edita no card do time; não confunde com `is_captain` dos membros.
 - 11/11/2026 — Horário sempre de Brasília, para qualquer visitante (decisão do Eric). Antes as páginas mostravam o fuso
   do servidor (UTC) e o início do torneio digitado era lido como UTC (15:15 virava 12:15 de Brasília).
+- 11/11/2026 — Retenção de partidas (decisão do Eric). Medido no banco online: 1,19 mi de partidas, 1,08 GB (90% em
+  matches + match_members), 612 mil com mais de 90 dias (histórico desde 2020 de jogadores importados), só 7 perfis
+  reivindicados, ~200 mil partidas novas por semana. Regra: perfil reivindicado guarda tudo; dos outros, 45 dias;
+  partida usada em liga, torneio, análise ou métricas nunca sai (FKs em cascata). O worker apaga uma vez por dia em
+  lotes (corte à meia-noite UTC; com atraso, repete a cada ciclo) e a sincronização não importa partida vencida sem
+  reivindicado. Limite conhecido: liga própria com temporada > 45 dias não conta retroativamente partidas antigas de
+  quem entrar tarde. O Postgres reaproveita o espaço, mas o arquivo não encolhe.

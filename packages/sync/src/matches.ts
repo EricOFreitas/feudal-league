@@ -1,10 +1,15 @@
 import { BATCH_MATCH_HISTORY, getRecentMatchHistory } from '@aoe2/aoe-api';
-import { db, matches, matchMembers } from '@aoe2/db';
-import { desc, eq, inArray, sql } from 'drizzle-orm';
+import { db, matches, matchMembers, players } from '@aoe2/db';
+import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
+import { retentionCutoff } from './retention';
 
-/** Baixa o histórico recente de vários jogadores e grava partidas + participantes (idempotente). */
+/**
+ * Baixa o histórico recente de vários jogadores e grava partidas + participantes (idempotente).
+ * Partida mais antiga que o corte da retenção só entra se alguém nela tiver perfil reivindicado (retention.ts).
+ */
 export async function syncMatchHistory(profileIds: number[]): Promise<{ matches: number }> {
   let total = 0;
+  const cutoffSec = retentionCutoff().getTime() / 1000;
   for (let i = 0; i < profileIds.length; i += BATCH_MATCH_HISTORY) {
     const batch = profileIds.slice(i, i + BATCH_MATCH_HISTORY);
     const { matches: apiMatches, profiles } = await getRecentMatchHistory(batch);
@@ -16,7 +21,14 @@ export async function syncMatchHistory(profileIds: number[]): Promise<{ matches:
     const existing = new Set(
       (await db.select({ id: matches.id }).from(matches).where(inArray(matches.id, done.map((m) => m.id)))).map((r) => r.id),
     );
-    const fresh = done.filter((m) => !existing.has(m.id));
+    let fresh = done.filter((m) => !existing.has(m.id));
+    const expired = fresh.filter((m) => m.completiontime < cutoffSec);
+    if (expired.length) {
+      const pids = [...new Set(expired.flatMap((m) => m.matchhistorymember.map((mm) => mm.profile_id)))];
+      const claimed = new Set((await db.select({ profileId: players.profileId }).from(players)
+        .where(and(inArray(players.profileId, pids), isNotNull(players.claimedByUserId)))).map((r) => r.profileId));
+      fresh = fresh.filter((m) => m.completiontime >= cutoffSec || m.matchhistorymember.some((mm) => claimed.has(mm.profile_id)));
+    }
     if (fresh.length === 0) continue;
 
     for (let j = 0; j < fresh.length; j += 200) {

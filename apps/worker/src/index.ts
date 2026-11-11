@@ -10,13 +10,14 @@
  * e registra cada etapa em sync_runs (página de status).
  * Depois lê a gravação das partidas de liga novas, guarda os números de treino (sem IA; docs/TREINO.md) e concede
  * o desafio da semana a quem cumpriu.
+ * Uma vez por dia apaga as partidas vencidas (retention.ts: 45 dias pra quem não reivindicou o perfil).
  * Em paralelo, a cada 10 s, processa a fila de análises de partida (replay → IA) e, a cada 30 s, lê os lobbies
  * abertos por quem está disponível pra treinar (só chama a API se alguém estiver).
  */
 import { db, playerFollows, players } from '@aoe2/db';
 import {
   activeLeagueProfileIds, activeTournamentProfileIds, autoJoinOpponents, autoLeagueProfileIds, awardChallenges, awardMonthlyPodiums, closeIncident, collectLeagueMetrics, detectLeagueMatches, detectTournamentGames, openIncident,
-  processNotifications, processQueuedAnalyses, purgeExpiredSparring, recordSyncRun, rollMonthlySeasons, syncMatchHistory, syncOpenLobbies, syncRatingsByProfileIds, takeWeeklySnapshots,
+  processNotifications, processQueuedAnalyses, purgeExpiredSparring, purgeOldMatches, recordSyncRun, retentionDue, rollMonthlySeasons, syncMatchHistory, syncOpenLobbies, syncRatingsByProfileIds, takeWeeklySnapshots,
 } from '@aoe2/sync';
 import { and, gt, inArray, isNotNull, isNull, lt, or } from 'drizzle-orm';
 
@@ -101,6 +102,17 @@ async function cycle() {
   const snaps = await takeWeeklySnapshots();
   if (snaps) { log(`${snaps} posições fotografadas (semana)`); await recordSyncRun('snapshot', t2, { players: snaps }); }
   try { const purged = await purgeExpiredSparring(); if (purged) log(`${purged} disponibilidades de treino vencidas apagadas`); } catch (e) { log('erro na limpeza do treino:', (e as Error).message); }
+  const tr = new Date();
+  try {
+    if (await retentionDue()) {
+      const gone = await purgeOldMatches();
+      log(`retenção: ${gone} partidas antigas apagadas`);
+      await recordSyncRun('retention', tr, { matches: gone });
+    }
+  } catch (e) {
+    log('erro na retenção:', (e as Error).message);
+    await recordSyncRun('retention', tr, { ok: false, error: (e as Error).message }).catch(() => undefined);
+  }
   const t3 = new Date();
   try {
     const sent = await processNotifications();

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 type Props = { params: Promise<{ locale: string }> };
 
-const KINDS = ['league', 'detect', 'analysis', 'metrics', 'snapshot', 'notify'] as const;
+const KINDS = ['league', 'detect', 'analysis', 'metrics', 'snapshot', 'notify', 'retention'] as const;
 const TZ = 'America/Sao_Paulo';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

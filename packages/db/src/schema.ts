@@ -247,6 +247,8 @@ export const leagueMatches = pgTable(
   },
   (t) => [
     uniqueIndex('league_matches_season_match_idx').on(t.seasonId, t.matchId),
+    // a retenção apaga partidas: sem este índice, cada partida apagada varre league_matches inteira (checagem da FK)
+    index('league_matches_match_idx').on(t.matchId),
     index('league_matches_division_idx').on(t.divisionId, t.playedAt),
     index('league_matches_season_winner_idx').on(t.seasonId, t.winnerPlayerId),
     index('league_matches_season_loser_idx').on(t.seasonId, t.loserPlayerId),
@@ -579,7 +581,7 @@ export const tournamentGames = pgTable(
     /** Aviso do jogo já enviado (Discord). */
     notifiedAt: timestamp('notified_at', { withTimezone: true }),
   },
-  (t) => [index('tournament_games_match_idx').on(t.tournamentMatchId), uniqueIndex('tournament_games_source_match_idx').on(t.tournamentMatchId, t.matchId)],
+  (t) => [index('tournament_games_match_idx').on(t.tournamentMatchId), uniqueIndex('tournament_games_source_match_idx').on(t.tournamentMatchId, t.matchId), index('tournament_games_match_id_idx').on(t.matchId)],
 );
 
 export const tournamentsRelations = relations(tournaments, ({ one, many }) => ({

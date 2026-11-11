@@ -17,11 +17,11 @@ Plano e decisões: `docs/PLANO.md`. Ler antes de mexer em escopo.
 
 ```
 apps/web            Next.js (páginas em src/app/[locale]/, rotas de auth em src/app/auth/)
-apps/worker         sync por prioridade (liga 15min, reivindicado ou seguido 1h, visto 6h) + detecção de partidas de liga + métricas de treino (replay sem IA) + desafio da semana + lobbies de treino (30 s) + fila de análises
+apps/worker         sync por prioridade (liga 15min, reivindicado ou seguido 1h, visto 6h) + detecção de partidas de liga + métricas de treino (replay sem IA) + desafio da semana + lobbies de treino (30 s) + fila de análises + retenção diária de partidas
 apps/analyzer       Python: replay → JSON (POST /parse). Dockerfile próprio; local: uvicorn main:app
 packages/aoe-api    cliente da API + ids (ladders, civs) + parser de entrada Steam
 packages/db         schema Drizzle, cliente, migrate
-packages/sync       regras: players/matches; ligas em leagues.ts; liga mensal e medalhas em podium.ts; dados da home em home.ts; análise em analyses.ts (cliente do analyzer em analyzer.ts); métricas de treino e benchmarks por divisão em metrics.ts, foco de treino em focus.ts, desafio da semana em challenges.ts, build orders em build-orders.ts/bo-check.ts e sparring/mentoria em sparring.ts (docs/TREINO.md); torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal); seguir jogador em follows.ts (página `/following`)
+packages/sync       regras: players/matches; ligas em leagues.ts; liga mensal e medalhas em podium.ts; dados da home em home.ts; análise em analyses.ts (cliente do analyzer em analyzer.ts); métricas de treino e benchmarks por divisão em metrics.ts, foco de treino em focus.ts, desafio da semana em challenges.ts, build orders em build-orders.ts/bo-check.ts e sparring/mentoria em sparring.ts (docs/TREINO.md); torneios em tournaments.ts; Discord em notify.ts; badges.ts; status.ts (sync_runs/incidentes); snapshots.ts (evolução semanal); seguir jogador em follows.ts (página `/following`); retenção de partidas em retention.ts (perfil reivindicado guarda tudo; outros, 45 dias; partida de liga/torneio/análise/métricas nunca sai)
 docs/PLANO.md       plano, fases, decisões
 ```
 

@@ -17,7 +17,8 @@
       "analysis": { "name": "Análises de partida", "desc": "Fila de análises de replay feitas por IA." },
       "metrics": { "name": "Métricas de treino", "desc": "Lê a gravação das partidas de liga e guarda os números (sem IA) pra comparar com a divisão." },
       "snapshot": { "name": "Retrato semanal da classificação", "desc": "Guarda a classificação de cada divisão uma vez por semana." },
-      "notify": { "name": "Avisos no Discord", "desc": "Envia ao Discord os avisos de novos membros e de partidas." }
+      "notify": { "name": "Avisos no Discord", "desc": "Envia ao Discord os avisos de novos membros e de partidas." },
+      "retention": { "name": "Limpeza de partidas antigas", "desc": "Uma vez por dia apaga partidas com mais de 45 dias de perfis não reivindicados. Partidas de liga, torneio e análise ficam." }
     },
     "uptimeTitle": "Últimos 30 dias",
     "dayOk": "sem problemas",

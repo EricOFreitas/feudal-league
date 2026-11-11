@@ -17,3 +17,4 @@ export * from './snapshots';
 export * from './notify';
 export * from './badges';
 export * from './follows';
+export * from './retention';

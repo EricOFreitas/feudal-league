@@ -5,7 +5,7 @@
 import { db, incidents, syncRuns } from '@aoe2/db';
 import { and, desc, gt, isNull, sql } from 'drizzle-orm';
 
-export type SyncKind = 'league' | 'claimed' | 'viewed' | 'detect' | 'tournament' | 'analysis' | 'notify' | 'snapshot' | 'metrics';
+export type SyncKind = 'league' | 'claimed' | 'viewed' | 'detect' | 'tournament' | 'analysis' | 'notify' | 'snapshot' | 'metrics' | 'retention';
 
 export async function recordSyncRun(kind: SyncKind, startedAt: Date, data: { players?: number; matches?: number; ok?: boolean; error?: string | null } = {}) {
   await db.insert(syncRuns).values({
