@@ -352,6 +352,7 @@
     "seed": "seed",
     "group": "Grupo {n}",
     "captain": "capitão",
+    "captainLine": "Capitão: {name}",
     "register": {
       "title": "Inscrever meu time",
       "hint": "Você entra como capitão. Informe o id de perfil dos parceiros (aparece na página de cada jogador).",
@@ -403,7 +404,9 @@
       "edited": "Alterações salvas.",
       "redraw": "Refazer sorteio",
       "redrawHint": "Sorteia os grupos de novo e recria os confrontos. Só aparece enquanto nenhum jogo foi registrado.",
-      "redrawn": "Grupos sorteados de novo."
+      "redrawn": "Grupos sorteados de novo.",
+      "captainName": "Capitão (não joga)",
+      "saveCaptain": "Salvar"
     },
     "groupsTitle": "Fase de grupos",
     "bracketTitle": "Chave",

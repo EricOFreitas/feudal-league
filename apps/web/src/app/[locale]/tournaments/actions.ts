@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, tournamentMatches, tournamentTeams, tournaments } from '@aoe2/db';
-import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, addTournamentOrganizer, canManageTournament, removeTournamentOrganizer, createTournament, deleteTeam, deleteTournamentImage, recordGame, redrawGroups, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
+import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, addTournamentOrganizer, canManageTournament, removeTournamentOrganizer, createTournament, deleteTeam, deleteTournamentImage, recordGame, redrawGroups, setTeamCaptainName, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { sessionPlayer, slugify } from '@/lib/leagues';
@@ -106,6 +106,17 @@ export async function teamStatusAction(fd: FormData) {
   else if (op === 'confirm') await setTeamStatus(teamId, 'confirmed');
   else if (op === 'unconfirm' && t.status === 'open') await setTeamStatus(teamId, 'pending');
   else if (op === 'withdraw') await setTeamStatus(teamId, 'withdrawn');
+  return back(fd);
+}
+
+/** Capitão de apoio (não joga) de um time; texto livre, vazio apaga. */
+export async function teamCaptainAction(fd: FormData) {
+  const t = await owned(fd);
+  if (!t) return;
+  const teamId = idOf(fd, 'teamId');
+  const team = await db.query.tournamentTeams.findFirst({ where: and(eq(tournamentTeams.id, teamId), eq(tournamentTeams.tournamentId, t.id)) });
+  if (!team) return back(fd);
+  await setTeamCaptainName(teamId, String(fd.get('captainName') ?? ''));
   return back(fd);
 }
 

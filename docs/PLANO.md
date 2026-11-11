@@ -336,3 +336,5 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   mesmo grupo com 2 grupos (agora testa a ordem dos colocados e fica com a que evita confronto do mesmo grupo).
 - 10/11/2026 — Co-organizadores de torneio por profile_id (`tournament_organizers`): valem quando alguém entra com a
   Steam daquele perfil, sem precisar reivindicar. O site não valida conta por terceiros: login é sempre pela Steam.
+- 10/11/2026 — Capitão de apoio por time (`tournament_teams.captain_name`, texto livre): quem não joga e ajuda a dupla
+  (PG Cup: sorteado pela organização). O organizador edita no card do time; não confunde com `is_captain` dos membros.

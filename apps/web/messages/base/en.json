@@ -352,6 +352,7 @@
     "seed": "seed",
     "group": "Group {n}",
     "captain": "captain",
+    "captainLine": "Captain: {name}",
     "register": {
       "title": "Register my team",
       "hint": "You join as captain. Enter your partners' profile ids (shown on each player page).",
@@ -403,7 +404,9 @@
       "edited": "Changes saved.",
       "redraw": "Redo the draw",
       "redrawHint": "Draws the groups again and recreates the matches. Only shown while no game has been recorded.",
-      "redrawn": "Groups drawn again."
+      "redrawn": "Groups drawn again.",
+      "captainName": "Captain (does not play)",
+      "saveCaptain": "Save"
     },
     "groupsTitle": "Group stage",
     "bracketTitle": "Bracket",

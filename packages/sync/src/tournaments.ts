@@ -237,6 +237,11 @@ export async function deleteTeam(teamId: number) {
 export async function setTeamSeed(teamId: number, seed: number | null) {
   await db.update(tournamentTeams).set({ seed }).where(eq(tournamentTeams.id, teamId));
 }
+/** Capitão que não joga; vazio apaga. */
+export async function setTeamCaptainName(teamId: number, name: string | null) {
+  const captainName = (name ?? '').trim().slice(0, 60) || null;
+  await db.update(tournamentTeams).set({ captainName }).where(eq(tournamentTeams.id, teamId));
+}
 
 /* ───────────────────────────── fase de grupos ───────────────────────────── */
 

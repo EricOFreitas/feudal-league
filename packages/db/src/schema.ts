@@ -512,6 +512,8 @@ export const tournamentTeams = pgTable(
     tournamentId: integer('tournament_id').notNull().references(() => tournaments.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     seed: smallint('seed'),
+    /** Capitão de apoio, que não joga (ex.: sorteado pela organização). Texto livre; diferente de is_captain dos membros. */
+    captainName: text('captain_name'),
     /** Grupo sorteado na fase de grupos (1..group_count). */
     groupNo: smallint('group_no'),
     status: varchar('status', { length: 12 }).notNull().default('pending'),

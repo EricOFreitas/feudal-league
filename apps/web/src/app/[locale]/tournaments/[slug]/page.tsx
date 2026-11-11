@@ -12,7 +12,7 @@ import { GroupStage } from '@/components/group-stage';
 import { Linkified } from '@/components/linkified';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
-import { addTeamAction, cancelAction, redrawGroupsAction, registerTeamAction, reportGameAction, startBracketAction, startGroupsAction, teamStatusAction, undoGameAction } from '../actions';
+import { addTeamAction, cancelAction, redrawGroupsAction, registerTeamAction, reportGameAction, startBracketAction, startGroupsAction, teamCaptainAction, teamStatusAction, undoGameAction } from '../actions';
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ ok?: string; err?: string; id?: string; rules?: string }> };
 type Status = 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled';
@@ -108,6 +108,15 @@ export default async function TournamentPage({ params, searchParams }: Props) {
           </span>
         ))}
       </p>
+      {team.captainName && <p className="mt-1 text-sm text-parchment-400">{t('captainLine', { name: team.captainName })}</p>}
+      {isOwner && tour.teamSize > 1 && (
+        <form action={teamCaptainAction} className="mt-2 flex gap-2 text-xs">
+          {hidden}<input type="hidden" name="teamId" value={team.id} />
+          <input name="captainName" maxLength={60} defaultValue={team.captainName ?? ''} placeholder={t('admin.captainName')} aria-label={t('admin.captainName')}
+            className="min-w-0 flex-1 rounded border border-gold-700/60 bg-stone-950/60 px-2 py-1 text-parchment-50" />
+          <button type="submit" className="btn btn-ghost shrink-0">{t('admin.saveCaptain')}</button>
+        </form>
+      )}
       {isOwner && (
         <form action={teamStatusAction} className="mt-2 flex flex-wrap gap-2 text-xs">
           {hidden}<input type="hidden" name="teamId" value={team.id} />
