@@ -116,11 +116,6 @@
             "name": "Build Order Guide",
             "what": "Catalog and editor of build orders, with the expected age-up times.",
             "url": "https://buildorderguide.com"
-          },
-          {
-            "name": "Build Order Reference",
-            "what": "The written build orders from the author of the Interactive Build Order Guide, with target times.",
-            "url": "https://buildorderreference.com"
           }
         ]
       },

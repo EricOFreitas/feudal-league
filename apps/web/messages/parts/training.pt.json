@@ -116,11 +116,6 @@
             "name": "Build Order Guide",
             "what": "Catálogo e editor de build orders, com os tempos esperados de cada era.",
             "url": "https://buildorderguide.com"
-          },
-          {
-            "name": "Build Order Reference",
-            "what": "As build orders do autor do Interactive Build Order Guide, escritas, com os tempos alvo.",
-            "url": "https://buildorderreference.com"
           }
         ]
       },

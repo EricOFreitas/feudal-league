@@ -218,7 +218,7 @@ vieram de listas de 2020–2023.
 |---|---|---|
 | IdleTC (idletc.com) | BOs com divisão de vilas em cada passo, overlay compacto, grátis, sem conta | Novo (10/2026). Sem prática nem acompanhamento |
 | buildorderguide.com | catálogo e editor de BOs, seção "Uptime" | Ativo |
-| Build Order Reference (Cicero) | BOs escritas com tempos alvo | Estático |
+| Build Order Reference (Cicero) | BOs escritas com tempos alvo | Fora do ar: domínio expirou e hoje redireciona para spam (11/2026). Não linkar |
 | RTS Overlay | mostra a BO por cima do jogo durante a partida | Manual, equivale a um PDF aberto |
 
 **Hotkeys**
