@@ -45,7 +45,8 @@ export function SwissStage({ rows, matches, teams, advance, isOwner, plan, activ
 
   return (
     <div className="space-y-8">
-      {rows.length > 0 && matches.length > 0 && (
+      {/* sem série encerrada a ordem é só a de cadastro: a tabela (e a linha de corte) só aparece depois do primeiro resultado */}
+      {rows.some((r) => r.played > 0) && (
         <div className="panel p-3 sm:p-4">
           {/* sem coluna de jogos: no suíço todos jogam as mesmas rodadas, e o nome do time precisa de espaço no celular */}
           <table className="w-full table-fixed border-collapse text-sm">
