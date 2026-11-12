@@ -428,11 +428,12 @@ export const leagueMatchesRelations = relations(leagueMatches, ({ one }) => ({
 
 /**
  * Torneio entre times de team_size jogadores (1 a 4; 2v2 por padrão).
- * format: single_elim (só mata-mata) ou groups_elim (grupos em pontos corridos, depois mata-mata
- * com os advance_per_group melhores de cada grupo).
+ * format: single_elim (só mata-mata), groups_elim (grupos em pontos corridos, depois mata-mata
+ * com os advance_per_group melhores de cada grupo) ou swiss_elim (swiss_rounds rodadas no sistema suíço, depois
+ * mata-mata com os swiss_advance melhores da classificação). group_best_of/group_play_all valem pra fase 1 (grupos ou suíço).
  * Resultado confirmado pelo histórico (partida com exatamente os jogadores dos dois times,
  * nos times certos, depois do início) ou reportado pelo organizador.
- * status: open (inscrições) → groups (fase de grupos) → running (chave) → finished | cancelled.
+ * status: open (inscrições) → groups (fase 1: grupos ou suíço) → running (chave) → finished | cancelled.
  */
 export const tournaments = pgTable(
   'tournaments',
@@ -452,8 +453,14 @@ export const tournaments = pgTable(
     groupCount: smallint('group_count').notNull().default(0),
     advancePerGroup: smallint('advance_per_group').notNull().default(2),
     groupBestOf: smallint('group_best_of').notNull().default(1),
-    /** Grupos "jogar todos": o confronto só fecha depois dos N jogos e cada jogo vencido vale 1 ponto na tabela. */
+    /**
+     * Fase 1 "jogar todos": o confronto só fecha depois dos N jogos. Nos grupos, cada jogo vencido vale 1 ponto;
+     * no suíço o ponto continua sendo da série, e os mapas entram no desempate.
+     */
     groupPlayAll: boolean('group_play_all').notNull().default(false),
+    /** Suíço: quantas rodadas e quantos da classificação final vão pro mata-mata. */
+    swissRounds: smallint('swiss_rounds').notNull().default(0),
+    swissAdvance: smallint('swiss_advance').notNull().default(8),
     maxTeams: smallint('max_teams'),
     /** Inscrições encerradas antes de começar: some o formulário de inscrição; só o organizador adiciona times. */
     registrationClosed: boolean('registration_closed').notNull().default(false),
@@ -538,7 +545,8 @@ export const tournamentTeamMembers = pgTable(
 );
 
 /**
- * Confronto. stage = group (pontos corridos dentro de group_no) ou bracket (chave).
+ * Confronto. stage = group (pontos corridos dentro de group_no), swiss (rodada do suíço; time B null = folga, vale vitória)
+ * ou bracket (chave).
  * round 1 = primeira rodada; position = índice na rodada.
  * next_match_id/next_slot = pra onde o vencedor vai (só na chave). Time null = ainda indefinido (ou bye).
  * status: pending (falta time) → ready (dois times) → done. walkover = vencedor sem jogo (bye/W.O.).

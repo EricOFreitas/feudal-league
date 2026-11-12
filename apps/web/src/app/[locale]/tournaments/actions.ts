@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db, tournamentMatches, tournamentTeams, tournaments } from '@aoe2/db';
-import { BEST_OFS, TEAM_SIZES, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, addTournamentOrganizer, canManageTournament, removeTournamentOrganizer, createTournament, deleteTeam, deleteTournamentImage, recordGame, redrawGroups, setTeamCaptainName, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, updateTournament, type AddTeamResult, type TournamentSettings } from '@aoe2/sync';
+import { BEST_OFS, TEAM_SIZES, TOURNAMENT_FORMATS, TOURNAMENT_IMAGE_MAX_BYTES, addTeam, addTournamentOrganizer, canManageTournament, createSwissRound, removeTournamentOrganizer, createTournament, deleteTeam, deleteTournamentImage, recordGame, redrawGroups, setTeamCaptainName, setTeamStatus, setTournamentImage, startBracket, startGroups, undoLastGame, undoSwissRound, updateTournament, type AddTeamResult, type TournamentFormat, type TournamentSettings } from '@aoe2/sync';
 import { and, eq } from 'drizzle-orm';
 import { redirect } from '@/i18n/navigation';
 import { sessionPlayer, slugify } from '@/lib/leagues';
@@ -135,6 +135,32 @@ export async function redrawGroupsAction(fd: FormData) {
   return back(fd, r.ok ? 'ok=redrawn' : `err=${r.reason}`);
 }
 
+/**
+ * Cria a próxima rodada do suíço. O formulário manda `pairs` = quantos confrontos, `a.<i>`/`b.<i>` = ids dos times e
+ * `bye` = time de folga (número ímpar). A validação (cada time uma vez) fica em createSwissRound.
+ */
+export async function swissRoundAction(fd: FormData) {
+  const t = await owned(fd);
+  if (!t) return;
+  const n = intOrNull(fd.get('pairs'), 0, 128) ?? 0;
+  const pairs: [number, number][] = [];
+  for (let i = 0; i < n; i++) {
+    const a = idOf(fd, `a.${i}`), b = idOf(fd, `b.${i}`);
+    if (!Number.isInteger(a) || !Number.isInteger(b) || a === b) return back(fd, 'err=pairs');
+    pairs.push([a, b]);
+  }
+  const byeRaw = String(fd.get('bye') ?? '').trim();
+  const r = await createSwissRound(t.id, { pairs, bye: byeRaw ? Number(byeRaw) : null });
+  return back(fd, r.ok ? 'ok=round' : `err=${r.reason}`);
+}
+
+export async function undoSwissRoundAction(fd: FormData) {
+  const t = await owned(fd);
+  if (!t) return;
+  const r = await undoSwissRound(t.id);
+  return back(fd, r.ok ? 'ok=round_undone' : `err=${r.reason}`);
+}
+
 export async function startBracketAction(fd: FormData) {
   const t = await owned(fd);
   if (!t) return;
@@ -171,7 +197,7 @@ export async function undoGameAction(fd: FormData) {
   return back(fd);
 }
 
-export type CreateState = { error?: 'name' | 'groups' | 'slug' | 'max_teams' | 'status' | 'image' } | null;
+export type CreateState = { error?: 'name' | 'groups' | 'swiss' | 'slug' | 'max_teams' | 'status' | 'image' } | null;
 
 /** Só aceita link http(s) de até 200 caracteres; o resto vira vazio. */
 const httpUrl = (v: FormDataEntryValue | null) => {
@@ -182,13 +208,18 @@ const httpUrl = (v: FormDataEntryValue | null) => {
 
 const bestOfOr = <T,>(v: FormDataEntryValue | null, fallback: T) => ((BEST_OFS as readonly number[]).includes(Number(v)) ? Number(v) : fallback);
 
-/** Lê as configurações do formulário (criar e editar). Sem a caixa de grupos marcada, grupos = 0. */
-function settingsFrom(fd: FormData): TournamentSettings | { error: 'name' | 'groups' } {
+/** Lê as configurações do formulário (criar e editar). Grupos só no formato groups_elim; rodadas do suíço só no swiss_elim. */
+function settingsFrom(fd: FormData): TournamentSettings | { error: 'name' | 'groups' | 'swiss' } {
   const name = String(fd.get('name') ?? '').trim();
   if (name.length < 3 || name.length > 60) return { error: 'name' };
-  const groupCount = fd.get('hasGroups') === 'on' ? intOrNull(fd.get('groupCount'), 1, 16) ?? 0 : 0;
+  const format: TournamentFormat = (TOURNAMENT_FORMATS as readonly string[]).includes(String(fd.get('format'))) ? (fd.get('format') as TournamentFormat) : 'single_elim';
+  const groupCount = format === 'groups_elim' ? intOrNull(fd.get('groupCount'), 1, 16) ?? 0 : 0;
   const advancePerGroup = intOrNull(fd.get('advancePerGroup'), 1, 8) ?? 2;
-  if (fd.get('hasGroups') === 'on' && groupCount < 1) return { error: 'groups' };
+  if (format === 'groups_elim' && groupCount < 1) return { error: 'groups' };
+  const swissRounds = format === 'swiss_elim' ? intOrNull(fd.get('swissRounds'), 1, 12) ?? 0 : 0;
+  const swissAdvance = intOrNull(fd.get('swissAdvance'), 2, 64) ?? 8;
+  if (format === 'swiss_elim' && swissRounds < 1) return { error: 'swiss' };
+  const phase1 = format !== 'single_elim';
   const startsRaw = String(fd.get('startsAt') ?? '').trim();
   const startsAt = startsRaw ? parseBrasiliaLocal(startsRaw) : null;
   return {
@@ -197,7 +228,7 @@ function settingsFrom(fd: FormData): TournamentSettings | { error: 'name' | 'gro
     registrationClosed: fd.get('registrationClosed') === 'on',
     teamSize: (TEAM_SIZES as readonly number[]).includes(Number(fd.get('teamSize'))) ? Number(fd.get('teamSize')) : 2,
     bestOf: bestOfOr(fd.get('bestOf'), 1), finalBestOf: bestOfOr(fd.get('finalBestOf'), null),
-    groupCount, advancePerGroup, groupBestOf: bestOfOr(fd.get('groupBestOf'), 1), groupPlayAll: groupCount > 0 && fd.get('groupPlayAll') === 'on',
+    format, groupCount, advancePerGroup, groupBestOf: bestOfOr(fd.get('groupBestOf'), 1), groupPlayAll: phase1 && fd.get('groupPlayAll') === 'on', swissRounds, swissAdvance,
     maxTeams: intOrNull(fd.get('maxTeams'), 2, 256), startsAt: startsAt && !Number.isNaN(startsAt.getTime()) ? startsAt : null,
     maxPeakRating: intOrNull(fd.get('maxPeakRating'), 0, 5000), minGames: intOrNull(fd.get('minGames'), 0, 10000), minRecentGames: intOrNull(fd.get('minRecentGames'), 0, 1000),
     prize: String(fd.get('prize') ?? '').trim().slice(0, 300) || null,

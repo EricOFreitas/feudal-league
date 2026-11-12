@@ -1,20 +1,25 @@
 /**
- * Torneios (fase 3): times de 1 a 4, fase de grupos opcional, mata-mata por eliminação simples,
+ * Torneios (fase 3): times de 1 a 4; fase 1 opcional (grupos ou suíço), mata-mata por eliminação simples,
  * melhor de 1/3/5. Resultado confirmado pelo histórico ou reportado pelo organizador.
- * Grupos podem ser "jogar todos" (group_play_all): o confronto só fecha depois dos N jogos e cada jogo vale 1 ponto.
+ * Fase 1 pode ser "jogar todos" (group_play_all): o confronto só fecha depois dos N jogos. Nos grupos cada jogo vale
+ * 1 ponto; no suíço (regras em swiss.ts) o ponto é da série.
  */
 import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, matches, matchMembers, playerRatings, players, tournamentGames, tournamentImages, tournamentMatches, tournamentOrganizers, tournamentTeamMembers, tournamentTeams, tournaments, type Tournament, type TournamentMatch, type TournamentTeam } from '@aoe2/db';
 import { and, asc, desc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { findPlayerByProfileId, importPlayerByProfileId } from './players';
+import { pairKey, swissPairings, swissStandings, type SwissPlan } from './swiss';
 
 export const TEAM_SIZES = [1, 2, 3, 4] as const;
 export const BEST_OFS = [1, 3, 5] as const;
+export const TOURNAMENT_FORMATS = ['single_elim', 'groups_elim', 'swiss_elim'] as const;
+export type TournamentFormat = (typeof TOURNAMENT_FORMATS)[number];
 
-/** Configurações que o organizador escolhe (criar e editar). */
+/** Configurações que o organizador escolhe (criar e editar). groupCount > 0 só em groups_elim; swiss* só em swiss_elim. */
 export type TournamentSettings = {
   name: string; description: string | null; organizerName: string | null; organizerUrl: string | null; registrationClosed: boolean;
-  teamSize: number; bestOf: number; finalBestOf: number | null; groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean;
+  teamSize: number; bestOf: number; finalBestOf: number | null; format: TournamentFormat;
+  groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean; swissRounds: number; swissAdvance: number;
   maxTeams: number | null; startsAt: Date | null;
   maxPeakRating: number | null; minGames: number | null; minRecentGames: number | null; prize: string | null;
 };
@@ -25,8 +30,9 @@ export async function createTournament(input: NewTournamentInput): Promise<numbe
   const [row] = await db.insert(tournaments).values({
     slug: input.slug, name: input.name, description: input.description, ownerUserId: input.ownerUserId, leagueId: input.leagueId ?? null,
     organizerName: input.organizerName, organizerUrl: input.organizerUrl, registrationClosed: input.registrationClosed,
-    teamSize: input.teamSize, format: input.groupCount > 0 ? 'groups_elim' : 'single_elim', bestOf: input.bestOf, finalBestOf: input.finalBestOf,
+    teamSize: input.teamSize, format: input.format, bestOf: input.bestOf, finalBestOf: input.finalBestOf,
     groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, groupPlayAll: input.groupPlayAll,
+    swissRounds: input.swissRounds, swissAdvance: input.swissAdvance,
     maxTeams: input.maxTeams, startsAt: input.startsAt,
     maxPeakRating: input.maxPeakRating, minGames: input.minGames, minRecentGames: input.minRecentGames, prize: input.prize,
   }).onConflictDoNothing().returning({ id: tournaments.id });
@@ -53,8 +59,9 @@ export async function updateTournament(tournamentId: number, input: TournamentSe
     ...text,
     registrationClosed: input.registrationClosed,
     teamSize: active > 0 ? t.teamSize : input.teamSize,
-    format: input.groupCount > 0 ? 'groups_elim' : 'single_elim', bestOf: input.bestOf, finalBestOf: input.finalBestOf,
+    format: input.format, bestOf: input.bestOf, finalBestOf: input.finalBestOf,
     groupCount: input.groupCount, advancePerGroup: input.advancePerGroup, groupBestOf: input.groupBestOf, groupPlayAll: input.groupPlayAll,
+    swissRounds: input.swissRounds, swissAdvance: input.swissAdvance,
     maxTeams: input.maxTeams, maxPeakRating: input.maxPeakRating, minGames: input.minGames, minRecentGames: input.minRecentGames,
   }).where(eq(tournaments.id, tournamentId));
   return { ok: true };
@@ -132,8 +139,12 @@ export async function tournamentImage(tournamentId: number) {
 }
 
 /** Status pra exibir: inscrições encerradas antes de começar viram 'closed'. */
-export function tournamentStatusKey(t: Pick<Tournament, 'status' | 'registrationClosed'>): 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled' {
+export type TournamentStatusKey = 'open' | 'closed' | 'groups' | 'swiss' | 'running' | 'finished' | 'cancelled';
+
+/** Status pra mostrar: separa inscrições encerradas e, na fase 1, grupos de suíço. */
+export function tournamentStatusKey(t: Pick<Tournament, 'status' | 'registrationClosed' | 'format'>): TournamentStatusKey {
   if (t.status === 'open' && t.registrationClosed) return 'closed';
+  if (t.status === 'groups' && t.format === 'swiss_elim') return 'swiss';
   return t.status as 'open' | 'groups' | 'running' | 'finished' | 'cancelled';
 }
 
@@ -368,6 +379,89 @@ export function groupStandings(t: TournamentFull): Map<number, GroupRow[]> {
   return out;
 }
 
+/* ───────────────────────────── suíço ───────────────────────────── */
+
+const isClosed = (m: { status: string }) => m.status === 'done' || m.status === 'walkover';
+
+/** Rodada atual do suíço (0 = nenhuma criada) e se ainda tem confronto em aberto. */
+export function swissProgress(t: { matches: { stage: string; round: number; status: string }[] }): { round: number; open: number } {
+  const swiss = t.matches.filter((m) => m.stage === 'swiss');
+  const round = Math.max(0, ...swiss.map((m) => m.round));
+  return { round, open: swiss.filter((m) => m.round === round && !isClosed(m)).length };
+}
+
+/**
+ * Sugestão da próxima rodada do suíço, ou null quando não cabe (rodada em aberto, rodadas acabaram, formato errado).
+ * 1ª rodada: seeds primeiro; sem seed, maior rating médio (`ratings`, por time) e depois ordem de inscrição.
+ * Determinística: a sugestão não muda a cada carregamento da página.
+ */
+export function suggestSwissRound(t: TournamentFull, ratings?: Map<number, number>): (SwissPlan & { round: number }) | null {
+  if (t.format !== 'swiss_elim' || (t.status !== 'open' && t.status !== 'groups')) return null;
+  const { round, open } = swissProgress(t);
+  if (open > 0 || round >= t.swissRounds) return null;
+  const active = t.teams.filter((x) => x.status === 'confirmed');
+  if (active.length < 2) return null;
+  const swiss = t.matches.filter((m) => m.stage === 'swiss');
+  let order: number[];
+  if (round === 0) {
+    order = [...active].sort((a, b) => (a.seed ?? Infinity) - (b.seed ?? Infinity) || (ratings?.get(b.id) ?? -1) - (ratings?.get(a.id) ?? -1) || a.id - b.id).map((x) => x.id);
+  } else {
+    order = swissStandings(t.teams, swiss).map((r) => r.teamId);
+  }
+  const rows = swissStandings(t.teams, swiss);
+  const points = new Map(rows.map((r) => [r.teamId, r.points]));
+  const met = new Set(swiss.filter((m) => m.teamAId && m.teamBId).map((m) => pairKey(m.teamAId!, m.teamBId!)));
+  const hadBye = new Set(swiss.filter((m) => m.teamAId && !m.teamBId).map((m) => m.teamAId!));
+  return { round: round + 1, ...swissPairings(order, points, met, hadBye) };
+}
+
+export type SwissRoundResult = { ok: true } | { ok: false; reason: 'status' | 'round_open' | 'rounds_done' | 'few_teams' | 'pairs' };
+
+/**
+ * Cria a próxima rodada do suíço com os confrontos escolhidos pelo organizador (a sugestão ou a tabela oficial dele).
+ * Cada time confirmado aparece uma vez; folga só com número ímpar. A 1ª rodada abre a fase (status groups).
+ */
+export async function createSwissRound(tournamentId: number, plan: SwissPlan): Promise<SwissRoundResult> {
+  const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), with: { teams: true, matches: true } });
+  if (!t || t.format !== 'swiss_elim' || (t.status !== 'open' && t.status !== 'groups')) return { ok: false, reason: 'status' };
+  const { round, open } = swissProgress(t);
+  if (open > 0) return { ok: false, reason: 'round_open' };
+  if (round >= t.swissRounds) return { ok: false, reason: 'rounds_done' };
+  const active = new Set(t.teams.filter((x) => x.status === 'confirmed').map((x) => x.id));
+  if (active.size < 2) return { ok: false, reason: 'few_teams' };
+  const ids = [...plan.pairs.flat(), ...(plan.bye != null ? [plan.bye] : [])];
+  const valid = ids.length === active.size && new Set(ids).size === ids.length && ids.every((id) => active.has(id))
+    && (plan.bye != null) === (active.size % 2 === 1);
+  if (!valid) return { ok: false, reason: 'pairs' };
+  const next = round + 1;
+  await db.transaction(async (tx) => {
+    let pos = 0;
+    for (const [a, b] of plan.pairs) {
+      await tx.insert(tournamentMatches).values({ tournamentId, stage: 'swiss', round: next, position: pos++, teamAId: a, teamBId: b, bestOf: t.groupBestOf, status: 'ready' });
+    }
+    if (plan.bye != null) {
+      await tx.insert(tournamentMatches).values({ tournamentId, stage: 'swiss', round: next, position: pos++, teamAId: plan.bye, teamBId: null, winnerTeamId: plan.bye, bestOf: t.groupBestOf, status: 'walkover' });
+    }
+    if (t.status === 'open') await tx.update(tournaments).set({ status: 'groups', bracketAt: new Date() }).where(eq(tournaments.id, tournamentId));
+  });
+  return { ok: true };
+}
+
+/** Desfaz a última rodada do suíço enquanto nenhum jogo dela foi registrado. Desfazer a 1ª volta pras inscrições. */
+export async function undoSwissRound(tournamentId: number): Promise<{ ok: true } | { ok: false; reason: 'status' | 'has_games' }> {
+  const t = await db.query.tournaments.findFirst({ where: eq(tournaments.id, tournamentId), with: { matches: { with: { games: { columns: { id: true } } } } } });
+  if (!t || t.format !== 'swiss_elim' || t.status !== 'groups') return { ok: false, reason: 'status' };
+  const { round } = swissProgress(t);
+  const last = t.matches.filter((m) => m.stage === 'swiss' && m.round === round);
+  if (round === 0) return { ok: false, reason: 'status' };
+  if (last.some((m) => m.games.length > 0)) return { ok: false, reason: 'has_games' };
+  await db.transaction(async (tx) => {
+    await tx.delete(tournamentMatches).where(and(eq(tournamentMatches.tournamentId, tournamentId), eq(tournamentMatches.stage, 'swiss'), eq(tournamentMatches.round, round)));
+    if (round === 1) await tx.update(tournaments).set({ status: 'open', bracketAt: null }).where(eq(tournaments.id, tournamentId));
+  });
+  return { ok: true };
+}
+
 /* ───────────────────────────── chave ───────────────────────────── */
 
 /** Confrontos da 1ª rodada entre times do mesmo grupo, na chave montada a partir de `ordered` (seeds 1..n). */
@@ -410,8 +504,14 @@ export async function startBracket(tournamentId: number): Promise<{ ok: true } |
   if (!full) return { ok: false, reason: 'status' };
   let ordered: TournamentTeam[];
   if (full.status === 'open') {
-    if (full.groupCount > 0) return { ok: false, reason: 'status' };
+    if (full.groupCount > 0 || full.format === 'swiss_elim') return { ok: false, reason: 'status' };
     ordered = orderedTeams(full.teams.filter((x) => x.status === 'confirmed'));
+  } else if (full.status === 'groups' && full.format === 'swiss_elim') {
+    // suíço: os swiss_advance primeiros da classificação final, na ordem (1º×último classificado, como na chave padrão)
+    const swiss = full.matches.filter((m) => m.stage === 'swiss');
+    const played = Math.max(0, ...swiss.map((m) => m.round));
+    if (played < full.swissRounds || swiss.some((m) => m.status !== 'done' && m.status !== 'walkover')) return { ok: false, reason: 'groups_open' };
+    ordered = swissStandings(full.teams, swiss).slice(0, full.swissAdvance).map((r) => full.teams.find((t) => t.id === r.teamId)!);
   } else if (full.status === 'groups') {
     if (full.matches.some((m) => m.stage === 'group' && m.status !== 'done' && m.status !== 'walkover')) return { ok: false, reason: 'groups_open' };
     const tf = await tournamentBySlug(full.slug);
@@ -464,6 +564,7 @@ export async function startBracket(tournamentId: number): Promise<{ ok: true } |
 
 async function finishMatch(m: TournamentMatch, winnerTeamId: number, status: 'done' | 'walkover' = 'done') {
   await db.update(tournamentMatches).set({ winnerTeamId, status }).where(eq(tournamentMatches.id, m.id));
+  if (m.stage === 'swiss') return; // a próxima rodada é montada pelo organizador
   if (m.stage === 'group') {
     const open = await db.query.tournamentMatches.findFirst({ where: and(eq(tournamentMatches.tournamentId, m.tournamentId), eq(tournamentMatches.stage, 'group'), inArray(tournamentMatches.status, ['pending', 'ready'])) });
     void open; // a chave é gerada pelo organizador quando os grupos acabam
@@ -481,7 +582,7 @@ async function finishMatch(m: TournamentMatch, winnerTeamId: number, status: 'do
   }
 }
 
-/** Registra um jogo e fecha o confronto se alguém alcançou a maioria (ou, nos grupos "jogar todos", depois dos N jogos). */
+/** Registra um jogo e fecha o confronto se alguém alcançou a maioria (ou, na fase 1 "jogar todos", depois dos N jogos). */
 export async function recordGame(tournamentMatchId: number, winnerTeamId: number, opts: { matchId?: number | null; source: 'auto' | 'manual'; byUserId?: number | null; playedAt?: Date }) {
   const m = await db.query.tournamentMatches.findFirst({ where: eq(tournamentMatches.id, tournamentMatchId) });
   if (!m || m.status !== 'ready' || (winnerTeamId !== m.teamAId && winnerTeamId !== m.teamBId)) return false;
@@ -491,7 +592,7 @@ export async function recordGame(tournamentMatchId: number, winnerTeamId: number
   const scoreA = m.scoreA + (winnerTeamId === m.teamAId ? 1 : 0);
   const scoreB = m.scoreB + (winnerTeamId === m.teamBId ? 1 : 0);
   await db.update(tournamentMatches).set({ scoreA, scoreB }).where(eq(tournamentMatches.id, m.id));
-  const playAll = m.stage === 'group' && (await db.query.tournaments.findFirst({ where: eq(tournaments.id, m.tournamentId), columns: { groupPlayAll: true } }))?.groupPlayAll === true;
+  const playAll = (m.stage === 'group' || m.stage === 'swiss') && (await db.query.tournaments.findFirst({ where: eq(tournaments.id, m.tournamentId), columns: { groupPlayAll: true } }))?.groupPlayAll === true;
   if (playAll) {
     // melhor de N é sempre ímpar (BEST_OFS), então depois dos N jogos sempre há vencedor
     if (scoreA + scoreB >= m.bestOf) await finishMatch({ ...m, scoreA, scoreB }, scoreA > scoreB ? m.teamAId! : m.teamBId!);

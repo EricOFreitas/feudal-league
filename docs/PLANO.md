@@ -347,3 +347,9 @@ analisador, alimentando o prompt. Guias em PT/EN escritos por você.
   lotes (corte à meia-noite UTC; com atraso, repete a cada ciclo) e a sincronização não importa partida vencida sem
   reivindicado. Limite conhecido: liga própria com temporada > 45 dias não conta retroativamente partidas antigas de
   quem entrar tarde. O Postgres reaproveita o espaço, mas o arquivo não encolhe.
+- 12/11/2026 — Formato suíço + mata-mata (`swiss_elim`), pedido do Paganini pra PG Cup: com 10 times, grupos de 5
+  deixavam um time de folga por rodada. N rodadas (`swiss_rounds`), série melhor de N com "jogar todos" (mesmos campos
+  da fase de grupos), vitória na série = 1 ponto, folga = vitória. Desempate igual ao Challonge dele: confronto direto,
+  Median-Buchholz, saldo de mapas. O site sugere a rodada (mesma pontuação, meio grupo abaixo, sem revanche; com 10
+  empatados dá 1×6, 2×7…) e o organizador ajusta antes de criar, porque a tabela oficial é a dele. Depois da última
+  rodada, os `swiss_advance` primeiros vão pra chave padrão (1×8, 4×5 / 2×7, 3×6). Formato escolhido na criação.

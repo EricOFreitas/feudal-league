@@ -6,7 +6,7 @@ import { RM_1V1 } from '@aoe2/aoe-api';
 import { db, divisions, leagueMembers, leagues, players } from '@aoe2/db';
 import {
   AUTO_JOIN_MAX_MEMBERS, MATCH_SCOPES, PODIUM_MIN_GAMES, activeSeason, divisionCounts, lastEndedSeason, leagueMatchList, leagueTournaments, leagueWebhookActive, monthGames, monthProgress, mySparring, placementFor, seasonMonth, sparringFor, benchmarksForLeague, challengeCompleters, challengeOf, challengeTarget,
-  searchStandings, standingsPage, type RankedRow, type SearchRow,
+  searchStandings, standingsPage, tournamentStatusKey, type RankedRow, type SearchRow,
 } from '@aoe2/sync';
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Link } from '@/i18n/navigation';
@@ -30,7 +30,7 @@ type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: 
 const PAGE_SIZE = 25;
 const MATCHES_FIRST = 10;
 const MATCHES_MORE = 50;
-const TOURNAMENT_STATUS = ['open', 'groups', 'running', 'finished', 'cancelled'] as const;
+const TOURNAMENT_STATUS = ['open', 'groups', 'swiss', 'running', 'finished', 'cancelled'] as const;
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
 
@@ -379,13 +379,13 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               ) : (
                 <ul className="mt-2 space-y-3">
                   {tours.map((tour) => {
-                    const st = TOURNAMENT_STATUS.find((s) => s === tour.status);
+                    const st = TOURNAMENT_STATUS.find((s) => s === tournamentStatusKey({ ...tour, registrationClosed: false }));
                     return (
                       <li key={tour.id}>
                         <Link href={`/tournaments/${tour.slug}`} className="block hover:!no-underline">
                           <span className="font-display text-lg text-gold-300">{tour.name}</span>
                           <span className="block text-sm text-parchment-300">
-                            {tt('format.size', { n: tour.teamSize })} · {tour.format === 'groups_elim' ? tx('tournaments.groups') : tx('tournaments.single')}
+                            {tt('format.size', { n: tour.teamSize })} · {tour.format === 'groups_elim' ? tx('tournaments.groups') : tour.format === 'swiss_elim' ? tt('swiss.short') : tx('tournaments.single')}
                             {st ? ` · ${tt(`status.${st}`)}` : ''}
                           </span>
                         </Link>

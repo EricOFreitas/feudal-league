@@ -12,6 +12,7 @@ export * from './bo-check';
 export * from './focus';
 export * from './challenges';
 export * from './tournaments';
+export * from './swiss';
 export * from './status';
 export * from './snapshots';
 export * from './notify';

@@ -52,6 +52,66 @@
       "lost": "Lost to {name}",
       "pending": "TBD",
       "or": "{a} or {b}"
+    },
+    "status": {
+      "swiss": "Swiss stage"
+    },
+    "new": {
+      "format": "Format",
+      "formats": {
+        "single_elim": "Knockout",
+        "groups_elim": "Groups + knockout",
+        "swiss_elim": "Swiss + knockout"
+      },
+      "formatHints": {
+        "single_elim": "Single elimination from the first round.",
+        "groups_elim": "Round-robin groups; the best of each group go to the knockout.",
+        "swiss_elim": "Everyone plays every round and winners face winners, with no rematches. The best of the final table go to the knockout."
+      },
+      "swissRounds": "Swiss rounds",
+      "swissAdvance": "Advance to the knockout",
+      "swissBestOf": "Each round: best of",
+      "swissPlayAll": "Play every game of the series",
+      "swissPlayAllHint": "The series only closes after every game, even if a team already has the majority. Winning the series is worth 1 point; the map score is a tiebreaker.",
+      "errors": {
+        "swiss": "Swiss needs at least 1 round."
+      }
+    },
+    "swiss": {
+      "title": "Swiss stage",
+      "format": "Swiss, {rounds} rounds + top {adv} knockout",
+      "short": "Swiss + knockout",
+      "listLine": "Swiss, {rounds} rounds, {adv} advance",
+      "bestOfLine": "rounds best of {n}",
+      "playAllLine": "rounds of {n} games",
+      "nextPlayAll": "{n} games, all played; the series is worth 1 point",
+      "roundOf": "Round {n} of {total}",
+      "intro": "{rounds} rounds: winners face winners, with no rematches. Winning a series is worth 1 point. After the last round, the top {adv} go to the knockout: the best placed team faces the lowest qualifier, and so on.",
+      "bye": "bye: {name} (counts as a win)",
+      "qualify": "qualify for the knockout",
+      "tiebreak": "Tiebreak: head-to-head among tied teams, MB (Median-Buchholz: opponents' points without the best and the worst), map difference.",
+      "col": {
+        "maps": "Maps",
+        "mb": "MB",
+        "mbTitle": "Median-Buchholz: opponents' points, without the best and the worst"
+      },
+      "plan": {
+        "title": "Set up round {n}",
+        "hint": "Site suggestion: teams with the same points, no rematches. If your official table is different, change the teams before creating.",
+        "bye": "Bye (counts as a win)",
+        "submit": "Create round {n}"
+      },
+      "undoRound": "Undo round {n}",
+      "undoRoundHint": "Deletes this round's matches. Only shown while none of its games has been recorded.",
+      "created": "Round created.",
+      "undone": "Round undone.",
+      "startHint": "Set up round 1 in the <a>Swiss stage</a>. After that no more teams can join.",
+      "bracketLater": "The bracket becomes available after round {total}."
+    },
+    "err": {
+      "round_open": "The current round still has open matches.",
+      "rounds_done": "All Swiss rounds have already been created.",
+      "pairs": "Each confirmed team must appear exactly once in the pairings."
     }
   }
 }

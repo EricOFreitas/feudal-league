@@ -52,6 +52,66 @@
       "lost": "Perdeu pra {name}",
       "pending": "a definir",
       "or": "{a} ou {b}"
+    },
+    "status": {
+      "swiss": "Fase suíça"
+    },
+    "new": {
+      "format": "Formato",
+      "formats": {
+        "single_elim": "Mata-mata",
+        "groups_elim": "Grupos + mata-mata",
+        "swiss_elim": "Suíço + mata-mata"
+      },
+      "formatHints": {
+        "single_elim": "Eliminação simples desde a primeira rodada.",
+        "groups_elim": "Grupos em pontos corridos; os melhores de cada grupo vão para o mata-mata.",
+        "swiss_elim": "Todo mundo joga todas as rodadas e quem vence enfrenta quem venceu, sem repetir adversário. Os melhores da classificação final vão para o mata-mata."
+      },
+      "swissRounds": "Rodadas do suíço",
+      "swissAdvance": "Avançam para o mata-mata",
+      "swissBestOf": "Cada rodada: melhor de",
+      "swissPlayAll": "Jogar todos os jogos da série",
+      "swissPlayAllHint": "A série só fecha depois de todos os jogos, mesmo que um time já tenha a maioria. Vencer a série vale 1 ponto; o placar em mapas entra no desempate.",
+      "errors": {
+        "swiss": "No suíço, precisa de pelo menos 1 rodada."
+      }
+    },
+    "swiss": {
+      "title": "Fase suíça",
+      "format": "Suíço em {rounds} rodadas + mata-mata com {adv}",
+      "short": "suíço + mata-mata",
+      "listLine": "suíço em {rounds} rodadas, {adv} avançam",
+      "bestOfLine": "rodadas melhor de {n}",
+      "playAllLine": "rodadas com {n} jogos",
+      "nextPlayAll": "{n} jogos, todos jogados; a série vale 1 ponto",
+      "roundOf": "Rodada {n} de {total}",
+      "intro": "{rounds} rodadas: quem vence enfrenta quem venceu, sem repetir adversário. Vencer a série vale 1 ponto. Depois da última rodada, os {adv} primeiros vão para o mata-mata: o melhor colocado enfrenta o último classificado, e assim por diante.",
+      "bye": "folga: {name} (conta como vitória)",
+      "qualify": "classificam para o mata-mata",
+      "tiebreak": "Desempate: confronto direto entre os empatados, MB (Median-Buchholz: soma dos pontos dos adversários sem o melhor e o pior), saldo de mapas.",
+      "col": {
+        "maps": "Mapas",
+        "mb": "MB",
+        "mbTitle": "Median-Buchholz: soma dos pontos dos adversários, sem o melhor e o pior"
+      },
+      "plan": {
+        "title": "Montar a rodada {n}",
+        "hint": "Sugestão do site: times com a mesma pontuação, sem repetir adversário. Se a tabela oficial for diferente, troque os times nos seletores antes de criar.",
+        "bye": "Folga (vale vitória)",
+        "submit": "Criar rodada {n}"
+      },
+      "undoRound": "Desfazer rodada {n}",
+      "undoRoundHint": "Apaga os confrontos desta rodada. Só aparece enquanto nenhum jogo dela foi registrado.",
+      "created": "Rodada criada.",
+      "undone": "Rodada desfeita.",
+      "startHint": "Monte a rodada 1 na <a>fase suíça</a>. Depois disso não entram mais times.",
+      "bracketLater": "A chave fica disponível depois da rodada {total}."
+    },
+    "err": {
+      "round_open": "A rodada atual ainda tem confronto em aberto.",
+      "rounds_done": "Todas as rodadas do suíço já foram criadas.",
+      "pairs": "Os confrontos precisam ter cada time confirmado exatamente uma vez."
     }
   }
 }

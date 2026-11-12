@@ -169,6 +169,13 @@
       "when": 1794374293329,
       "tag": "0023_numerous_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794492107246,
+      "tag": "0024_brief_kree",
+      "breakpoints": true
     }
   ]
 }

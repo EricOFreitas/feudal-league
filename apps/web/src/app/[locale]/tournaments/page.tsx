@@ -3,20 +3,20 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Search, Users } from 'lucide-react';
 import { db, leagues } from '@aoe2/db';
 import { inArray } from 'drizzle-orm';
-import { listTournaments, myTournaments, tournamentStatusKey } from '@aoe2/sync';
+import { listTournaments, myTournaments, tournamentStatusKey, type TournamentStatusKey } from '@aoe2/sync';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
 import { SITE_TZ } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<{ q?: string; f?: string; more?: string }> };
-type Status = 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled';
+type Status = TournamentStatusKey;
 
 const FILTERS = ['active', 'running', 'open', 'finished'] as const;
 type Filter = (typeof FILTERS)[number];
 const IN_FILTER: Record<Filter, (s: string) => boolean> = {
   active: (s) => s !== 'finished',
-  running: (s) => s === 'groups' || s === 'running',
+  running: (s) => s === 'groups' || s === 'swiss' || s === 'running',
   open: (s) => s === 'open', // 'closed' (inscrições encerradas) fica de fora
   finished: (s) => s === 'finished',
 };
@@ -25,6 +25,7 @@ const TONE: Record<string, { border: string; text: string }> & { finished: { bor
   open: { border: 'border-l-moss-500', text: 'border-moss-500 text-moss-500' },
   closed: { border: 'border-l-gold-400', text: 'border-gold-400 text-gold-300' },
   groups: { border: 'border-l-gold-400', text: 'border-gold-400 text-gold-300' },
+  swiss: { border: 'border-l-gold-400', text: 'border-gold-400 text-gold-300' },
   running: { border: 'border-l-gold-400', text: 'border-gold-400 text-gold-300' },
   finished: { border: 'border-l-parchment-400', text: 'border-parchment-400 text-parchment-400' },
 };
@@ -134,7 +135,7 @@ export default async function TournamentsPage({ params, searchParams }: Props) {
                         {mineMap.has(x.id) && <span className="tag !border-moss-500 text-parchment-50">{t('joined')}</span>}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 text-sm text-parchment-300">
-                        <span>{x.groupCount > 0 ? t('format.groups', { n: x.groupCount, adv: x.advancePerGroup }) : t('format.knockout')}</span>
+                        <span>{x.format === 'swiss_elim' ? t('swiss.listLine', { rounds: x.swissRounds, adv: x.swissAdvance }) : x.groupCount > 0 ? t('format.groups', { n: x.groupCount, adv: x.advancePerGroup }) : t('format.knockout')}</span>
                         <span>· {t('format.size', { n: x.teamSize })} · {t('format.bestOf', { n: x.bestOf })}</span>
                         <span className="inline-flex items-center gap-1">· <Users className="h-3.5 w-3.5" />{x.maxTeams ? t('teamsOf', { count: teams, max: x.maxTeams }) : t('teams', { count: teams })}</span>
                       </div>

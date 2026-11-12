@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { GroupRow, MatchFull, TeamFull } from '@aoe2/sync';
-import { reportGameAction, undoGameAction } from '@/app/[locale]/tournaments/actions';
+import { StageMatchRow } from './stage-match-row';
 
 type Labels = {
   group: (n: number) => string;
@@ -33,14 +33,6 @@ export function GroupStage({ standings, matches, teams, advancePerGroup, isOwner
   const groupMatches = matches.filter((m) => m.stage === 'group');
   const rounds = [...new Set(groupMatches.map((m) => m.round))].sort((a, b) => a - b);
   const num = 'py-1.5 text-center tabular-nums';
-
-  const ReportButton = ({ m, teamId }: { m: MatchFull; teamId: number }) => (
-    <form action={reportGameAction} className="flex-none">
-      {hidden}<input type="hidden" name="matchId" value={m.id} /><input type="hidden" name="winnerTeamId" value={teamId} />
-      <button type="submit" title={labels.report(name(teamId))} aria-label={labels.report(name(teamId))}
-        className="cursor-pointer rounded-[2px] border border-gold-700/70 px-1.5 text-[0.7rem] leading-5 text-gold-300 hover:bg-gold-700/25">+1</button>
-    </form>
-  );
 
   return (
     <div className="space-y-8">
@@ -83,33 +75,7 @@ export function GroupStage({ standings, matches, teams, advancePerGroup, isOwner
             <section key={round}>
               <p className="kicker mb-2">{labels.round(round)}</p>
               <ul className="panel divide-y divide-gold-700/30 !p-0">
-                {ms.map((m) => {
-                  const done = m.status === 'done' || m.status === 'walkover';
-                  const open = m.status === 'ready';
-                  const tone = (id: number | null) => (done ? (m.winnerTeamId === id ? 'font-semibold text-gold-300' : 'text-parchment-400') : 'text-parchment-50');
-                  return (
-                    <li key={m.id} className={`grid items-center gap-x-3 px-3 py-2 text-sm sm:px-4 ${isOwner ? 'grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto]' : 'grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)]'}`}>
-                      <span className="rounded-[2px] border border-gold-700/60 px-1.5 text-[0.68rem] text-parchment-300">G{m.groupNo}</span>
-                      <span className="flex min-w-0 items-center justify-end gap-2">
-                        <span className={`truncate ${tone(m.teamAId)}`}>{name(m.teamAId)}</span>
-                        {isOwner && open && m.teamAId && <ReportButton m={m} teamId={m.teamAId} />}
-                      </span>
-                      <span className={`stat-num w-14 text-center ${m.games.length > 0 ? 'text-parchment-50' : 'text-parchment-400'}`}>{m.scoreA} – {m.scoreB}</span>
-                      <span className="flex min-w-0 items-center gap-2">
-                        {isOwner && open && m.teamBId && <ReportButton m={m} teamId={m.teamBId} />}
-                        <span className={`truncate ${tone(m.teamBId)}`}>{name(m.teamBId)}</span>
-                      </span>
-                      {isOwner && (
-                        m.games.length > 0 ? (
-                          <form action={undoGameAction}>
-                            {hidden}<input type="hidden" name="matchId" value={m.id} />
-                            <button type="submit" title={labels.undo} aria-label={labels.undo} className="cursor-pointer px-1 text-parchment-400 hover:text-crimson-500">↶</button>
-                          </form>
-                        ) : <span className="w-5" />
-                      )}
-                    </li>
-                  );
-                })}
+                {ms.map((m) => <StageMatchRow key={m.id} m={m} name={name} tag={`G${m.groupNo}`} isOwner={isOwner} hidden={hidden} labels={{ report: labels.report, undo: labels.undo }} />)}
                 {byes.length > 0 && <li className="px-3 py-2 text-xs text-parchment-400 sm:px-4">{labels.bye(byes.join(' · '))}</li>}
               </ul>
             </section>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { canManageTournament, tournamentBySlug, tournamentImageVersion, tournamentOrganizersOf } from '@aoe2/sync';
+import { TOURNAMENT_FORMATS, canManageTournament, tournamentBySlug, tournamentImageVersion, tournamentOrganizersOf, type TournamentFormat } from '@aoe2/sync';
 import { addOrganizerAction, removeOrganizerAction } from '../../actions';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { redirect } from '@/i18n/navigation';
@@ -44,7 +44,8 @@ export default async function EditTournamentPage({ params, searchParams }: Props
           imageUrl={imageV ? `/api/tournaments/${tour.id}/image?v=${imageV}` : null}
           initial={{
             name: tour.name, description: tour.description ?? '', organizerName: tour.organizerName ?? '', organizerUrl: tour.organizerUrl ?? '', registrationClosed: tour.registrationClosed, teamSize: tour.teamSize, maxTeams: tour.maxTeams, bestOf: tour.bestOf, finalBestOf: tour.finalBestOf,
-            startsAt: toBrasiliaLocalInput(tour.startsAt), prize: tour.prize ?? '', groupCount: tour.groupCount, advancePerGroup: tour.advancePerGroup,
+            startsAt: toBrasiliaLocalInput(tour.startsAt), prize: tour.prize ?? '', format: (TOURNAMENT_FORMATS as readonly string[]).includes(tour.format) ? (tour.format as TournamentFormat) : 'single_elim',
+            groupCount: tour.groupCount, advancePerGroup: tour.advancePerGroup, swissRounds: tour.swissRounds, swissAdvance: tour.swissAdvance,
             groupBestOf: tour.groupBestOf, groupPlayAll: tour.groupPlayAll, maxPeakRating: tour.maxPeakRating, minGames: tour.minGames, minRecentGames: tour.minRecentGames,
           }}
         />

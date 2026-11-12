@@ -377,9 +377,9 @@ async function loadItems(hookLeagueIds: number[]): Promise<Item[]> {
     const winnerId = scoreA >= need ? m.teamAId : scoreB >= need ? m.teamBId : null;
     const winner = winnerId === m.teamAId ? m.teamA?.name : m.teamB?.name;
     const last = lastRound.get(t.id) ?? m.round;
-    const round = m.stage === 'group' ? `Grupo ${m.groupNo ?? '?'} · Rodada ${m.round}`
+    const round = m.stage === 'group' ? `Grupo ${m.groupNo ?? '?'} · Rodada ${m.round}` : m.stage === 'swiss' ? `Suíço · Rodada ${m.round}`
       : last - m.round === 0 ? 'Final' : last - m.round === 1 ? 'Semifinal' : last - m.round === 2 ? 'Quartas de final' : last - m.round === 3 ? 'Oitavas de final' : `Rodada ${m.round}`;
-    const closed = winnerId && winner ? { winner, outcome: m.stage === 'group' ? 'group' as const : m.nextMatchId == null ? 'champion' as const : 'advances' as const } : null;
+    const closed = winnerId && winner ? { winner, outcome: m.stage === 'group' || m.stage === 'swiss' ? 'group' as const : m.nextMatchId == null ? 'champion' as const : 'advances' as const } : null;
     const leagueId = t.leagueId;
     items.push({
       leagueId, event: 'tournament', at: g.playedAt, divisionId: null,

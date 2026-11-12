@@ -3,12 +3,13 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ExternalLink, ShieldCheck, Trophy, Users } from 'lucide-react';
 import { db, leagues, players } from '@aoe2/db';
-import { canManageTournament, eligibilityOf, groupStandings, rm1v1RatingsOf, tournamentBySlug, tournamentImageVersion, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull } from '@aoe2/sync';
+import { canManageTournament, eligibilityOf, groupStandings, rm1v1RatingsOf, suggestSwissRound, swissProgress, swissStandings, tournamentBySlug, tournamentImageVersion, tournamentStatusKey, type GroupRow, type MatchFull, type TeamFull, type TournamentStatusKey } from '@aoe2/sync';
 import { eq } from 'drizzle-orm';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Bracket } from '@/components/bracket';
 import { Flag } from '@/components/flag';
 import { GroupStage } from '@/components/group-stage';
+import { SwissStage } from '@/components/swiss-stage';
 import { Linkified } from '@/components/linkified';
 import { Link } from '@/i18n/navigation';
 import { sessionPlayer } from '@/lib/leagues';
@@ -16,8 +17,8 @@ import { addTeamAction, cancelAction, redrawGroupsAction, registerTeamAction, re
 import { SITE_TZ } from '@/lib/format';
 
 type Props = { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ ok?: string; err?: string; id?: string; rules?: string }> };
-type Status = 'open' | 'closed' | 'groups' | 'running' | 'finished' | 'cancelled';
-const ERRS = ['closed', 'full', 'size', 'player_taken', 'player_missing', 'duplicate', 'ineligible', 'few_teams', 'groups_open', 'status', 'no_groups', 'has_games'] as const;
+type Status = TournamentStatusKey;
+const ERRS = ['closed', 'full', 'size', 'player_taken', 'player_missing', 'duplicate', 'ineligible', 'few_teams', 'groups_open', 'status', 'no_groups', 'has_games', 'round_open', 'rounds_done', 'pairs'] as const;
 type Err = (typeof ERRS)[number];
 const RULES = ['peak', 'games', 'recent', 'no_rating'] as const;
 type Rule = (typeof RULES)[number];
@@ -56,6 +57,11 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const undoable = bracketMatches.filter((m) => m.games.length > 0);
   const anyGame = tour.matches.some((m) => m.games.length > 0);
   const groupsDone = groupMatches.filter((m) => m.status === 'done' || m.status === 'walkover').length;
+  const isSwiss = tour.format === 'swiss_elim';
+  const swissMatches = tour.matches.filter((m) => m.stage === 'swiss');
+  const swiss = swissProgress(tour);
+  const swissDone = isSwiss && swiss.round >= tour.swissRounds && swiss.open === 0;
+  const lastSwissRound = swissMatches.filter((m) => m.round === swiss.round);
   // lateral: requisitos e inscrição só com inscrições abertas; organização só pro dono. Sem nada, o conteúdo ocupa a largura toda.
   const registrationOpen = tour.status === 'open' && !tour.registrationClosed;
   const showAside = registrationOpen || isOwner;
@@ -66,6 +72,9 @@ export default async function TournamentPage({ params, searchParams }: Props) {
     if (rs.length > 0) teamRatings.set(x.id, Math.round(rs.reduce((a, b) => a + b, 0) / rs.length));
   }
   const bracketRounds = Math.max(0, ...bracketMatches.map((m) => m.round));
+  const swissRows = isSwiss ? swissStandings(tour.teams, tour.matches) : [];
+  const swissPlan = isSwiss && isOwner ? suggestSwissRound(tour, teamRatings) : null;
+  const undoableRound = isSwiss && tour.status === 'groups' && swiss.round > 0 && lastSwissRound.every((m) => m.games.length === 0) ? swiss.round : null;
   const myMatch = myTeam && (tour.status === 'groups' || tour.status === 'running') ? tour.matches.find((m) => m.status === 'ready' && (m.teamAId === myTeam.id || m.teamBId === myTeam.id)) ?? null : null;
   const oppTeam = myMatch && myTeam ? teams.get((myMatch.teamAId === myTeam.id ? myMatch.teamBId : myMatch.teamAId) ?? -1) ?? null : null;
   const currentBracketRound = Math.min(Infinity, ...bracketMatches.filter((m) => m.status !== 'done' && m.status !== 'walkover').map((m) => m.round));
@@ -83,6 +92,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
   const roundName = (round: number, rounds: number) => (round === rounds ? t('final') : round === rounds - 1 ? t('semis') : round === rounds - 2 ? t('quarters') : t('round', { n: round }));
   const statusKey = tournamentStatusKey(tour);
   const currentLabel = tour.status === 'open' ? t(`status.${statusKey as 'open' | 'closed'}`) : tour.status === 'finished' ? t('status.finished')
+    : tour.status === 'groups' && isSwiss ? t('swiss.roundOf', { n: swiss.round, total: tour.swissRounds })
     : tour.status === 'groups' || !Number.isFinite(currentBracketRound) ? t('status.groups') : roundName(currentBracketRound, bracketRounds);
   const teamName = (id: number | null) => (id == null ? t('tbd') : teams.get(id)?.name ?? '?');
   const hidden = (
@@ -144,6 +154,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
       {flash.ok === 'registered' && <div className="panel border-moss-500 p-4 text-parchment-50">{t('register.done')}</div>}
       {flash.ok === 'edited' && isOwner && <div className="panel border-moss-500 p-4 text-parchment-50">{t('admin.edited')}</div>}
       {flash.ok === 'redrawn' && isOwner && <div className="panel border-moss-500 p-4 text-parchment-50">{t('admin.redrawn')}</div>}
+      {(flash.ok === 'round' || flash.ok === 'round_undone') && isOwner && <div className="panel border-moss-500 p-4 text-parchment-50">{t(flash.ok === 'round' ? 'swiss.created' : 'swiss.undone')}</div>}
       {flash.err && <div className="panel border-crimson-500 p-4 text-parchment-50">{errText(flash.err)}</div>}
 
       <header className="panel corners p-6">
@@ -156,9 +167,9 @@ export default async function TournamentPage({ params, searchParams }: Props) {
               <span className="tag"><Trophy className="h-3.5 w-3.5" />{t(`status.${statusKey as Status}`)}</span>
               <span className="tag"><Users className="h-3.5 w-3.5" />{t('format.size', { n: tour.teamSize })}</span>
               <span>{t('formatLine', {
-                format: tour.groupCount > 0 ? t('formatGroups') : t('formatKnockout'),
+                format: isSwiss ? t('swiss.format', { rounds: tour.swissRounds, adv: tour.swissAdvance }) : tour.groupCount > 0 ? t('formatGroups') : t('formatKnockout'),
                 teams: tour.maxTeams ? t('teamsOf', { count: activeTeamCount, max: tour.maxTeams }) : t('teams', { count: activeTeamCount }),
-                bestOf: [t('bestOfLine', { n: tour.bestOf }), tour.finalBestOf && tour.finalBestOf !== tour.bestOf ? t('finalBestOfLine', { n: tour.finalBestOf }) : null, tour.groupCount > 0 && tour.groupPlayAll ? t('format.groupPlayAll', { n: tour.groupBestOf }) : tour.groupCount > 0 && tour.groupBestOf !== tour.bestOf ? t('format.groupBestOf', { n: tour.groupBestOf }) : null].filter(Boolean).join(', '),
+                bestOf: [t('bestOfLine', { n: tour.bestOf }), tour.finalBestOf && tour.finalBestOf !== tour.bestOf ? t('finalBestOfLine', { n: tour.finalBestOf }) : null, isSwiss ? (tour.groupPlayAll ? t('swiss.playAllLine', { n: tour.groupBestOf }) : t('swiss.bestOfLine', { n: tour.groupBestOf })) : tour.groupCount > 0 && tour.groupPlayAll ? t('format.groupPlayAll', { n: tour.groupBestOf }) : tour.groupCount > 0 && tour.groupBestOf !== tour.bestOf ? t('format.groupBestOf', { n: tour.groupBestOf }) : null].filter(Boolean).join(', '),
               })}</span>
             </p>
             <p className="mt-2 flex flex-wrap gap-x-4 text-sm text-parchment-400">
@@ -191,7 +202,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
           {myMatch && myTeam && oppTeam && (
             <section className="flex flex-wrap items-start gap-4">
             <div className="panel min-w-0 flex-[1_1_320px] !border-gold-500 p-5">
-              <p className="kicker">{t('next.title', { round: myMatch.stage === 'group' ? t('group', { n: myMatch.groupNo ?? 0 }) : roundName(myMatch.round, bracketRounds) })}</p>
+              <p className="kicker">{t('next.title', { round: myMatch.stage === 'group' ? t('group', { n: myMatch.groupNo ?? 0 }) : myMatch.stage === 'swiss' ? t('swiss.roundOf', { n: myMatch.round, total: tour.swissRounds }) : roundName(myMatch.round, bracketRounds) })}</p>
               <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
                 {[myTeam, oppTeam].map((tm, i) => (
                   <div key={tm.id} className={i === 1 ? 'order-3 text-right' : 'order-1'}>
@@ -204,7 +215,7 @@ export default async function TournamentPage({ params, searchParams }: Props) {
               </div>
               <dl className="mt-4 grid grid-cols-2 gap-2 border-t border-gold-700/50 pt-3 text-sm">
                 <div><dt className="text-parchment-400">{t('next.when')}</dt><dd className="text-parchment-50">{myMatch.scheduledAt ? dt.format(myMatch.scheduledAt) : t('next.tba')}</dd></div>
-                <div><dt className="text-parchment-400">{t('next.format')}</dt><dd className="text-parchment-50">{myMatch.stage === 'group' && tour.groupPlayAll ? t('next.playAll', { n: myMatch.bestOf }) : t('next.bestOf', { n: myMatch.bestOf })}</dd></div>
+                <div><dt className="text-parchment-400">{t('next.format')}</dt><dd className="text-parchment-50">{myMatch.stage === 'group' && tour.groupPlayAll ? t('next.playAll', { n: myMatch.bestOf }) : myMatch.stage === 'swiss' && tour.groupPlayAll ? t('swiss.nextPlayAll', { n: myMatch.bestOf }) : t('next.bestOf', { n: myMatch.bestOf })}</dd></div>
               </dl>
               <ol className="mt-4 space-y-1.5 text-sm text-parchment-200">
                 <li><span className="font-display text-gold-300">I.</span> {t('next.step1', { size: t('format.size', { n: tour.teamSize }) })}</li>
@@ -249,6 +260,24 @@ export default async function TournamentPage({ params, searchParams }: Props) {
                   group: (n) => t('group', { n }), round: (n) => t('round', { n }), bye: (names) => t('groupStage.bye', { names }),
                   qualify: t('groupStage.qualify'), report: (name) => t('groupStage.report', { name }), undo: t('admin.undo'),
                   col: { rank: '#', team: t('col.team'), p: t('col.p'), w: t('col.w'), l: t('col.l'), gd: t('col.gd'), pts: t('col.pts') },
+                }}
+              />
+            </section>
+          )}
+
+          {isSwiss && (swissMatches.length > 0 || swissPlan) && (
+            <section id="swiss">
+              <div className="rule mb-5"><span className="kicker">{t('swiss.title')}</span></div>
+              <p className="mb-4 text-sm text-parchment-300">{t('swiss.intro', { rounds: tour.swissRounds, adv: tour.swissAdvance })}</p>
+              <SwissStage
+                rows={swissRows} matches={swissMatches} teams={teams} advance={tour.swissAdvance} isOwner={isOwner} plan={swissPlan}
+                activeTeams={tour.teams.filter((x) => x.status === 'confirmed')} undoableRound={undoableRound} hidden={hidden}
+                labels={{
+                  roundOf: (n) => t('swiss.roundOf', { n, total: tour.swissRounds }), bye: (name) => t('swiss.bye', { name }),
+                  qualify: t('swiss.qualify'), report: (name) => t('groupStage.report', { name }), undo: t('admin.undo'), tiebreak: t('swiss.tiebreak'),
+                  col: { rank: '#', team: t('col.team'), w: t('col.w'), l: t('col.l'), maps: t('swiss.col.maps'), mb: t('swiss.col.mb'), mbTitle: t('swiss.col.mbTitle'), pts: t('col.pts') },
+                  plan: { title: (n) => t('swiss.plan.title', { n }), hint: t('swiss.plan.hint'), vs: t('next.vs'), bye: t('swiss.plan.bye'), submit: (n) => t('swiss.plan.submit', { n }) },
+                  undoRound: (n) => t('swiss.undoRound', { n }), undoRoundHint: t('swiss.undoRoundHint'),
                 }}
               />
             </section>
@@ -332,27 +361,29 @@ export default async function TournamentPage({ params, searchParams }: Props) {
                   <button type="submit" className="btn btn-ghost">{t('admin.add')}</button>
                 </form>
               )}
-              {tour.status === 'open' && (
+              {tour.status === 'open' && isSwiss && <p className="text-xs text-parchment-400">{t.rich('swiss.startHint', { a: (chunks) => <a href="#swiss" className="text-gold-300">{chunks}</a> })}</p>}
+              {tour.status === 'open' && !isSwiss && (
                 <form action={tour.groupCount > 0 ? startGroupsAction : startBracketAction} className="space-y-1 text-sm">
                   {hidden}
                   <button type="submit" className="btn btn-primary w-full">{tour.groupCount > 0 ? t('admin.startGroups') : t('admin.startBracket')}</button>
                   <p className="text-xs text-parchment-400">{tour.groupCount > 0 ? t('admin.startGroupsHint') : t('admin.startBracketHint')}</p>
                 </form>
               )}
-              {tour.status === 'groups' && !anyGame && (
+              {tour.status === 'groups' && !isSwiss && !anyGame && (
                 <form action={redrawGroupsAction} className="space-y-1 text-sm">
                   {hidden}
                   <button type="submit" className="btn btn-ghost w-full justify-center">{t('admin.redraw')}</button>
                   <p className="text-xs text-parchment-400">{t('admin.redrawHint')}</p>
                 </form>
               )}
-              {tour.status === 'groups' && (groupsDone === groupMatches.length ? (
+              {tour.status === 'groups' && ((isSwiss ? swissDone : groupsDone === groupMatches.length) ? (
                 <form action={startBracketAction} className="space-y-1 text-sm">
                   {hidden}
                   <button type="submit" className="btn btn-primary w-full">{t('admin.startBracket')}</button>
                   <p className="text-xs text-parchment-400">{t('admin.startBracketHint')}</p>
                 </form>
-              ) : <p className="text-xs text-parchment-400">{t('groupStage.bracketLater', { done: groupsDone, total: groupMatches.length })}</p>)}
+              ) : isSwiss ? <p className="text-xs text-parchment-400">{t('swiss.bracketLater', { total: tour.swissRounds })}</p>
+                : <p className="text-xs text-parchment-400">{t('groupStage.bracketLater', { done: groupsDone, total: groupMatches.length })}</p>)}
               {openMatches.length > 0 && (
                 <div className="space-y-3 text-sm">
                   <p className="font-semibold text-parchment-200">{t('admin.report')}</p>

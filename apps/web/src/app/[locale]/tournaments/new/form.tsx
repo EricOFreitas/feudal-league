@@ -6,10 +6,13 @@ import { createTournamentAction, updateTournamentAction, type CreateState } from
 
 const SIZES = [1, 2, 3, 4];
 const BEST = [1, 3, 5];
+const FORMATS = ['single_elim', 'groups_elim', 'swiss_elim'] as const;
+type Format = (typeof FORMATS)[number];
 
 export type TournamentFormInitial = {
   name: string; description: string; organizerName: string; organizerUrl: string; registrationClosed: boolean; teamSize: number; maxTeams: number | null; bestOf: number; finalBestOf: number | null;
-  startsAt: string; prize: string; groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean;
+  startsAt: string; prize: string; format: Format; groupCount: number; advancePerGroup: number; groupBestOf: number; groupPlayAll: boolean;
+  swissRounds: number; swissAdvance: number;
   maxPeakRating: number | null; minGames: number | null; minRecentGames: number | null;
 };
 
@@ -27,7 +30,7 @@ type Props =
 
 const EMPTY: TournamentFormInitial = {
   name: '', description: '', organizerName: '', organizerUrl: '', registrationClosed: false, teamSize: 2, maxTeams: null, bestOf: 1, finalBestOf: null, startsAt: '', prize: '',
-  groupCount: 2, advancePerGroup: 2, groupBestOf: 1, groupPlayAll: false, maxPeakRating: null, minGames: null, minRecentGames: null,
+  format: 'single_elim', groupCount: 2, advancePerGroup: 2, groupBestOf: 1, groupPlayAll: false, swissRounds: 4, swissAdvance: 8, maxPeakRating: null, minGames: null, minRecentGames: null,
 };
 
 /** Formulário de torneio: cria (/tournaments/new) ou edita (/tournaments/[slug]/edit). */
@@ -39,7 +42,7 @@ export function TournamentForm(props: Props) {
   const formatLocked = edit && props.formatLocked;
   const sizeLocked = formatLocked || (edit && props.sizeLocked);
   const [state, action, pending] = useActionState<CreateState, FormData>(edit ? updateTournamentAction : createTournamentAction, null);
-  const [groups, setGroups] = useState(edit && init.groupCount > 0);
+  const [format, setFormat] = useState<Format>(init.format);
   const field = 'w-full rounded border border-gold-700/60 bg-stone-950/60 px-3 py-2 text-parchment-50 disabled:opacity-50';
   const label = 'block text-sm text-parchment-300';
   const num = (n: number | null) => (n == null ? '' : n);
@@ -87,23 +90,36 @@ export function TournamentForm(props: Props) {
       </div>
 
       <fieldset className="space-y-3 rounded border border-gold-700/40 p-4" disabled={formatLocked}>
-        <legend className="px-2 font-display text-gold-300">{t('groups')}</legend>
-        <label className="flex items-center gap-2 text-sm text-parchment-200">
-          <input type="checkbox" name="hasGroups" checked={groups} onChange={(e) => setGroups(e.target.checked)} /> {groups ? t('groups') : t('noGroups')}
+        <legend className="px-2 font-display text-gold-300">{t('format')}</legend>
+        <label className="block sm:max-w-sm">
+          <select name="format" value={format} onChange={(e) => setFormat(e.target.value as Format)} aria-label={t('format')} className={field}>
+            {FORMATS.map((f) => <option key={f} value={f}>{t(`formats.${f}`)}</option>)}
+          </select>
         </label>
-        {groups && (
-          <>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <label><span className={label}>{t('groupCount')}</span><input name="groupCount" type="number" min={1} max={16} defaultValue={init.groupCount || 2} className={field} /></label>
-              <label><span className={label}>{t('advance')}</span><input name="advancePerGroup" type="number" min={1} max={8} defaultValue={init.advancePerGroup} className={field} /></label>
-              <label><span className={label}>{t('groupBestOf')}</span>
-                <select name="groupBestOf" defaultValue={init.groupBestOf} className={field}>{BEST.map((n) => <option key={n} value={n}>{n}</option>)}</select></label>
-            </div>
-            <label className="flex items-start gap-2 text-sm text-parchment-200">
-              <input type="checkbox" name="groupPlayAll" defaultChecked={init.groupPlayAll} className="mt-1" />
-              <span>{t('groupPlayAll')}<span className="block text-xs text-parchment-400">{t('groupPlayAllHint')}</span></span>
-            </label>
-          </>
+        <p className="text-xs text-parchment-400">{t(`formatHints.${format}`)}</p>
+        {format === 'groups_elim' && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label><span className={label}>{t('groupCount')}</span><input name="groupCount" type="number" min={1} max={16} defaultValue={init.groupCount || 2} className={field} /></label>
+            <label><span className={label}>{t('advance')}</span><input name="advancePerGroup" type="number" min={1} max={8} defaultValue={init.advancePerGroup} className={field} /></label>
+            <label><span className={label}>{t('groupBestOf')}</span>
+              <select name="groupBestOf" defaultValue={init.groupBestOf} className={field}>{BEST.map((n) => <option key={n} value={n}>{n}</option>)}</select></label>
+          </div>
+        )}
+        {format === 'swiss_elim' && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label><span className={label}>{t('swissRounds')}</span><input name="swissRounds" type="number" min={1} max={12} defaultValue={init.swissRounds || 4} className={field} /></label>
+            <label><span className={label}>{t('swissAdvance')}</span><input name="swissAdvance" type="number" min={2} max={64} defaultValue={init.swissAdvance} className={field} /></label>
+            <label><span className={label}>{t('swissBestOf')}</span>
+              <select name="groupBestOf" defaultValue={init.groupBestOf} className={field}>{BEST.map((n) => <option key={n} value={n}>{n}</option>)}</select></label>
+          </div>
+        )}
+        {format !== 'single_elim' && (
+          <label className="flex items-start gap-2 text-sm text-parchment-200">
+            <input type="checkbox" name="groupPlayAll" defaultChecked={init.groupPlayAll} className="mt-1" />
+            {format === 'swiss_elim'
+              ? <span>{t('swissPlayAll')}<span className="block text-xs text-parchment-400">{t('swissPlayAllHint')}</span></span>
+              : <span>{t('groupPlayAll')}<span className="block text-xs text-parchment-400">{t('groupPlayAllHint')}</span></span>}
+          </label>
         )}
       </fieldset>
 
